@@ -1,0 +1,70 @@
+﻿// NOT NONE OF THESE SHADERS ARE OPTIMAL THEY ARE SIMPLE!!!
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+#pragma kernel CSRenderWipe
+
+#include "Assets\Compute\NoiseInclude.compute"
+
+int TexSize;
+int RandOffset;
+float DeltaTime;
+float4 RepelPoint;
+
+RWTexture2D<float4> Result;
+
+struct Particle
+{
+  float2 pos;
+  float2 dir;
+  float4 col;
+};
+
+RWStructuredBuffer<Particle> PartBuffer;
+
+// Draw Grid
+[numthreads(8, 8, 1)]
+void CSRenderWipe(uint3 id : SV_DispatchThreadID) {
+  Result[id.xy] = float4(
+    0.1f - ceil(fmod(id.x, 32.0f)), 
+    0.1f - ceil(fmod(id.y, 32.0f)), 0, 0);
+}
+
+// Main Thread
+[numthreads(10, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID) {
+  Particle p = PartBuffer[id.x];
+
+  // Update Force
+  float2 attDif = p.pos - RepelPoint.xy;
+  float attL = length(attDif);
+  p.dir.y += 2.0 * DeltaTime; // Gravity
+  p.dir += attDif * max(0, RepelPoint.z - attL) * RepelPoint.w * DeltaTime; // Repel
+
+  // Update Position
+  p.pos += p.dir * DeltaTime;
+
+  // Hit Border
+  if (p.pos.x < 0.0f) {
+    p.pos.x = 0 - p.pos.x;
+    p.dir.x = p.dir.x * -0.8f;
+  }
+  else if (p.pos.x > TexSize) {
+    p.pos.x = TexSize*2.0 - p.pos.x;
+    p.dir.x = p.dir.x * -0.8f;
+  }
+
+  if (p.pos.y < 0.0f) {
+    p.pos.y = 0 - p.pos.y;
+    p.dir.y = p.dir.y * -0.8f;
+  }
+  else if (p.pos.y > TexSize) {
+    p.pos.y = TexSize*2.0 - p.pos.y;
+    p.dir.y = p.dir.y * -0.8f;
+  }
+
+  p.col.w = length(p.dir);
+
+  // Render & Save
+  Result[p.pos] = float4(p.col.xyz, 1.0);
+  PartBuffer[id.x] = p;
+}
