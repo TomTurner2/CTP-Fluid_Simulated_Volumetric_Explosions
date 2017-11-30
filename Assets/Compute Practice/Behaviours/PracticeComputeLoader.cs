@@ -4,10 +4,13 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-[System.Serializable]
-public class TexUpdateEvent : UnityEvent<RenderTexture>  {};
 
-public class SineRedLoader : MonoBehaviour
+[System.Serializable]
+public class TexUpdateEvent : UnityEvent<RenderTexture>  {};//event that passes render texture
+
+
+[RequireComponent(typeof(Renderer))]
+public class PracticeComputeLoader : MonoBehaviour
 {
     [SerializeField] ComputeShader compute_shader;
     [SerializeField] TexUpdateEvent tex_update;
@@ -28,7 +31,7 @@ public class SineRedLoader : MonoBehaviour
 
     private void CreateRenderTexture()
     {
-        tex = new RenderTexture(256, 256, 24);
+        tex = new RenderTexture(512, 512, 24);
         tex.enableRandomWrite = true;//must be set before creation
         tex.Create();
 
@@ -46,8 +49,9 @@ public class SineRedLoader : MonoBehaviour
     private void UpdateTexture()
     {
         compute_shader.SetFloat("dt", Time.time);
-        compute_shader.Dispatch(kernel_handle, 256/8, 256/8, 1);
+        compute_shader.Dispatch(kernel_handle, 512/8, 512/8, 1);
         rend.material.SetTexture("_MainTex", tex);
+        rend.material.SetTexture("_EmissionMap", tex);
         tex_update.Invoke(tex);
     }
 
