@@ -1,0 +1,16 @@
+﻿#pragma kernel Multiply
+
+
+struct VectorMatrixPair//define the buffer, same way as in directx constant buffer
+{
+    float3 pos;
+    float4x4 mat;
+};
+
+RWStructuredBuffer<VectorMatrixPair> data_buffer;
+
+[numthreads(16,1,1)]
+void Multiply (uint3 id : SV_DispatchThreadID)
+{
+	data_buffer[id.x].pos = mul(data_buffer[id.x].mat, float4(data_buffer[id.x].pos, 1.0));//multiply the position by the matrix
+}

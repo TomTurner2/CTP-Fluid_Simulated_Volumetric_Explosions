@@ -1,0 +1,15 @@
+﻿// NOT NONE OF THESE SHADERS ARE OPTIMAL THEY ARE SIMPLE!!!
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+#include "Assets\Compute\NoiseInclude.compute"
+
+// Textures
+int RandOffset;
+RWTexture2D<float4> Result;
+
+// Random Noise Program
+[numthreads(8,8,1)]
+void CSMain(uint3 id : SV_DispatchThreadID) {
+  Result[id.xy] = snoise(float3(id.x,id.y,RandOffset));
+}
