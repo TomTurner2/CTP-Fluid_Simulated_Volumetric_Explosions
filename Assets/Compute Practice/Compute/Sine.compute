@@ -9,5 +9,5 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 	float r = sin(dt * 2);
 	r = clamp(r, 0, 1);
 
-	Result[id.xy] = float4(r, r, r, 1);
+	Result[id.xy] = float4(r, r, r, r);
 }

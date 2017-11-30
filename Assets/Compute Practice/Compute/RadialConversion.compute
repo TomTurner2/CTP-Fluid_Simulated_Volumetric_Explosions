@@ -6,7 +6,8 @@ float dt;
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-	float r = sin(dt * sin(id.y) + cos(id.x) * 2);
+	float radius = 0.9f;
+	float r = sin(dt * sin(id.y* radius) + cos(id.x* radius));
 	r = clamp(r, 0, 1);
 
 	Result[id.xy] = float4(r, r, r, r);
