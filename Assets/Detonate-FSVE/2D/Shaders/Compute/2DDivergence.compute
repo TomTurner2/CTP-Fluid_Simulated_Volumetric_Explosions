@@ -1,14 +1,41 @@
-﻿// Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel CSMain
+﻿RWTexture2D<float2> write_RG;
+RWTexture2D<float2> velocity;
+RWTexture2D<float> obstacles;
 
-// Create a RenderTexture with enableRandomWrite flag and set it
-// with cs.SetTexture
-RWTexture2D<float4> Result;
+float2 inverse_size;
 
-[numthreads(8,8,1)]
-void CSMain (uint3 id : SV_DispatchThreadID)
+float2 CheckSolidCells(float _obstacles, float2 _velocity)
 {
-	// TODO: insert actual code here!
+	if (_obstacles >  0.1f)//if solid
+		return float2(0,0);//velocity is zero
 
-	Result[id.xy] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
+	return _velocity;
+}
+
+#pragma kernel Divergence
+[numthreads(8,8,1)]
+void Divergence (uint3 id : SV_DispatchThreadID)
+{
+	//get cell neighbours velocity
+	float2 velocity_north = velocity[id.xy + float2(0, inverse_size.y)].xy;
+	float2 velocity_south = velocity[id.xy + float2(0, -inverse_size.y)].xy;
+	float2 velocity_east = velocity[id.xy + float2(inverse_size.x, 0)].xy;
+	float2 velocity_west = velocity[id.xy + float2(-inverse_size.x, 0)].xy;
+
+	//get cell neighbours obstacles
+	float obstacles_north = velocity[id.xy + float2(0, inverse_size.y)].xy;
+	float obstacles_south = velocity[id.xy + float2(0, -inverse_size.y)].xy;
+	float obstacles_east = velocity[id.xy + float2(inverse_size.x, 0)].xy;
+	float obstacles_west = velocity[id.xy + float2(-inverse_size.x, 0)].xy;
+
+	//set any solid cells to zero velocity
+	velocity_north = CheckSolidCells(obstacles_north, velocity_north);
+	velocity_south = CheckSolidCells(obstacles_south, velocity_south);
+	velocity_east = CheckSolidCells(obstacles_east, velocity_east);
+	velocity_west = CheckSolidCells(obstacles_west, velocity_west);
+
+	float divergence = 0.5f * (velocity_east.x - velocity_west.x +
+	velocity_north.y - velocity_south.y);
+
+	write_RG[id.xy] = float2(divergence, 0);
 }

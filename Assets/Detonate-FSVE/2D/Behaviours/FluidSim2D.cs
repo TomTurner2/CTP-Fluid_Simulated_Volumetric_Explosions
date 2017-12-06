@@ -19,7 +19,9 @@ public class FluidSim2D : MonoBehaviour
     private RenderTexture[] temperature_grids = new RenderTexture[2];
     private RenderTexture[] preassure_grids = new RenderTexture[2];
     private RenderTexture obstacle_grid;//will only read
+    private RenderTexture temp_grid;//used for storing temporary grid states
 
+    private Vector2 inverse_size = Vector2.zero;
     private Vector4 size = Vector4.zero;//vector4 to easily map to compute buffer
 
     //Number of threads required based on texture size
@@ -36,6 +38,7 @@ public class FluidSim2D : MonoBehaviour
     {
         ValidateTextureDimensions();
         CalculateSize();
+        CalculateInverseSize();
         CalculateThreadCount();
         CreateGridSets();//creates render texture grid sets
         SetBoundary();
@@ -52,6 +55,13 @@ public class FluidSim2D : MonoBehaviour
     private void CalculateSize()
     {
         size = new Vector4(sim_params.width, sim_params.height, 0, 0);
+    }
+
+
+    private void CalculateInverseSize()
+    {
+        inverse_size = new Vector2(1.0f / sim_params.width,
+            1.0f / sim_params.height);
     }
 
 
@@ -164,7 +174,14 @@ public class FluidSim2D : MonoBehaviour
 
     private void CalculateDivergence()
     {
-        
+        //set texture grids
+        int kernel_id = divergence.FindKernel("Divergence");
+        divergence.SetTexture(kernel_id, "write_RG", temp_grid);
+        divergence.SetTexture(kernel_id, "velocity", velocity_grids[READ]);
+        divergence.SetTexture(kernel_id, "obstacles", obstacle_grid);
+
+        //run calculation on GPU
+        divergence.Dispatch(kernel_id, x_thread_count, y_thread_count, 1);
     }
 
 
@@ -190,27 +207,28 @@ public class FluidSim2D : MonoBehaviour
     //Create all the required grids.
     private void CreateGridSets()
     {
-        CreateGridSet(velocity_grids, RenderTextureFormat.RGFloat, FilterMode.Bilinear);
-        CreateGridSet(density_grids, RenderTextureFormat.RFloat, FilterMode.Bilinear);
-        CreateGridSet(temperature_grids, RenderTextureFormat.RFloat, FilterMode.Bilinear);
-        CreateGridSet(preassure_grids, RenderTextureFormat.RFloat, FilterMode.Bilinear);
+        CreateGridSet(ref velocity_grids, RenderTextureFormat.RGFloat, FilterMode.Bilinear);
+        CreateGridSet(ref density_grids, RenderTextureFormat.RFloat, FilterMode.Bilinear);
+        CreateGridSet(ref temperature_grids, RenderTextureFormat.RFloat, FilterMode.Bilinear);
+        CreateGridSet(ref preassure_grids, RenderTextureFormat.RFloat, FilterMode.Bilinear);
 
         //Obstacles grid will only be read, so only one grid needed
-        CreateGrid(obstacle_grid, RenderTextureFormat.RFloat, FilterMode.Bilinear);
+        CreateGrid(ref obstacle_grid, RenderTextureFormat.RFloat, FilterMode.Bilinear);
+        CreateGrid(ref temp_grid, RenderTextureFormat.RGFloat, FilterMode.Bilinear);
     }
 
 
     //Create a read and write grid for the given grid set.
-    private void CreateGridSet(RenderTexture[] _grid, RenderTextureFormat _format,
+    private void CreateGridSet(ref RenderTexture[] _grid, RenderTextureFormat _format,
         FilterMode _filter)
     {
-        CreateGrid(_grid[READ], _format, _filter);
-        CreateGrid(_grid[WRITE], _format, _filter);
+        CreateGrid(ref _grid[READ], _format, _filter);
+        CreateGrid(ref _grid[WRITE], _format, _filter);
     }
 
 
     //Create and intialise the grid render texture.
-    private void CreateGrid(RenderTexture _grid, RenderTextureFormat _format, FilterMode _filter)
+    private void CreateGrid(ref RenderTexture _grid, RenderTextureFormat _format, FilterMode _filter)
     {
         _grid = new RenderTexture(sim_params.width, sim_params.height,
             0, _format, RenderTextureReadWrite.Linear)

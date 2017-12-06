@@ -18,7 +18,7 @@ void ApplyBuoyancy (uint3 id : SV_DispatchThreadID)
 	float cell_density = density[id.xy];
 	float2 cell_velocity = velocity[id.xy];
 
-	if (cell_temperature > ambient_temperature)//rise if hotter than normal temp
+	if (cell_temperature > ambient_temperature)//rise if hotter than normal temperature
 	{
 		cell_velocity += (dt * (cell_temperature - ambient_temperature) *
 		buoyancy - cell_density * weight) * up.xy;//buoyancy that factors in density weight and temperature effect
