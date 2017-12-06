@@ -19,7 +19,7 @@ public class FluidSim2D : MonoBehaviour
     private RenderTexture[] density_grids = new RenderTexture[2];
     private RenderTexture[] temperature_grids = new RenderTexture[2];
     private RenderTexture[] preassure_grids = new RenderTexture[2];
-    private RenderTexture obstacle_grid;
+    private RenderTexture obstacle_grid;//will only read
 
     private Vector4 size = Vector4.zero;//vector4 to easily map to compute buffer
 
@@ -38,7 +38,7 @@ public class FluidSim2D : MonoBehaviour
         ValidateTextureDimensions();
         CalculateSize();
         CalculateThreadCount();
-        CreateGridSets();
+        CreateGridSets();//creates render texture grid sets
         SetBoundary();
     }
 
@@ -109,8 +109,8 @@ public class FluidSim2D : MonoBehaviour
 
         //set texture grids
         int kernel_id = apply_advect.FindKernel("Advect");
-        apply_advect.SetTexture(kernel_id, "write_RG", _grid[WRITE]);
-        apply_advect.SetTexture(kernel_id, "read_RG", _grid[READ]);
+        apply_advect.SetTexture(kernel_id, "write_R", _grid[WRITE]);//ony 1 channel
+        apply_advect.SetTexture(kernel_id, "read_R", _grid[READ]);
         apply_advect.SetTexture(kernel_id, "velocity", velocity_grids[READ]);
         apply_advect.SetTexture(kernel_id, "obstacles", obstacle_grid);
 
@@ -122,7 +122,22 @@ public class FluidSim2D : MonoBehaviour
 
     private void ApplyAdvectionVelocity()
     {
-        
+        //set compute vars
+        apply_advect.SetFloat("dt", Time.deltaTime);
+        apply_advect.SetFloat("dissipation", sim_params.velocity_dissipation);
+        apply_advect.SetFloat("forward", 1.0f);
+        apply_advect.SetFloat("decay", 0.0f);
+
+        //set texture grids
+        int kernel_id = apply_advect.FindKernel("AdvectVelocity");
+        apply_advect.SetTexture(kernel_id, "read_RG", velocity_grids[READ]);//two channels to represent vector components
+        apply_advect.SetTexture(kernel_id, "write_RG", velocity_grids[WRITE]);
+        apply_advect.SetTexture(kernel_id, "velocity", velocity_grids[READ]);
+        apply_advect.SetTexture(kernel_id, "obstacles", obstacle_grid);
+
+        //run calculation on GPU
+        apply_advect.Dispatch(kernel_id, x_thread_count, y_thread_count, 1);
+        Swap(velocity_grids);//swap read and write velocity grids
     }
 
 
@@ -164,6 +179,9 @@ public class FluidSim2D : MonoBehaviour
         CreateGridSet(density_grids, RenderTextureFormat.RFloat, FilterMode.Bilinear);
         CreateGridSet(temperature_grids, RenderTextureFormat.RFloat, FilterMode.Bilinear);
         CreateGridSet(preassure_grids, RenderTextureFormat.RFloat, FilterMode.Bilinear);
+
+        //Obstacles grid will only be read, so only one grid needed
+        CreateGrid(obstacle_grid, RenderTextureFormat.RFloat, FilterMode.Bilinear);
     }
 
 
