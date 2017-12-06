@@ -1,14 +1,28 @@
-﻿// Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel CSMain
+﻿
+RWTexture2D<float2> write_RG;
+RWTexture2D<float2> velocity;
+RWTexture2D<float> density;
+RWTexture2D<float> temperature;
 
-// Create a RenderTexture with enableRandomWrite flag and set it
-// with cs.SetTexture
-RWTexture2D<float4> Result;
+float dt;
+float4 up;
+float ambient_temperature;
+float buoyancy;
+float weight;
 
+#pragma kernel ApplyBuoyancy
 [numthreads(8,8,1)]
-void CSMain (uint3 id : SV_DispatchThreadID)
+void ApplyBuoyancy (uint3 id : SV_DispatchThreadID)
 {
-	// TODO: insert actual code here!
+	float cell_temperature = temperature[id.xy];
+	float cell_density = density[id.xy];
+	float2 cell_velocity = velocity[id.xy];
 
-	Result[id.xy] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
+	if (cell_temperature > ambient_temperature)//rise if hotter than normal temp
+	{
+		cell_velocity += (dt * (cell_temperature - ambient_temperature) *
+		buoyancy - cell_density * weight) * up.xy;//buoyancy that factors in density weight and temperature effect
+	}
+
+	write_RG[id.xy] = cell_velocity;//write the new velocity
 }

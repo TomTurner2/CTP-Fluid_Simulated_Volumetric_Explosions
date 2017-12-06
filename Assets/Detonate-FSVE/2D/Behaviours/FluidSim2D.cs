@@ -9,7 +9,6 @@ public class FluidSim2D : MonoBehaviour
     //Compute shaders
     [SerializeField] ComputeShader jacobi = null;
     [SerializeField] ComputeShader advect = null;
-    [SerializeField] ComputeShader apply_advect = null;
     [SerializeField] ComputeShader buoyancy = null;
     [SerializeField] ComputeShader divergence = null;
     [SerializeField] ComputeShader obstacles = null;
@@ -102,20 +101,20 @@ public class FluidSim2D : MonoBehaviour
         float _forward = 1.0f)
     {
         //set compute vars
-        apply_advect.SetFloat("dt", Time.deltaTime);
-        apply_advect.SetFloat("forward", _forward);
-        apply_advect.SetFloat("dissipation", _dissipation);
-        apply_advect.SetFloat("decay", _decay);
+        advect.SetFloat("dt", Time.deltaTime);
+        advect.SetFloat("forward", _forward);
+        advect.SetFloat("dissipation", _dissipation);
+        advect.SetFloat("decay", _decay);
 
         //set texture grids
-        int kernel_id = apply_advect.FindKernel("Advect");
-        apply_advect.SetTexture(kernel_id, "write_R", _grid[WRITE]);//ony 1 channel
-        apply_advect.SetTexture(kernel_id, "read_R", _grid[READ]);
-        apply_advect.SetTexture(kernel_id, "velocity", velocity_grids[READ]);
-        apply_advect.SetTexture(kernel_id, "obstacles", obstacle_grid);
+        int kernel_id = advect.FindKernel("Advect");
+        advect.SetTexture(kernel_id, "write_R", _grid[WRITE]);//ony 1 channel
+        advect.SetTexture(kernel_id, "read_R", _grid[READ]);
+        advect.SetTexture(kernel_id, "velocity", velocity_grids[READ]);
+        advect.SetTexture(kernel_id, "obstacles", obstacle_grid);
 
         //run calculation on GPU
-        apply_advect.Dispatch(kernel_id, x_thread_count, y_thread_count, 1);
+        advect.Dispatch(kernel_id, x_thread_count, y_thread_count, 1);
         Swap(_grid);//swap read and write grids
     }
 
@@ -123,27 +122,43 @@ public class FluidSim2D : MonoBehaviour
     private void ApplyAdvectionVelocity()
     {
         //set compute vars
-        apply_advect.SetFloat("dt", Time.deltaTime);
-        apply_advect.SetFloat("dissipation", sim_params.velocity_dissipation);
-        apply_advect.SetFloat("forward", 1.0f);
-        apply_advect.SetFloat("decay", 0.0f);
+        advect.SetFloat("dt", Time.deltaTime);
+        advect.SetFloat("dissipation", sim_params.velocity_dissipation);
+        advect.SetFloat("forward", 1.0f);
+        advect.SetFloat("decay", 0.0f);
 
         //set texture grids
-        int kernel_id = apply_advect.FindKernel("AdvectVelocity");
-        apply_advect.SetTexture(kernel_id, "read_RG", velocity_grids[READ]);//two channels to represent vector components
-        apply_advect.SetTexture(kernel_id, "write_RG", velocity_grids[WRITE]);
-        apply_advect.SetTexture(kernel_id, "velocity", velocity_grids[READ]);
-        apply_advect.SetTexture(kernel_id, "obstacles", obstacle_grid);
+        int kernel_id = advect.FindKernel("AdvectVelocity");
+        advect.SetTexture(kernel_id, "read_RG", velocity_grids[READ]);//two channels to represent vector components
+        advect.SetTexture(kernel_id, "write_RG", velocity_grids[WRITE]);
+        advect.SetTexture(kernel_id, "velocity", velocity_grids[READ]);
+        advect.SetTexture(kernel_id, "obstacles", obstacle_grid);
 
         //run calculation on GPU
-        apply_advect.Dispatch(kernel_id, x_thread_count, y_thread_count, 1);
+        advect.Dispatch(kernel_id, x_thread_count, y_thread_count, 1);
         Swap(velocity_grids);//swap read and write velocity grids
     }
 
 
     private void ApplyBuoyency()
     {
+        //set compute vars
+        buoyancy.SetFloat("dt", Time.deltaTime);
+        buoyancy.SetVector("up", new Vector4(0,1,0,0));//y is up
+        buoyancy.SetFloat("weight", sim_params.smoke_weight);
+        buoyancy.SetFloat("buoyancy", sim_params.smoke_buoyancy);
+        buoyancy.SetFloat("ambient_temperature", sim_params.ambient_temperature);
+
+        //set texture grids
+        int kernel_id = buoyancy.FindKernel("ApplyBuoyancy");
+        buoyancy.SetTexture(kernel_id, "temperature", temperature_grids[READ]);
+        buoyancy.SetTexture(kernel_id, "write_RG",  velocity_grids[WRITE]);
+        buoyancy.SetTexture(kernel_id, "velocity", velocity_grids[READ]);
+        buoyancy.SetTexture(kernel_id, "density", density_grids[READ]);
         
+        //run calculation on GPU
+        buoyancy.Dispatch(kernel_id, x_thread_count, y_thread_count, 1);
+        Swap(velocity_grids);
     }
 
 
