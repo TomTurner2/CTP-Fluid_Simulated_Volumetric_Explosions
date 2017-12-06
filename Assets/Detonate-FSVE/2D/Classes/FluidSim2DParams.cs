@@ -5,9 +5,6 @@ using UnityEngine;
 [System.Serializable]
 public class FluidSim2DParams
 {
-    [Header("Visuals")]
-    public Color fluid_colour = Color.white;
-
     [Space] [Header("Simulation")]
     public int width = 512;
     public int height = 512;
