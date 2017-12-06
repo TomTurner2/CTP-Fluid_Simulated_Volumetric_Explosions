@@ -103,7 +103,6 @@ public class FluidSim2D : MonoBehaviour
     {
         //set compute vars
         apply_advect.SetFloat("dt", Time.deltaTime);
-        apply_advect.SetVector("size", size);
         apply_advect.SetFloat("forward", _forward);
         apply_advect.SetFloat("dissipation", _dissipation);
         apply_advect.SetFloat("decay", _decay);

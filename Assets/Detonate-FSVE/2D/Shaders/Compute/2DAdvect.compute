@@ -4,7 +4,6 @@ float dt;
 float dissipation;
 float decay;
 float forward;
-float4 size;
 
 RWTexture2D<float2> velocity;
 RWTexture2D<float2> obstacles;
