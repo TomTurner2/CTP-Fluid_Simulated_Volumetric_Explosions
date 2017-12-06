@@ -110,8 +110,8 @@ public class FluidSim2D : MonoBehaviour
 
         //set texture grids
         int kernel_id = apply_advect.FindKernel("Advect");
-        apply_advect.SetTexture(kernel_id, "write", _grid[WRITE]);
-        apply_advect.SetTexture(kernel_id, "read", _grid[READ]);
+        apply_advect.SetTexture(kernel_id, "write_RG", _grid[WRITE]);
+        apply_advect.SetTexture(kernel_id, "read_RG", _grid[READ]);
         apply_advect.SetTexture(kernel_id, "velocity", velocity_grids[READ]);
         apply_advect.SetTexture(kernel_id, "obstacles", obstacle_grid);
 
