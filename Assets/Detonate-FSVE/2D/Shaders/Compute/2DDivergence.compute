@@ -23,10 +23,10 @@ void Divergence (uint3 id : SV_DispatchThreadID)
 	float2 velocity_west = velocity[id.xy + float2(-inverse_size.x, 0)].xy;
 
 	//get cell neighbours obstacles
-	float obstacles_north = velocity[id.xy + float2(0, inverse_size.y)].xy;
-	float obstacles_south = velocity[id.xy + float2(0, -inverse_size.y)].xy;
-	float obstacles_east = velocity[id.xy + float2(inverse_size.x, 0)].xy;
-	float obstacles_west = velocity[id.xy + float2(-inverse_size.x, 0)].xy;
+	float obstacles_north = obstacles[id.xy + float2(0, inverse_size.y)].x;
+	float obstacles_south = obstacles[id.xy + float2(0, -inverse_size.y)].x;
+	float obstacles_east = obstacles[id.xy + float2(inverse_size.x, 0)].x;
+	float obstacles_west = obstacles[id.xy + float2(-inverse_size.x, 0)].x;
 
 	//set any solid cells to zero velocity
 	velocity_north = CheckSolidCells(obstacles_north, velocity_north);
