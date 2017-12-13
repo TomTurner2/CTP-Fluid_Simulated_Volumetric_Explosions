@@ -1,6 +1,6 @@
 ﻿#pragma kernel Boundary
 
-RWStructuredBuffer<float> write_R;
+RWTexture2D<float> write_R;
 float2 inverse_size;
 
 [numthreads(8,8,1)]

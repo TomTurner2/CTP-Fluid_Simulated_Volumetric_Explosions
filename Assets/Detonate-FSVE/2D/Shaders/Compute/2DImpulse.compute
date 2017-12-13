@@ -1,0 +1,23 @@
+﻿#pragma kernel Impulse
+
+float source_amount;
+float radius;
+float dt;
+float2 source_pos;
+float2 inverse_size;
+
+RWTexture2D<float> write_R;
+RWTexture2D<float> read_R;
+
+[numthreads(8,8,1)]
+void Impulse (uint3 id : SV_DispatchThreadID)
+{
+	float2 pos = id / inverse_size - source_pos.xy;
+	float magnitude = pos.x * pos.x + pos.y * pos.y;
+	float radius_squared = radius * radius;
+
+	//Gauss Impulse
+	float amount = exp(-magnitude/radius_squared) * source_amount * dt;
+
+	write_R[id.xy] = read_R[id.xy] + amount;
+}
