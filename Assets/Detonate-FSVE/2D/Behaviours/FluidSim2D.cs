@@ -19,6 +19,7 @@ namespace Detonate
         [SerializeField] ComputeShader advect = null;
         [SerializeField] ComputeShader buoyancy = null;
         [SerializeField] ComputeShader divergence = null;
+        [SerializeField] ComputeShader projection = null;
         [SerializeField] ComputeShader obstacles = null;
 
         [Space] 
@@ -37,7 +38,6 @@ namespace Detonate
 
         //Number of threads required based on texture size
         private int x_thread_count = 0;
-
         private int y_thread_count = 0;
 
         //Constants
@@ -202,7 +202,7 @@ namespace Detonate
             {
                 jacobi.SetTexture(kernel_id, "write_R", preassure_grids[WRITE]);
                 jacobi.SetTexture(kernel_id, "pressure", preassure_grids[READ]);
-                jacobi.Dispatch(0, x_thread_count, y_thread_count, 1);
+                jacobi.Dispatch(kernel_id, x_thread_count, y_thread_count, 1);
                 Swap(preassure_grids);
             }
         }
@@ -210,13 +210,24 @@ namespace Detonate
 
         private void CalculateProjection()
         {
+            int kernel_id = projection.FindKernel("Projection");
+            projection.SetTexture(kernel_id, "obstacles", obstacle_grid);
+            projection.SetVector("inverse_size", inverse_size);
+            projection.SetTexture(kernel_id, "pressure", preassure_grids[READ]);
+            projection.SetTexture(kernel_id, "velocity", velocity_grids[READ]);
+            projection.SetTexture(kernel_id, "write_RG", velocity_grids[WRITE]);
 
+            projection.Dispatch(kernel_id, x_thread_count, y_thread_count, 1);
+            Swap(velocity_grids);
         }
 
 
         private void SetBoundary()
         {
-
+            int kernel_id = obstacles.FindKernel("Boundary");
+            obstacles.SetVector("inverse_size", inverse_size);
+            obstacles.SetTexture(kernel_id, "write_R", obstacle_grid);
+            obstacles.Dispatch(kernel_id, x_thread_count, y_thread_count, 1);
         }
 
 

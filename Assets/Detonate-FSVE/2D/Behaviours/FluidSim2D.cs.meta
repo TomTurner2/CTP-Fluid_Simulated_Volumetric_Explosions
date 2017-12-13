@@ -1,10 +1,15 @@
 fileFormatVersion: 2
 guid: 89b5bf857494b714a9dd0d3881f834a6
-timeCreated: 1512060004
+timeCreated: 1513173277
 licenseType: Free
 MonoImporter:
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - jacobi: {fileID: 7200000, guid: 0f14ab0e870516f4cac7c11dabd1d711, type: 3}
+  - advect: {fileID: 7200000, guid: 3fb78a04045f7394b853f4b422796216, type: 3}
+  - buoyancy: {fileID: 7200000, guid: a6e2335f15a08a54d8fea255c7e043c9, type: 3}
+  - divergence: {fileID: 7200000, guid: 073d9e505a6234a419c73dad237989aa, type: 3}
+  - obstacles: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
