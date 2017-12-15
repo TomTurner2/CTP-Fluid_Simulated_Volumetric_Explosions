@@ -9,8 +9,6 @@ public class FluidSim2DParams
     public int width = 512;
     public int height = 512;
     public float jacobi_iterations = 40;
-    public float cell_size = 1;
-    public float gradient_scale = 1;
 
     [Header("Smoke")]
     public float smoke_buoyancy = 1.0f;

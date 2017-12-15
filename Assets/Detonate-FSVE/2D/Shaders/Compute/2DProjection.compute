@@ -4,7 +4,6 @@ RWTexture2D<float2> write_RG;
 RWTexture2D<float2> velocity;
 RWTexture2D<float> pressure;
 RWTexture2D<float> obstacles;
-float2 inverse_size;
 
 [numthreads(8,8,1)]
 void Projection (uint3 id : SV_DispatchThreadID)
@@ -16,10 +15,10 @@ void Projection (uint3 id : SV_DispatchThreadID)
 	}
 
 	//get neighbour coords
-	float2 north_id = id.xy + float2(0, inverse_size.y);
-	float2 south_id = id.xy + float2(0, -inverse_size.y);
-	float2 east_id = id.xy + float2(inverse_size.x, 0);
-	float2 west_id = id.xy + float2(-inverse_size.x, 0);
+	float2 north_id = id.xy + float2(0, 1);
+	float2 south_id = id.xy + float2(0, -1);
+	float2 east_id = id.xy + float2(1, 0);
+	float2 west_id = id.xy + float2(-1, 0);
 	
 	//get cell neighbours pressure
 	float pressure_north = pressure[north_id].x;
