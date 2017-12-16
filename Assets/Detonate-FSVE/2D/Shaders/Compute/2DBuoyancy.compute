@@ -1,8 +1,8 @@
 ﻿
 RWTexture2D<float2> write_RG;
-RWTexture2D<float2> velocity;
-RWTexture2D<float> density;
-RWTexture2D<float> temperature;
+Texture2D<float2> velocity;
+Texture2D<float> density;
+Texture2D<float> temperature;
 
 float dt;
 float4 up;

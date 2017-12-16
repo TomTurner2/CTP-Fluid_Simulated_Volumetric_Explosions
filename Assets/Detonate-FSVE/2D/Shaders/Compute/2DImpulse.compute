@@ -7,7 +7,7 @@ float2 source_pos;
 float2 size;
 
 RWTexture2D<float> write_R;
-RWTexture2D<float> read_R;
+Texture2D<float> read_R;
 
 [numthreads(8,8,1)]
 void Impulse (uint3 id : SV_DispatchThreadID)

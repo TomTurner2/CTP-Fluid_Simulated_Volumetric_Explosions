@@ -1,6 +1,7 @@
 ﻿RWTexture2D<float2> write_RG;
-RWTexture2D<float2> velocity;
-RWTexture2D<float> obstacles;
+Texture2D<float2> velocity;
+Texture2D<float> obstacles;
+float2 size;
 
 float2 CheckSolidCells(float _obstacles, float2 _velocity)
 {
@@ -14,17 +15,22 @@ float2 CheckSolidCells(float _obstacles, float2 _velocity)
 [numthreads(8,8,1)]
 void Divergence (uint3 id : SV_DispatchThreadID)
 {
+	uint2 north_id =  uint2(id.x, clamp(id.y + 1, 0, size.y));
+	uint2 south_id =  uint2(id.x, clamp(id.y - 1, 0, size.y));
+	uint2 east_id =  uint2(clamp(id.x - 1, 0, size.x), id.y);
+	uint2 west_id =  uint2(clamp(id.x + 1, 0, size.x), id.y);
+
 	//get cell neighbours velocity
-	float2 velocity_north = velocity[id.xy + float2(0, 1)].xy;
-	float2 velocity_south = velocity[id.xy + float2(0, -1)].xy;
-	float2 velocity_east = velocity[id.xy + float2(1, 0)].xy;
-	float2 velocity_west = velocity[id.xy + float2(-1, 0)].xy;
+	float2 velocity_north = velocity[north_id.xy].rg;
+	float2 velocity_south = velocity[south_id.xy].rg;
+	float2 velocity_east = velocity[east_id.xy].rg;
+	float2 velocity_west = velocity[west_id.xy].rg;
 
 	//get cell neighbours obstacles
-	float obstacles_north = obstacles[id.xy + float2(0, 1)].x;
-	float obstacles_south = obstacles[id.xy + float2(0, -1)].x;
-	float obstacles_east = obstacles[id.xy + float2(1, 0)].x;
-	float obstacles_west = obstacles[id.xy + float2(-1, 0)].x;
+	float obstacles_north = obstacles[north_id.xy].r;
+	float obstacles_south = obstacles[south_id.xy].r;
+	float obstacles_east = obstacles[east_id.xy].r;
+	float obstacles_west = obstacles[west_id.xy].r;
 
 	//set any solid cells to zero velocity
 	velocity_north = CheckSolidCells(obstacles_north, velocity_north);

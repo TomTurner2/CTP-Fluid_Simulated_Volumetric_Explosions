@@ -3,14 +3,14 @@ float dissipation;
 float decay;
 float forward;
 
-RWTexture2D<float2> velocity;
-RWTexture2D<float> obstacles;
+Texture2D<float2> velocity;
+Texture2D<float> obstacles;
 
 RWTexture2D<float2> write_RG;//render textures with RG channel to represent vector components
-RWTexture2D<float2> read_RG;
+Texture2D<float2> read_RG;
 
 RWTexture2D<float2> write_R;//render textures with only R channel to store single values
-RWTexture2D<float2> read_R;
+Texture2D<float2> read_R;
 
 
 float2 GetAdvectedPosition(float2 _position)
@@ -46,6 +46,6 @@ void AdvectVelocity(uint3 id : SV_DispatchThreadID)//for vector advection
 	}
 
 	float2 advect_pos = GetAdvectedPosition(id);
-	//render tex has bilinear filtering enabled so I can directly write the value and get smooth results
-	write_RG[id.xy] = max(0, read_RG[id.xy] *advect_pos * dissipation - decay);
+	//render tex has bilinear filtering enabled so I can directly write the value and get smooth results?
+	write_RG[id.xy] = max(0, read_RG[id.xy] * advect_pos * dissipation - decay);
 }

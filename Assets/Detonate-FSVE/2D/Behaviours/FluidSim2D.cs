@@ -45,8 +45,8 @@ namespace Detonate
         private RenderTexture[] velocity_grids = new RenderTexture[2];
         private RenderTexture[] density_grids = new RenderTexture[2];
         private RenderTexture[] temperature_grids = new RenderTexture[2];
-        private RenderTexture[] preassure_grids = new RenderTexture[2];
-        private RenderTexture obstacle_grid; //will only read
+        private RenderTexture[] pressure_grids = new RenderTexture[2];
+        [SerializeField]private RenderTexture obstacle_grid; //will only read
         private RenderTexture temp_grid; //used for storing temporary grid states
 
         private Vector2 size = Vector2.zero;
@@ -92,7 +92,7 @@ namespace Detonate
         }
 
 
-        private void Swap(ref RenderTexture[] _grid)
+        private void Swap(RenderTexture[] _grid)
         {
             RenderTexture temp = _grid[READ];
             _grid[READ] = _grid[WRITE];
@@ -103,20 +103,17 @@ namespace Detonate
         private void Update()
         {
             //advect grids with quantities
-            ApplyAdvection(sim_params.temperature_dissipation, 0.0f, ref temperature_grids);
-            ApplyAdvection(sim_params.density_dissipation, 0.0f, ref density_grids);
-            //TODO advect reaction
+            ApplyAdvection(sim_params.temperature_dissipation, 0.0f,  temperature_grids);
+            ApplyAdvection(sim_params.density_dissipation, 0.0f,  density_grids);
 
             //apply advections
             ApplyAdvectionVelocity();
             ApplyBuoyancy();
 
             //apply impulses
-            ApplyImpulse(density_amount, ref density_grids);
-            ApplyImpulse(temperature_amount, ref temperature_grids);
+            ApplyImpulse(density_amount,  density_grids);
+            ApplyImpulse(temperature_amount,  temperature_grids);
 
-            //extinguishment
-            //vorticity
 
             CalculateDivergence();
             CalculatePressure();
@@ -138,12 +135,12 @@ namespace Detonate
             temperature_read.Invoke(temperature_grids[READ]);
             temperature_write.Invoke(temperature_grids[WRITE]);
 
-            pressure_read.Invoke(preassure_grids[READ]);
-            pressure_write.Invoke(preassure_grids[WRITE]);
+            pressure_read.Invoke(pressure_grids[READ]);
+            pressure_write.Invoke(pressure_grids[WRITE]);
         }
 
 
-        private void ApplyAdvection(float _dissipation, float _decay, ref RenderTexture[] _grids,
+        private void ApplyAdvection(float _dissipation, float _decay, RenderTexture[] _grids,
             float _forward = 1.0f)
         {
             //set compute vars
@@ -161,7 +158,7 @@ namespace Detonate
 
             //run calculation on GPU
             advect.Dispatch(kernel_id, x_thread_count, y_thread_count, 1);
-            Swap(ref _grids); //swap read and write grids
+            Swap(_grids); //swap read and write grids
         }
 
 
@@ -182,7 +179,7 @@ namespace Detonate
 
             //run calculation on GPU
             advect.Dispatch(kernel_id, x_thread_count, y_thread_count, 1);
-            Swap(ref velocity_grids); //swap read and write velocity grids
+            Swap(velocity_grids); //swap read and write velocity grids
         }
 
 
@@ -204,11 +201,11 @@ namespace Detonate
 
             //run calculation on GPU
             buoyancy.Dispatch(kernel_id, x_thread_count, y_thread_count, 1);
-            Swap(ref velocity_grids);
+            Swap(velocity_grids);
         }
 
 
-        private void ApplyImpulse(float _amount, ref RenderTexture[] _grids)
+        private void ApplyImpulse(float _amount,  RenderTexture[] _grids)
         {     
             impulse.SetVector("size", size);
             impulse.SetFloat("dt", DT);
@@ -221,7 +218,7 @@ namespace Detonate
             impulse.SetTexture(kernel_id, "read_R", _grids[READ]);
 
             impulse.Dispatch(kernel_id, x_thread_count, y_thread_count, 1);
-            Swap(ref _grids);
+            Swap(_grids);
         }
 
 
@@ -232,7 +229,7 @@ namespace Detonate
             divergence.SetTexture(kernel_id, "write_RG", temp_grid);
             divergence.SetTexture(kernel_id, "velocity", velocity_grids[READ]);
             divergence.SetTexture(kernel_id, "obstacles", obstacle_grid);
-            //divergence.SetVector("inverse_size", inverse_size);
+            divergence.SetVector("size", size);
 
             //run calculation on GPU
             divergence.Dispatch(kernel_id, x_thread_count, y_thread_count, 1);
@@ -242,16 +239,16 @@ namespace Detonate
         private void CalculatePressure()
         {
             int kernel_id = jacobi.FindKernel("Jacobi");
-            //jacobi.SetVector("inverse_size", inverse_size);
+            jacobi.SetVector("size", size);
             jacobi.SetTexture(kernel_id, "divergence", temp_grid);
             jacobi.SetTexture(kernel_id, "obstacles", obstacle_grid);
 
             for (int i = 0; i < sim_params.jacobi_iterations; ++i)
             {
-                jacobi.SetTexture(kernel_id, "write_R", preassure_grids[WRITE]);
-                jacobi.SetTexture(kernel_id, "pressure", preassure_grids[READ]);
+                jacobi.SetTexture(kernel_id, "write_R", pressure_grids[WRITE]);
+                jacobi.SetTexture(kernel_id, "pressure", pressure_grids[READ]);
                 jacobi.Dispatch(kernel_id, x_thread_count, y_thread_count, 1);
-                Swap(ref preassure_grids);
+                Swap(pressure_grids);
             }
         }
 
@@ -260,13 +257,13 @@ namespace Detonate
         {
             int kernel_id = projection.FindKernel("Projection");
             projection.SetTexture(kernel_id, "obstacles", obstacle_grid);
-            //projection.SetVector("inverse_size", inverse_size);
-            projection.SetTexture(kernel_id, "pressure", preassure_grids[READ]);
+            projection.SetVector("size", size);
+            projection.SetTexture(kernel_id, "pressure", pressure_grids[READ]);
             projection.SetTexture(kernel_id, "velocity", velocity_grids[READ]);
             projection.SetTexture(kernel_id, "write_RG", velocity_grids[WRITE]);
 
             projection.Dispatch(kernel_id, x_thread_count, y_thread_count, 1);
-            Swap(ref velocity_grids);
+            Swap( velocity_grids);
         }
 
 
@@ -287,11 +284,11 @@ namespace Detonate
             CreateGridSet(ref velocity_grids, RenderTextureFormat.RGFloat, FilterMode.Bilinear);
             CreateGridSet(ref density_grids, RenderTextureFormat.RFloat, FilterMode.Bilinear);
             CreateGridSet(ref temperature_grids, RenderTextureFormat.RFloat, FilterMode.Bilinear);
-            CreateGridSet(ref preassure_grids, RenderTextureFormat.RFloat, FilterMode.Bilinear);
+            CreateGridSet(ref pressure_grids, RenderTextureFormat.RFloat, FilterMode.Point);
 
             //Obstacles grid will only be read, so only one grid needed
-            CreateGrid(ref obstacle_grid, RenderTextureFormat.RFloat, FilterMode.Bilinear);
-            CreateGrid(ref temp_grid, RenderTextureFormat.RGFloat, FilterMode.Bilinear);
+            CreateGrid(ref obstacle_grid, RenderTextureFormat.RFloat, FilterMode.Point);
+            CreateGrid(ref temp_grid, RenderTextureFormat.RGFloat, FilterMode.Point);
         }
 
 
