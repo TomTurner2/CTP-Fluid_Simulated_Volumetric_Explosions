@@ -7,7 +7,7 @@ using UnityEngine.Events;
 namespace Detonate
 {
     [System.Serializable]
-    public class RenderTextureEvent : UnityEvent<RenderTexture> { };//event that passes render texture
+    public class RenderTextureEvent : UnityEvent<RenderTexture> { }//event that passes render texture
 
     public class FluidSim2D : MonoBehaviour
     {
@@ -64,6 +64,12 @@ namespace Detonate
 
         private void Start()
         {          
+            ResetSim();
+        }
+
+
+        public void ResetSim()
+        {
             CalculateSize();
             CalculateThreadCount();
             CreateGridSets(); //creates render texture grid sets
@@ -103,16 +109,16 @@ namespace Detonate
         private void Update()
         {
             //advect grids with quantities
-            ApplyAdvection(sim_params.temperature_dissipation, 0.0f,  temperature_grids);
-            ApplyAdvection(sim_params.density_dissipation, 0.0f,  density_grids);
+            ApplyAdvection(sim_params.temperature_dissipation, 0.0f, ref temperature_grids);
+            ApplyAdvection(sim_params.density_dissipation, 0.0f, ref density_grids);
 
             //apply advections
             ApplyAdvectionVelocity();
             ApplyBuoyancy();
 
             //apply impulses
-            ApplyImpulse(density_amount,  density_grids);
-            ApplyImpulse(temperature_amount,  temperature_grids);
+            ApplyImpulse(density_amount, ref density_grids);
+            ApplyImpulse(temperature_amount, ref temperature_grids);
 
 
             CalculateDivergence();
@@ -140,7 +146,7 @@ namespace Detonate
         }
 
 
-        private void ApplyAdvection(float _dissipation, float _decay, RenderTexture[] _grids,
+        private void ApplyAdvection(float _dissipation, float _decay, ref RenderTexture[] _grids,
             float _forward = 1.0f)
         {
             //set compute vars
@@ -205,7 +211,7 @@ namespace Detonate
         }
 
 
-        private void ApplyImpulse(float _amount,  RenderTexture[] _grids)
+        private void ApplyImpulse(float _amount,  ref RenderTexture[] _grids)
         {     
             impulse.SetVector("size", size);
             impulse.SetFloat("dt", DT);
@@ -263,7 +269,7 @@ namespace Detonate
             projection.SetTexture(kernel_id, "write_RG", velocity_grids[WRITE]);
 
             projection.Dispatch(kernel_id, x_thread_count, y_thread_count, 1);
-            Swap( velocity_grids);
+            Swap(velocity_grids);
         }
 
 
