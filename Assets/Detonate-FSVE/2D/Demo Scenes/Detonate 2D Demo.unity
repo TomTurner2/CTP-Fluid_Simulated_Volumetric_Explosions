@@ -259,7 +259,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 102.44345}
+  m_AnchoredPosition: {x: 0, y: 14.5759535}
   m_SizeDelta: {x: 0, y: 300}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &67899705
@@ -2289,13 +2289,13 @@ MonoBehaviour:
     width: 1024
     height: 1024
     jacobi_iterations: 8
-    smoke_buoyancy: 258.06
-    smoke_weight: 0.05
+    smoke_buoyancy: 125
+    smoke_weight: 14
     velocity_dissipation: 0.99
     temperature_dissipation: 0.99
-    density_dissipation: 0.7
+    density_dissipation: 0.85
     ambient_temperature: 0
-  impulse_position: {x: 0.5, y: 0.1}
+  impulse_position: {x: 0.47, y: 0.1}
   impulse_radius: 0.04
   density_amount: 19.73
   temperature_amount: 18
@@ -3591,7 +3591,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 1809669665}
   m_Direction: 2
   m_Value: 0
-  m_Size: 0.45289785
+  m_Size: 0.608812
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
