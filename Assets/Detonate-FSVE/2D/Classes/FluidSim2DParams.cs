@@ -8,7 +8,7 @@ public class FluidSim2DParams
     [Space] [Header("Simulation")]
     public int width = 512;
     public int height = 512;
-    public float jacobi_iterations = 40;
+    public uint jacobi_iterations = 40;
 
     [Header("Smoke")]
     public float smoke_buoyancy = 1.0f;

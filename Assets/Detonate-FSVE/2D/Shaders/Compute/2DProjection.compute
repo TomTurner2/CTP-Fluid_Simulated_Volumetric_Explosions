@@ -55,6 +55,6 @@ void Projection (uint3 id : SV_DispatchThreadID)
 	}
 
 	float2 cell_velocity = velocity[id.xy] - float2(pressure_east - pressure_west,
-	pressure_north - pressure_south) * 0.5f;
+	pressure_north - pressure_south) * 1.1f;
 	write_RG[id.xy] = cell_velocity * mask;
 }

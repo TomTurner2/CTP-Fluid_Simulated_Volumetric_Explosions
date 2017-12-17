@@ -59,7 +59,7 @@ namespace Detonate
         private const uint READ = 0; //for accessing grid sets
         private const uint WRITE = 1;
         private const uint THREAD_COUNT = 8; //threads used by compute shader
-        private const float DT = 0.1f;//simulation blows up with large time steps
+        private const float DT = 0.05f;//simulation blows up with large time steps
 
 
         private void Start()
@@ -248,6 +248,11 @@ namespace Detonate
             jacobi.SetVector("size", size);
             jacobi.SetTexture(kernel_id, "divergence", temp_grid);
             jacobi.SetTexture(kernel_id, "obstacles", obstacle_grid);
+
+            //clear pressure grids?
+            Graphics.SetRenderTarget(pressure_grids[READ]);
+            GL.Clear(false, true, new Color(0, 0, 0, 0));
+            Graphics.SetRenderTarget(null);
 
             for (int i = 0; i < sim_params.jacobi_iterations; ++i)
             {
