@@ -33,20 +33,16 @@ namespace Detonate
         [SerializeField] RenderTextureEvent on_texture_update;
         [Header("Debug Events")]
         [SerializeField] RenderTextureEvent velocity_read;
-        [SerializeField] RenderTextureEvent velocity_write;
         [SerializeField] RenderTextureEvent density_read;
-        [SerializeField] RenderTextureEvent density_write;
         [SerializeField] RenderTextureEvent temperature_read;
-        [SerializeField] RenderTextureEvent temperature_write;
         [SerializeField] RenderTextureEvent pressure_read;
-        [SerializeField] RenderTextureEvent pressure_write;
 
         //Render textures used for simulation (grids)
         private RenderTexture[] velocity_grids = new RenderTexture[2];
         private RenderTexture[] density_grids = new RenderTexture[2];
         private RenderTexture[] temperature_grids = new RenderTexture[2];
         private RenderTexture[] pressure_grids = new RenderTexture[2];
-        [SerializeField]private RenderTexture obstacle_grid; //will only read
+        private RenderTexture obstacle_grid; //will only read
         private RenderTexture temp_grid; //used for storing temporary grid states
 
         private Vector2 size = Vector2.zero;
@@ -59,7 +55,7 @@ namespace Detonate
         private const uint READ = 0; //for accessing grid sets
         private const uint WRITE = 1;
         private const uint THREAD_COUNT = 8; //threads used by compute shader
-        private const float DT = 0.05f;//simulation blows up with large time steps
+        private const float DT = 0.05f;//simulation blows up with large time steps?
 
 
         private void Start()
@@ -120,7 +116,6 @@ namespace Detonate
             ApplyImpulse(density_amount, ref density_grids);
             ApplyImpulse(temperature_amount, ref temperature_grids);
 
-
             CalculateDivergence();
             CalculatePressure();
             CalculateProjection();
@@ -133,16 +128,9 @@ namespace Detonate
         private void UpdateDebugTextureOutput()
         {
             velocity_read.Invoke(velocity_grids[READ]);
-            velocity_write.Invoke(velocity_grids[WRITE]);
-
             density_read.Invoke(density_grids[READ]);
-            density_write.Invoke(density_grids[WRITE]);
-
             temperature_read.Invoke(temperature_grids[READ]);
-            temperature_write.Invoke(temperature_grids[WRITE]);
-
             pressure_read.Invoke(pressure_grids[READ]);
-            pressure_write.Invoke(pressure_grids[WRITE]);
         }
 
 
