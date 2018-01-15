@@ -1,0 +1,50 @@
+﻿
+RWTexture2D<float> write_R;
+Texture2D<float> pressure;
+Texture2D<float> obstacles;
+Texture2D<float2> divergence;
+float2 size;
+
+float DetermineCellPressure(float _obstacle, float _neighbour_pressure, float _cell_pressure)
+{
+	if (_obstacle > 0.1f)
+		return _cell_pressure;//return cell preassure if there is an obstacle
+
+	return _neighbour_pressure;
+}
+
+
+#pragma kernel Jacobi
+[numthreads(8,8,1)]
+void Jacobi (uint3 id : SV_DispatchThreadID)
+{
+	uint2 north_id =  uint2(id.x, clamp(id.y + 1, 0, size.y));
+	uint2 south_id =  uint2(id.x, clamp(id.y - 1, 0, size.y));
+	uint2 east_id =  uint2(clamp(id.x - 1, 0, size.x), id.y);
+	uint2 west_id =  uint2(clamp(id.x + 1, 0, size.x), id.y);
+
+	//get cell neighbours pressure
+	float pressure_north = pressure[north_id.xy].r;
+	float pressure_south = pressure[south_id.xy].r;
+	float pressure_east = pressure[east_id.xy].r;
+	float pressure_west = pressure[west_id.xy].r;
+
+	//get cell neighbours obstacles
+	float obstacles_north = obstacles[north_id.xy].r;
+	float obstacles_south = obstacles[south_id.xy].r;
+	float obstacles_east = obstacles[east_id.xy].r;
+	float obstacles_west = obstacles[west_id.xy].r;
+	
+	float cell_pressure = pressure[id.xy];
+
+	//factor obstacles into cell pressure
+	pressure_north = DetermineCellPressure(obstacles_north, pressure_north, cell_pressure);
+	pressure_south = DetermineCellPressure(obstacles_south, pressure_south, cell_pressure);
+	pressure_east = DetermineCellPressure(obstacles_east, pressure_east, cell_pressure);
+	pressure_west = DetermineCellPressure(obstacles_west, pressure_west, cell_pressure);
+
+	//calculate jacobi
+	float cell_divergence = divergence[id.xy].x;
+	float jacobi = (pressure_west + pressure_east + pressure_south + pressure_north - cell_divergence) * 0.25f;//divide by four because there are four neighbours
+	write_R[id.xy] = jacobi;
+}

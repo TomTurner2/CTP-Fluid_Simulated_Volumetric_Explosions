@@ -1,0 +1,18 @@
+﻿#pragma kernel Boundary
+
+RWTexture2D<float> write_R;
+float2 size;
+
+[numthreads(8,8,1)]
+void Boundary (uint3 id : SV_DispatchThreadID)
+{
+	float obstacle = 0;
+
+	//if at edge add an obstacle
+	if (id.x  <= 0)	{ obstacle = 1;	}
+	if (id.x + 1 >= (int)size.x)	{ obstacle = 1;	}
+	if (id.y  <= 0)	{ obstacle = 1;	}
+	if (id.y + 1 >= (int)size.y)	{ obstacle = 1;	}
+
+	write_R[id.xy] = obstacle;
+}

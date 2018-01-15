@@ -1,0 +1,28 @@
+﻿
+RWTexture2D<float2> write_RG;
+Texture2D<float2> velocity;
+Texture2D<float> density;
+Texture2D<float> temperature;
+
+float dt;
+float4 up;
+float ambient_temperature;
+float buoyancy;
+float weight;
+
+#pragma kernel ApplyBuoyancy
+[numthreads(8,8,1)]
+void ApplyBuoyancy (uint3 id : SV_DispatchThreadID)
+{
+	float cell_temperature = temperature[id.xy];
+	float cell_density = density[id.xy];
+	float2 cell_velocity = velocity[id.xy];
+
+	if (cell_temperature > ambient_temperature)//rise if hotter than normal temperature
+	{
+		cell_velocity += (dt * (cell_temperature - ambient_temperature) *
+		buoyancy - cell_density * weight) * up.xy;//buoyancy that factors in density weight and temperature effect
+	}
+
+	write_RG[id.xy] = cell_velocity;//write the new velocity
+}
