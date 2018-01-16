@@ -1,0 +1,60 @@
+﻿#pragma kernel Projection
+
+RWTexture2D<float2> write_RG;
+Texture2D<float2> velocity;
+Texture2D<float> pressure;
+Texture2D<float> obstacles;
+float2 size;
+
+[numthreads(8,8,1)]
+void Projection (uint3 id : SV_DispatchThreadID)
+{
+	if (obstacles[id.xy] > 0.1f)
+	{
+		write_RG[id.xy] = float2(0,0);
+		return;
+	}
+
+	uint2 north_id =  uint2(id.x, clamp(id.y + 1, 0, size.y));
+	uint2 south_id =  uint2(id.x, clamp(id.y - 1, 0, size.y));
+	uint2 east_id =  uint2(clamp(id.x - 1, 0, size.x), id.y);
+	uint2 west_id =  uint2(clamp(id.x + 1, 0, size.x), id.y);
+
+	//get cell neighbours pressure
+	float pressure_north = pressure[north_id.xy].r;
+	float pressure_south = pressure[south_id.xy].r;
+	float pressure_east = pressure[east_id.xy].r;
+	float pressure_west = pressure[west_id.xy].r;
+
+	float cell_pressure = pressure[id.xy];
+	float2 mask = float2(1, 1);
+	
+	//check neighbours obstacles
+	if (obstacles[north_id.xy] > 0.1f)
+	{
+		pressure_north = cell_pressure;
+		mask.y = 0;//mask this cell
+	}
+
+	if (obstacles[south_id.xy] > 0.1f)
+	{
+		pressure_south = cell_pressure;
+		mask.y = 0;
+	}
+
+	if (obstacles[east_id.xy] > 0.1f)
+	{
+		pressure_east = cell_pressure;
+		mask.x = 0;
+	}
+
+	if (obstacles[west_id.xy] > 0.1f)
+	{
+		pressure_west = cell_pressure;
+		mask.x = 0;
+	}
+
+	float2 cell_velocity = velocity[id.xy] - float2(pressure_east - pressure_west,
+	pressure_north - pressure_south) * 1.1f;
+	write_RG[id.xy] = cell_velocity * mask;
+}

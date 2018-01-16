@@ -104,9 +104,12 @@ namespace Detonate
         }
 
 
-        void SetBoundary()
+        private void SetBoundary()
         {
-            
+            obstacles.SetVector("size", size);
+            int kernel_id = obstacles.FindKernel("Boundary");
+            obstacles.SetBuffer(kernel_id, "write_R", obstacle_grid);
+            obstacles.Dispatch(kernel_id, x_thread_count, y_thread_count, z_thread_count);
         }
 
 
@@ -137,7 +140,20 @@ namespace Detonate
         private void ApplyAdvection(float _dissipation, float _decay, ComputeBuffer[] _grids,
             float _forward = 1.0f)
         {
+            advect.SetVector("size", size);
+            advect.SetFloat("dt", DT);
+            advect.SetFloat("dissipation", _dissipation);
+            advect.SetFloat("forward", _forward);
+            advect.SetFloat("decay", _decay);
 
+            int kernel_id = advect.FindKernel("Advect");
+            advect.SetBuffer(kernel_id, "read_R", _grids[READ]);
+            advect.SetBuffer(kernel_id, "write_R", _grids[WRITE]);
+            advect.SetBuffer(kernel_id, "velocity", velocity_grids[READ]);
+            advect.SetBuffer(kernel_id, "obstacles", obstacle_grid);
+
+            advect.Dispatch(kernel_id, x_thread_count, y_thread_count, z_thread_count);
+            Swap(_grids);
         }
 
         private void ApplyAdvectionVelocity()

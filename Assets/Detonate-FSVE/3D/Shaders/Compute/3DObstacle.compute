@@ -1,0 +1,29 @@
+﻿#pragma kernel Boundary
+
+float4 size;
+RWStructuredBuffer<float> write_R;
+
+
+int GetIndex(int3 _id, float4 _size)
+{
+	return _id.x + _id.y * _size.x + _id.z * _size.x * _size.y;
+}
+
+
+[numthreads(8,8,8)]
+void Boundary (uint3 id : SV_DispatchThreadID)
+{
+	float obstacle = 0;
+
+	//if at edge add an obstacle
+	if (id.x - 1  < 0)	{ obstacle = 1;	}
+	if (id.x + 1 > (int)size.x - 1)	{ obstacle = 1;	}
+
+	if (id.y - 1 < 0)	{ obstacle = 1;	}
+	if (id.y + 1 > (int)size.y - 1)	{ obstacle = 1;	}
+
+	if (id.z - 1 < 0)	{ obstacle = 1;	}
+	if (id.z + 1 > (int)size.z - 1)	{ obstacle = 1;	}
+
+	write_R[GetIndex(id, size)] = obstacle;
+}
