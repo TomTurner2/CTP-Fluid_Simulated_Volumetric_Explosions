@@ -3,21 +3,27 @@
 float source_amount;
 float radius;
 float dt;
-float2 source_pos;
-float2 size;
+float4 source_pos;
+float4 size;
 
-RWTexture2D<float> write_R;
-Texture2D<float> read_R;
+RWStructuredBuffer<float> write_R;
+StructuredBuffer<float> read_R;
 
-[numthreads(8,8,1)]
+int GetIndex(int3 _id, float4 _size)
+{
+	return _id.x + _id.y * _size.x + _id.z * _size.x * _size.y;
+}
+
+[numthreads(8,8,8)]
 void Impulse (uint3 id : SV_DispatchThreadID)
 {
-	float2 pos = id / (size.xy - 1.0f) - source_pos.xy;
-	float magnitude = pos.x * pos.x + pos.y * pos.y;
+	float3 pos = id / (size.xyz - 1.0f) - source_pos.xyz;
+	float magnitude = pos.x * pos.x + pos.y * pos.y + pos.z * pos.z;
 	float radius_squared = radius * radius;
 
 	//Gauss Impulse
 	float amount = exp(-magnitude/radius_squared) * source_amount * dt;
+	int index = GetIndex(id, size);
 
-	write_R[id.xy] = read_R[id.xy] + amount;
+	write_R[index] = read_R[index] + amount;
 }

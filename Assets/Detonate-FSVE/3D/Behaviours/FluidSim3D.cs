@@ -158,31 +158,98 @@ namespace Detonate
 
         private void ApplyAdvectionVelocity()
         {
+            advect.SetVector("size", size);
+            advect.SetFloat("dt", DT);
+            advect.SetFloat("dissipation", sim_params.velocity_dissipation);
+            advect.SetFloat("forward", 1.0f);
+            advect.SetFloat("decay", sim_params.velocity_dissipation);
+
+            int kernel_id = advect.FindKernel("AdvectVelocity");
+            advect.SetBuffer(kernel_id, "read_RGB", velocity_grids[READ]);
+            advect.SetBuffer(kernel_id, "write_RGB", velocity_grids[WRITE]);
+            advect.SetBuffer(kernel_id, "velocity", velocity_grids[READ]);
+            advect.SetBuffer(kernel_id, "obstacles", obstacle_grid);
+
+            advect.Dispatch(kernel_id, x_thread_count, y_thread_count, z_thread_count);
+            Swap(velocity_grids);
         }
 
 
         private void ApplyBuoyancy()
         {
+            buoyancy.SetVector("size", size);
+            buoyancy.SetVector("up", new Vector4(0,1,0,0));
+            buoyancy.SetFloat("buoyancy", sim_params.smoke_buoyancy);
+            buoyancy.SetFloat("weight", sim_params.smoke_weight);
+            buoyancy.SetFloat("ambient_temperature", sim_params.ambient_temperature);
+            buoyancy.SetFloat("dt", DT);
+
+            int kernel_id = buoyancy.FindKernel("ApplyBuoyancy");
+            buoyancy.SetBuffer(kernel_id, "write_R", velocity_grids[WRITE]);
+            buoyancy.SetBuffer(kernel_id, "velocity", velocity_grids[READ]);
+            buoyancy.SetBuffer(kernel_id, "density", density_grids[READ]);
+            buoyancy.SetBuffer(kernel_id, "temperature", temperature_grids[READ]);
+
+            buoyancy.Dispatch(kernel_id, x_thread_count, y_thread_count, z_thread_count);
+            Swap(velocity_grids);
         }
 
 
         private void ApplyImpulse(float _amount, ComputeBuffer[] _grids)
         {
+            impulse.SetVector("size", size);
+            impulse.SetFloat("radius", impulse_radius);
+            impulse.SetFloat("source_amount", _amount);
+            impulse.SetFloat("dt", DT);
+            impulse.SetVector("source_pos", impulse_position);
+
+            int kernel_id = impulse.FindKernel("Impulse");
+            impulse.SetBuffer(kernel_id, "read_R", _grids[READ]);
+            impulse.SetBuffer(kernel_id, "write_R", _grids[WRITE]);
+            impulse.Dispatch(kernel_id, x_thread_count, y_thread_count, z_thread_count);
+            Swap(_grids);
         }
 
 
         private void CalculateDivergence()
         {
+            divergence.SetVector("size", size);
+            int kernel_id = divergence.FindKernel("Divergence");
+            divergence.SetBuffer(kernel_id, "write_RGB", temp_grid);
+            divergence.SetBuffer(kernel_id, "velocity", velocity_grids[READ]);
+            divergence.SetBuffer(kernel_id, "obstacles", obstacle_grid);
+            divergence.Dispatch(kernel_id, x_thread_count, y_thread_count, z_thread_count);
         }
 
 
         private void CalculatePressure()
-        {           
+        {
+            jacobi.SetVector("size", size);
+            int kernel_id = divergence.FindKernel("Jacobi");
+            jacobi.SetBuffer(kernel_id, "divergence", temp_grid);
+            jacobi.SetBuffer(kernel_id, "obstacles", obstacle_grid);
+
+            for (int i = 0; i < sim_params.jacobi_iterations; ++i)
+            {
+                jacobi.SetBuffer(kernel_id, "write_R", pressure_grids[WRITE]);
+                jacobi.SetBuffer(kernel_id, "pressure", pressure_grids[READ]);
+                jacobi.Dispatch(kernel_id, x_thread_count, y_thread_count, z_thread_count);
+                Swap(pressure_grids);
+            }
         }
 
 
         private void CalculateProjection()
-        {     
+        {
+            projection.SetVector("size", size);
+            int kernel_id = projection.FindKernel("Projection");
+            projection.SetBuffer(kernel_id, "obstacles", obstacle_grid);
+            projection.SetBuffer(kernel_id, "pressure", pressure_grids[READ]);
+            projection.SetBuffer(kernel_id, "velocity", velocity_grids[READ]);
+            projection.SetBuffer(kernel_id, "write_RGB", velocity_grids[WRITE]);
+
+            projection.Dispatch(kernel_id, x_thread_count, y_thread_count, z_thread_count);
+            Swap(velocity_grids);
         }
 
         //all buffers should be released on destruction

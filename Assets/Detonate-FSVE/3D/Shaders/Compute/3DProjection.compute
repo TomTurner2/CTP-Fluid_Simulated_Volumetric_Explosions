@@ -1,60 +1,90 @@
 ﻿#pragma kernel Projection
 
-RWTexture2D<float2> write_RG;
-Texture2D<float2> velocity;
-Texture2D<float> pressure;
-Texture2D<float> obstacles;
-float2 size;
+RWStructuredBuffer<float3> write_RGB;
+StructuredBuffer<float3> velocity;
 
-[numthreads(8,8,1)]
+StructuredBuffer<float> pressure;
+StructuredBuffer<float> obstacles;
+
+float4 size;
+
+int GetIndex(int3 _id, float4 _size)
+{
+	return _id.x + _id.y * _size.x + _id.z * _size.x * _size.y;
+}
+
+
+[numthreads(8,8,8)]
 void Projection (uint3 id : SV_DispatchThreadID)
 {
-	if (obstacles[id.xy] > 0.1f)
+	int index = GetIndex(id, size);
+
+	if (obstacles[index] > 0.1f)
 	{
-		write_RG[id.xy] = float2(0,0);
+		write_RGB[index] = float3(0, 0, 0);
 		return;
 	}
 
-	uint2 north_id =  uint2(id.x, clamp(id.y + 1, 0, size.y));
-	uint2 south_id =  uint2(id.x, clamp(id.y - 1, 0, size.y));
-	uint2 east_id =  uint2(clamp(id.x - 1, 0, size.x), id.y);
-	uint2 west_id =  uint2(clamp(id.x + 1, 0, size.x), id.y);
+	uint up_id =  id.x + min(size.y - 1, id.y + 1)*size.x + id.z*size.x*size.y;
+	uint down_id =  id.x + max(0, id.y-1)*size.x + id.z*size.x*size.y;
+
+	uint left_id =  max(0, id.x-1) + id.y*size.x + id.z*size.x*size.y;
+	uint right_id =  min(size.x-1, id.x+1) + id.y*size.x + id.z*size.x*size.y;
+
+	uint forward_id = id.x + id.y*size.x + max(0, id.z-1)*size.x*size.y;;
+	uint back_id = id.x + id.y*size.x + min(size.z-1, id.z+1)*size.x*size.y;;
 
 	//get cell neighbours pressure
-	float pressure_north = pressure[north_id.xy].r;
-	float pressure_south = pressure[south_id.xy].r;
-	float pressure_east = pressure[east_id.xy].r;
-	float pressure_west = pressure[west_id.xy].r;
+	float pressure_up = pressure[up_id];
+	float pressure_down = pressure[down_id];
 
-	float cell_pressure = pressure[id.xy];
-	float2 mask = float2(1, 1);
+	float pressure_left = pressure[left_id];
+	float pressure_right = pressure[right_id];
+
+	float pressure_forward = pressure[forward_id];
+	float pressure_backward = pressure[back_id];
+
+	float cell_pressure = pressure[index];
+	float3 mask = float3(1, 1, 1);
 	
 	//check neighbours obstacles
-	if (obstacles[north_id.xy] > 0.1f)
+	if (obstacles[up_id] > 0.1f)
 	{
-		pressure_north = cell_pressure;
+		pressure_up = cell_pressure;
 		mask.y = 0;//mask this cell
 	}
 
-	if (obstacles[south_id.xy] > 0.1f)
+	if (obstacles[down_id] > 0.1f)
 	{
-		pressure_south = cell_pressure;
+		pressure_down = cell_pressure;
 		mask.y = 0;
 	}
 
-	if (obstacles[east_id.xy] > 0.1f)
+	if (obstacles[left_id] > 0.1f)
 	{
-		pressure_east = cell_pressure;
+		pressure_left = cell_pressure;
 		mask.x = 0;
 	}
 
-	if (obstacles[west_id.xy] > 0.1f)
+	if (obstacles[right_id] > 0.1f)
 	{
-		pressure_west = cell_pressure;
+		pressure_right = cell_pressure;
 		mask.x = 0;
 	}
 
-	float2 cell_velocity = velocity[id.xy] - float2(pressure_east - pressure_west,
-	pressure_north - pressure_south) * 1.1f;
-	write_RG[id.xy] = cell_velocity * mask;
+	if (obstacles[forward_id] > 0.1f)
+	{
+		pressure_forward = cell_pressure;
+		mask.z = 0;
+	}
+
+	if (obstacles[backward_id] > 0.1f)
+	{
+		pressure_backward = cell_pressure;
+		mask.z = 0;
+	}
+
+	float3 cell_velocity = velocity[index] - float3(pressure_right - pressure_left,
+	pressure_up - pressure_down, pressure_backward - pressure_forward ) * 0.5f;
+	write_RGB[index] = cell_velocity * mask;
 }

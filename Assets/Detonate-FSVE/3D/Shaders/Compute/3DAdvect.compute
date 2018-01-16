@@ -39,8 +39,8 @@ void Advect(uint3 id : SV_DispatchThreadID)//single value advection
 		return;
 	}
 
-	float3 advect_pos = GetAdvectedPosition(id, index);
-	write_R[index] = max(0, read_R[advect_pos] * dissipation - decay);
+	//float3 advect_pos = GetAdvectedPosition(id, index);
+	//write_R[index] = max(0, read_R[advect_pos] * dissipation - decay);
 }
 
 
@@ -58,5 +58,5 @@ void AdvectVelocity(uint3 id : SV_DispatchThreadID)//for vector advection
 
 	float3 advect_pos = GetAdvectedPosition(id, index);
 	//render tex has bilinear filtering enabled so I can directly write the value and get smooth results?
-	write_RGB[index] = read_RG[advect_pos] * dissipation - decay;
+	write_RGB[index] = read_RGB[advect_pos] * dissipation - decay;
 }

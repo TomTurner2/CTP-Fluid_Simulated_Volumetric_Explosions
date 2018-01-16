@@ -1,45 +1,66 @@
-﻿RWTexture2D<float2> write_RG;
+﻿RWStructuredBuffer<float3> write_RGB;
 Texture2D<float2> velocity;
 Texture2D<float> obstacles;
-float2 size;
+float4 size;
 
-float2 CheckSolidCells(float _obstacles, float2 _velocity)
+int GetIndex(int3 _id, float4 _size)
+{
+	return _id.x + _id.y * _size.x + _id.z * _size.x * _size.y;
+}
+
+
+float3 CheckSolidCells(float _obstacles, float3 _velocity)
 {
 	if (_obstacles >  0.1f)//if solid
-		return float2(0,0);//velocity is zero
+		return float3(0, 0, 0);//velocity is zero
 
 	return _velocity;
 }
 
 #pragma kernel Divergence
-[numthreads(8,8,1)]
+[numthreads(8,8,8)]
 void Divergence (uint3 id : SV_DispatchThreadID)
 {
-	uint2 north_id =  uint2(id.x, clamp(id.y + 1, 0, size.y));
-	uint2 south_id =  uint2(id.x, clamp(id.y - 1, 0, size.y));
-	uint2 east_id =  uint2(clamp(id.x - 1, 0, size.x), id.y);
-	uint2 west_id =  uint2(clamp(id.x + 1, 0, size.x), id.y);
+	int index = GetIndex(id, size); 
+
+	//get neighbour indexs
+	uint up_id =  id.x + min(size.y - 1, id.y + 1)*size.x + id.z*size.x*size.y;
+	uint down_id =  id.x + max(0, id.y-1)*size.x + id.z*size.x*size.y;
+
+	uint left_id =  max(0, id.x-1) + id.y*size.x + id.z*size.x*size.y;
+	uint right_id =  min(size.x-1, id.x+1) + id.y*size.x + id.z*size.x*size.y;
+
+	uint forward_id = id.x + id.y*size.x + max(0, id.z-1)*size.x*size.y;;
+	uint back_id = id.x + id.y*size.x + min(size.z-1, id.z+1)*size.x*size.y;;
 
 	//get cell neighbours velocity
-	float2 velocity_north = velocity[north_id.xy].rg;
-	float2 velocity_south = velocity[south_id.xy].rg;
-	float2 velocity_east = velocity[east_id.xy].rg;
-	float2 velocity_west = velocity[west_id.xy].rg;
+	float3 velocity_up = velocity[up_id];
+	float3 velocity_down = velocity[down_id];
+
+	float3 velocity_left = velocity[left_id];
+	float3 velocity_right = velocity[right_id];
+
+	float3 velocity_forward = velocity[forward_id];
+	float3 velocity_back = velocity[back_id];
 
 	//get cell neighbours obstacles
-	float obstacles_north = obstacles[north_id.xy].r;
-	float obstacles_south = obstacles[south_id.xy].r;
-	float obstacles_east = obstacles[east_id.xy].r;
-	float obstacles_west = obstacles[west_id.xy].r;
+	float obstacles_up = obstacles[up_id];
+	float obstacles_down = obstacles[down_id];
+	float obstacles_right = obstacles[right_id];
+	float obstacles_left = obstacles[left_id];
+	float obstacles_forward = obstacles[forward_id];
+	float obstacles_back = obstacles[back_id];
 
 	//set any solid cells to zero velocity
-	velocity_north = CheckSolidCells(obstacles_north, velocity_north);
-	velocity_south = CheckSolidCells(obstacles_south, velocity_south);
-	velocity_east = CheckSolidCells(obstacles_east, velocity_east);
-	velocity_west = CheckSolidCells(obstacles_west, velocity_west);
+	velocity_up = CheckSolidCells(obstacles_up, velocity_up);
+	velocity_down = CheckSolidCells(obstacles_down, velocity_down);
+	velocity_right= CheckSolidCells(obstacles_right, velocity_right);
+	velocity_left = CheckSolidCells(obstacles_left, velocity_left);
+	velocity_forward = CheckSolidCells(obstacles_forward, velocity_forward);
+	velocity_back = CheckSolidCells(obstacles_back, velocity_back);
 
-	float divergence = 0.5f * (velocity_east.x - velocity_west.x +
-	velocity_north.y - velocity_south.y);
+	float divergence = 0.5f * ((velocity_right.x - velocity_left.x) +
+	(velocity_up.y - velocity_down.y) + (velocity_forward.z - velocity_back.z));
 
-	write_RG[id.xy] = float2(divergence, 0);
+	write_RGB[index] = float3(divergence, 0, 0);
 }
