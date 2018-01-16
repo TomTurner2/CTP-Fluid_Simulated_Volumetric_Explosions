@@ -109,6 +109,68 @@ NavMeshSettings:
     tileSize: 256
     accuratePlacement: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &356113366
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 356113368}
+  - component: {fileID: 356113367}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &356113367
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 356113366}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 102a7997b77cbf54995bb3dc8b808d4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sim_params:
+    width: 512
+    height: 512
+    depth: 512
+    jacobi_iterations: 40
+    smoke_buoyancy: 1
+    smoke_weight: 0.05
+    velocity_dissipation: 0.99
+    temperature_dissipation: 0.99
+    density_dissipation: 0.9999
+    ambient_temperature: 0
+  impulse_position: {x: 0.5, y: 0.5, z: 0.5}
+  impulse_radius: 1
+  density_amount: 1
+  temperature_amount: 10
+  jacobi: {fileID: 7200000, guid: 5bd717b1d2ba97347b7d9ff9797647b2, type: 3}
+  advect: {fileID: 7200000, guid: 4dfaafd747a97944490991560db1ec05, type: 3}
+  buoyancy: {fileID: 7200000, guid: d2c023e1ba7907546bf270d5326734a7, type: 3}
+  impulse: {fileID: 7200000, guid: 44cc972b3dfcb0d43a25a947d5d6ce56, type: 3}
+  divergence: {fileID: 7200000, guid: 4874083116abdda4c8db77f722c49e8e, type: 3}
+  projection: {fileID: 7200000, guid: 15b47727fdb78ad41952b985caa35e11, type: 3}
+  obstacles: {fileID: 7200000, guid: dd21b5533fab170418e1046c76bb8323, type: 3}
+--- !u!4 &356113368
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 356113366}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &402810182
 GameObject:
   m_ObjectHideFlags: 0
