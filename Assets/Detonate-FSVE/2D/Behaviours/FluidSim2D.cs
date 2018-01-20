@@ -134,12 +134,11 @@ namespace Detonate
         }
 
 
-        private void ApplyAdvection(float _dissipation, float _decay, ref RenderTexture[] _grids,
-            float _forward = 1.0f)
+        private void ApplyAdvection(float _dissipation, float _decay, ref RenderTexture[] _grids)
         {
             //set compute vars
             advect.SetFloat("dt", DT);
-            advect.SetFloat("forward", _forward);
+            advect.SetFloat("forward", 1.0f);
             advect.SetFloat("dissipation", _dissipation);
             advect.SetFloat("decay", _decay);
 

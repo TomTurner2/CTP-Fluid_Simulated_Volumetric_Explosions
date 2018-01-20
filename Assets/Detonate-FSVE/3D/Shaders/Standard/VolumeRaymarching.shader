@@ -113,15 +113,14 @@
 				for (int i = 0; i < NUM_STEPS; ++i)
 				{
 					grid_coord += step;//step along the ray
-					float3 uv = grid_coord * (_size -1.0f);
 					float cell_density = tex3D(_density, grid_coord);
-					alpha *= 1.0f - saturate(cell_density * step_size * _Absorption);
+					alpha *= 1.0f - saturate(cell_density * step_size * _Absorption);//calc alpha
 					
 					if (alpha <= 0.01f)
 						break;
 				}
 				
-				return _Colour * (1.0f - alpha);
+				return _Colour * (1.0f - alpha);//invert alpha
 			}
 			ENDCG
 		}

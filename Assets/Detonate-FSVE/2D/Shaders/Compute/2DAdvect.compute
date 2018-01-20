@@ -13,6 +13,7 @@ RWTexture2D<float2> write_R;//render textures with only R channel to store singl
 Texture2D<float2> read_R;
 
 
+
 float2 GetAdvectedPosition(float2 _position)
 {
 	_position -= dt * forward * velocity[_position.xy];
