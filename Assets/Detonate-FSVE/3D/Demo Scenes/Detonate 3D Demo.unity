@@ -238,16 +238,16 @@ MonoBehaviour:
     height: 128
     depth: 128
     jacobi_iterations: 10
-    smoke_buoyancy: 1
+    smoke_buoyancy: 9.24
     smoke_weight: 0.05
     velocity_dissipation: 0.99
     temperature_dissipation: 0.99
-    density_dissipation: 0.9999
+    density_dissipation: 0.85
     ambient_temperature: 0
   impulse_position: {x: 0.5, y: 0.5, z: 0.5}
-  impulse_radius: 1
-  density_amount: 1
-  temperature_amount: 10
+  impulse_radius: 0.1
+  density_amount: 30
+  temperature_amount: 40.32
   jacobi: {fileID: 7200000, guid: 5bd717b1d2ba97347b7d9ff9797647b2, type: 3}
   advect: {fileID: 7200000, guid: 4dfaafd747a97944490991560db1ec05, type: 3}
   buoyancy: {fileID: 7200000, guid: d2c023e1ba7907546bf270d5326734a7, type: 3}

@@ -20,7 +20,7 @@ public class VolumeRenderer : MonoBehaviour
     {
         if (texture == null)//exit if there is no volume to render
             return;
-
+        Debug.Log("updating");
         transform.rotation = Quaternion.identity;
         renderer.material.SetVector("_translation", transform.localPosition);
         renderer.material.SetVector("_scale", transform.localScale);

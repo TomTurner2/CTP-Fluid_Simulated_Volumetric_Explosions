@@ -169,7 +169,7 @@ namespace Detonate
             output_converter.SetVector("size", size);
             output_converter.Dispatch(kernel_id, x_thread_count, y_thread_count, z_thread_count);
 
-           
+            volume_renderer.texture = volume_output;
         }
 
 
@@ -261,7 +261,7 @@ namespace Detonate
         private void CalculatePressure()
         {
             jacobi.SetVector("size", size);
-            int kernel_id = divergence.FindKernel("Jacobi");
+            int kernel_id = jacobi.FindKernel("Jacobi");
             jacobi.SetBuffer(kernel_id, "divergence", temp_grid);
             jacobi.SetBuffer(kernel_id, "obstacles", obstacle_grid);
 
