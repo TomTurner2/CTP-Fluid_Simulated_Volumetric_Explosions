@@ -78,7 +78,7 @@ void Projection (uint3 id : SV_DispatchThreadID)
 		mask.z = 0;
 	}
 
-	if (obstacles[backward_id] > 0.1f)
+	if (obstacles[back_id] > 0.1f)
 	{
 		pressure_backward = cell_pressure;
 		mask.z = 0;

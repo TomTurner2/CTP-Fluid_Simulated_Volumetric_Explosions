@@ -14,6 +14,66 @@ RWStructuredBuffer<float> write_R;//render textures with only R channel to store
 StructuredBuffer<float> read_R;
 
 
+float SampleBilinear(StructuredBuffer<float> _grid, float3 _coord, float3 size)
+{
+	int x = _coord.x;
+	int y = _coord.y;
+	int z = _coord.z;
+	
+	int X = size.x;
+	int XY = size.x*size.y;
+	
+	float fx = _coord.x-x;
+	float fy = _coord.y-y;
+	float fz = _coord.z-z;
+	
+	int xp1 = min(size.x-1, x+1);
+	int yp1 = min(size.y-1, y+1);
+	int zp1 = min(size.z-1, z+1);
+	
+	float x0 = _grid[x+y*X+z*XY] * (1.0f-fx) + _grid[xp1+y*X+z*XY] * fx;
+	float x1 = _grid[x+y*X+zp1*XY] * (1.0f-fx) + _grid[xp1+y*X+zp1*XY] * fx;
+	
+	float x2 = _grid[x+yp1*X+z*XY] * (1.0f-fx) + _grid[xp1+yp1*X+z*XY] * fx;
+	float x3 = _grid[x+yp1*X+zp1*XY] * (1.0f-fx) + _grid[xp1+yp1*X+zp1*XY] * fx;
+	
+	float z0 = x0 * (1.0f-fz) + x1 * fz;
+	float z1 = x2 * (1.0f-fz) + x3 * fz;
+	
+	return z0 * (1.0f-fy) + z1 * fy;
+}
+
+
+float3 SampleBilinear(StructuredBuffer<float3> _grid, float3 _coord, float3 size)
+{
+	int x = _coord.x;
+	int y = _coord.y;
+	int z = _coord.z;
+	
+	int X = size.x;
+	int XY = size.x*size.y;
+	
+	float fx = _coord.x-x;
+	float fy = _coord.y-y;
+	float fz = _coord.z-z;
+	
+	int xp1 = min(size.x-1, x+1);
+	int yp1 = min(size.y-1, y+1);
+	int zp1 = min(size.z-1, z+1);
+	
+	float3 x0 = _grid[x+y*X+z*XY] * (1.0f-fx) + _grid[xp1+y*X+z*XY] * fx;
+	float3 x1 = _grid[x+y*X+zp1*XY] * (1.0f-fx) + _grid[xp1+y*X+zp1*XY] * fx;
+	
+	float3 x2 = _grid[x+yp1*X+z*XY] * (1.0f-fx) + _grid[xp1+yp1*X+z*XY] * fx;
+	float3 x3 = _grid[x+yp1*X+zp1*XY] * (1.0f-fx) + _grid[xp1+yp1*X+zp1*XY] * fx;
+	
+	float3 z0 = x0 * (1.0f-fz) + x1 * fz;
+	float3 z1 = x2 * (1.0f-fz) + x3 * fz;
+	
+	return z0 * (1.0f-fy) + z1 * fy;
+}
+
+
 float3 GetAdvectedPosition(float3 _position, int _index)
 {
 	_position -= dt * forward * velocity[_index];
@@ -40,7 +100,7 @@ void Advect(uint3 id : SV_DispatchThreadID)//single value advection
 	}
 
 	float3 advect_pos = GetAdvectedPosition(id, index);
-	//write_R[index] = max(0, read_R[advect_pos] * dissipation - decay);
+	write_R[index] = max(0, SampleBilinear(read_R, advect_pos, size.xyz) * dissipation - decay);
 }
 
 
@@ -57,5 +117,5 @@ void AdvectVelocity(uint3 id : SV_DispatchThreadID)//for vector advection
 	}
 
 	float3 advect_pos = GetAdvectedPosition(id, index);
-	write_RGB[index] = read_RGB[advect_pos] * dissipation;
+	write_RGB[index] = SampleBilinear(read_RGB, advect_pos, size.xyz) * dissipation;
 }

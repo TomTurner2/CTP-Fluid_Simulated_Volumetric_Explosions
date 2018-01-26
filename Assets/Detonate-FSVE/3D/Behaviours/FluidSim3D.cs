@@ -24,6 +24,10 @@ namespace Detonate
         [SerializeField] ComputeShader divergence = null;
         [SerializeField] ComputeShader projection = null;
         [SerializeField] ComputeShader obstacles = null;
+        [SerializeField] ComputeShader output_converter = null;
+
+        private RenderTexture volume_output;
+        [SerializeField] private VolumeRenderer volume_renderer;
 
         private ComputeBuffer[] density_grids = new ComputeBuffer[2];
         private ComputeBuffer[] velocity_grids = new ComputeBuffer[2];
@@ -47,6 +51,7 @@ namespace Detonate
         void Start()
         {
             ResetSim();
+            volume_renderer.texture = volume_output;
         }
 
 
@@ -56,6 +61,7 @@ namespace Detonate
             CalculateThreadCount();
             CreateGridSets(); //creates render texture grid sets
             SetBoundary();
+            CreateOutputTexture();
         }
 
 
@@ -80,6 +86,21 @@ namespace Detonate
             x_thread_count = (int)(sim_params.width / THREAD_COUNT);
             y_thread_count = (int)(sim_params.height / THREAD_COUNT);
             z_thread_count = (int) (sim_params.depth / THREAD_COUNT);
+        }
+
+
+        private void CreateOutputTexture()
+        {   
+            volume_output = new RenderTexture(sim_params.width, sim_params.height, sim_params.depth)
+            {
+                dimension = UnityEngine.Rendering.TextureDimension.Tex3D,
+                volumeDepth = sim_params.depth,
+                wrapMode = TextureWrapMode.Clamp,
+                enableRandomWrite = true
+            };
+
+            //must be set before creation
+            volume_output.Create();
         }
 
 
@@ -134,6 +155,21 @@ namespace Detonate
             CalculateDivergence();
             CalculatePressure();
             CalculateProjection();
+
+            UpdateVolumeRenderer();
+        }
+
+
+        private void UpdateVolumeRenderer()
+        {
+            //convert structured buffer to 3d volume texture using gpu
+            int kernel_id = output_converter.FindKernel("ConvertToVolume");
+            output_converter.SetBuffer(kernel_id, "read_R", density_grids[READ]);
+            output_converter.SetTexture(kernel_id, "write_R", volume_output);
+            output_converter.SetVector("size", size);
+            output_converter.Dispatch(kernel_id, x_thread_count, y_thread_count, z_thread_count);
+
+           
         }
 
 
@@ -251,6 +287,7 @@ namespace Detonate
             projection.Dispatch(kernel_id, x_thread_count, y_thread_count, z_thread_count);
             Swap(velocity_grids);
         }
+
 
         //all buffers should be released on destruction
         private void OnDestroy()

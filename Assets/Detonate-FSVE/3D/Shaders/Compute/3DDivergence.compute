@@ -1,6 +1,8 @@
-﻿RWStructuredBuffer<float3> write_RGB;
-Texture2D<float2> velocity;
-Texture2D<float> obstacles;
+﻿#pragma kernel Divergence
+
+RWStructuredBuffer<float3> write_RGB;
+StructuredBuffer<float3> velocity;
+StructuredBuffer<float> obstacles;
 float4 size;
 
 int GetIndex(int3 _id, float4 _size)
@@ -17,7 +19,7 @@ float3 CheckSolidCells(float _obstacles, float3 _velocity)
 	return _velocity;
 }
 
-#pragma kernel Divergence
+
 [numthreads(8,8,8)]
 void Divergence (uint3 id : SV_DispatchThreadID)
 {

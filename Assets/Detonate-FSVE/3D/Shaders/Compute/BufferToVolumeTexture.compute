@@ -1,0 +1,19 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel ConvertToVolume
+float4 size;
+StructuredBuffer<float> read_R;
+RWTexture3D<float4> write_R;
+
+
+int GetIndex(int3 _id, float4 _size)
+{
+	return _id.x + _id.y * _size.x + _id.z * _size.x * _size.y;
+}
+
+
+[numthreads(8,8,8)]
+void ConvertToVolume (uint3 id : SV_DispatchThreadID)
+{
+	float d = read_R[GetIndex(id, size)];
+	write_R[id] = float4(d, d, d, d);//should store in 1 channel, might have to update volume renderer though
+}

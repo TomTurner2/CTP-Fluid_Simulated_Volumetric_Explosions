@@ -5,6 +5,7 @@ StructuredBuffer<float> obstacles;
 StructuredBuffer<float3> divergence;
 float4 size;
 
+
 int GetIndex(int3 _id, float4 _size)
 {
 	return _id.x + _id.y * _size.x + _id.z * _size.x * _size.y;
@@ -26,28 +27,32 @@ void Jacobi (uint3 id : SV_DispatchThreadID)
 {
 	int index = GetIndex(id, size);
 
-	uint up_id =  id.x + min(size.y - 1, id.y + 1)*size.x + id.z*size.x*size.y;
-	uint down_id =  id.x + max(0, id.y-1)*size.x + id.z*size.x*size.y;
+	int up_id = id.x + min(size.y - 1, id.y + 1)*size.x + id.z*size.x*size.y;
+	int down_id = id.x + max(0, id.y-1)*size.x + id.z*size.x*size.y;
 
-	uint left_id =  max(0, id.x-1) + id.y*size.x + id.z*size.x*size.y;
-	uint right_id =  min(size.x-1, id.x+1) + id.y*size.x + id.z*size.x*size.y;
+	int left_id = max(0, id.x-1) + id.y*size.x + id.z*size.x*size.y;
+	int right_id = min(size.x-1, id.x+1) + id.y*size.x + id.z*size.x*size.y;
 
-	uint forward_id = id.x + id.y*size.x + max(0, id.z-1)*size.x*size.y;;
-	uint back_id = id.x + id.y*size.x + min(size.z-1, id.z+1)*size.x*size.y;;
+	int forward_id = id.x + id.y*size.x + max(0, id.z-1)*size.x*size.y;
+	int back_id = id.x + id.y*size.x + min(size.z-1, id.z+1)*size.x*size.y;
 
 	//get cell neighbours pressure
 	float pressure_up = pressure[up_id];
 	float pressure_down = pressure[down_id];
+
 	float pressure_left = pressure[left_id];
 	float pressure_right = pressure[right_id];
+
 	float pressure_forward = pressure[forward_id];
 	float pressure_back = pressure[back_id];
 
 	//get cell neighbours obstacles
-	float obstacles_up =  = obstacles[up_id];
+	float obstacles_up = obstacles[up_id];
 	float obstacles_down  = obstacles[down_id];
+
 	float obstacles_left = obstacles[left_id];
 	float obstacles_right= obstacles[right_id];
+
 	float obstacles_forward = obstacles[forward_id];
 	float obstacles_back = obstacles[back_id];
 	
