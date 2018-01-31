@@ -1,8 +1,6 @@
 ﻿float4 size;
 float dt;
 float dissipation;
-float decay;
-float forward;
 
 StructuredBuffer<float3> velocity;
 StructuredBuffer<float> obstacles;
@@ -31,6 +29,7 @@ float SampleBilinear(StructuredBuffer<float> _grid, float3 _coord, float3 size)
 	int yp1 = min(size.y-1, y+1);
 	int zp1 = min(size.z-1, z+1);
 	
+
 	float x0 = _grid[x+y*X+z*XY] * (1.0f-fx) + _grid[xp1+y*X+z*XY] * fx;
 	float x1 = _grid[x+y*X+zp1*XY] * (1.0f-fx) + _grid[xp1+y*X+zp1*XY] * fx;
 	
@@ -76,7 +75,7 @@ float3 SampleBilinear(StructuredBuffer<float3> _grid, float3 _coord, float3 size
 
 float3 GetAdvectedPosition(float3 _position, int _index)
 {
-	_position -= dt * forward * velocity[_index];
+	_position -= dt * velocity[_index];
 	return _position;
 }
 
@@ -100,7 +99,7 @@ void Advect(uint3 id : SV_DispatchThreadID)//single value advection
 	}
 
 	float3 advect_pos = GetAdvectedPosition(id, index);
-	write_R[index] = max(0, SampleBilinear(read_R, advect_pos, size.xyz) * dissipation - decay);
+	write_R[index] = max(0, SampleBilinear(read_R, advect_pos, size.xyz) * dissipation);
 	//write_R[index] = max(0, read_R[GetIndex(advect_pos, size)] * dissipation - decay);//no bilinear interpolation
 }
 

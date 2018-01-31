@@ -12,6 +12,7 @@ float ambient_temperature;
 float buoyancy;
 float weight;
 
+
 int GetIndex(int3 _id, float4 _size)
 {
 	return _id.x + _id.y * _size.x + _id.z * _size.x * _size.y;

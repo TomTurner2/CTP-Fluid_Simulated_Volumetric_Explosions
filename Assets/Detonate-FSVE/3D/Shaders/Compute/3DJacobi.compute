@@ -27,14 +27,15 @@ void Jacobi (uint3 id : SV_DispatchThreadID)
 {
 	int index = GetIndex(id, size);
 
-	int up_id =  id.x + min(size.y - 1, id.y + 1)*size.x + id.z*size.x*size.y;
-	int down_id =  id.x + max(0, id.y-1)*size.x + id.z*size.x*size.y;
+		//get neighbour indexs
+	int up_id =  GetIndex(int3(id.x, min(size.y - 1, id.y + 1), id.z), size);
+	int down_id = GetIndex(int3(id.x, max(0, id.y-1), id.z), size);
 
-	int left_id =  max(0, id.x-1) + id.y*size.x + id.z*size.x*size.y;
-	int right_id =  min(size.x-1, id.x+1) + id.y*size.x + id.z*size.x*size.y;
+	int left_id = GetIndex(int3(max(0, id.x-1), id.y, id.z), size);
+	int right_id = GetIndex(int3(min(size.x-1, id.x+1), id.y, id.z), size);
 
-	int front_id = id.x + id.y*size.x + max(0, id.z-1)*size.x*size.y;
-	int back_id = id.x + id.y*size.x + min(size.z-1, id.z+1)*size.x*size.y;
+	int front_id = GetIndex(int3(id.x, id.y, max(0, id.z-1)), size);
+	int back_id = GetIndex(int3(id.x, id.y, min(size.z-1, id.z+1)), size);
 
 	//get cell neighbours pressure
 	float pressure_up = pressure[up_id];

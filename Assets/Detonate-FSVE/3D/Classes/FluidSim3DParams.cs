@@ -7,20 +7,21 @@ public class FluidSim3DParams
 {
     [Space]
     [Header("Simulation")]
-    public int width = 512;
-    public int height = 512;
-    public int depth = 512;
-    public uint jacobi_iterations = 40;
+    public int width = 128;
+    public int height = 128;
+    public int depth = 128;
+    public uint jacobi_iterations = 10;
 
     [Header("Smoke")]
     public float smoke_buoyancy = 1.0f;
-    public float smoke_weight = 0.05f;
+    public float smoke_weight = 0.0125f;
     [Space]
 
     [Header("Dissipations")]
-    public float velocity_dissipation = 0.99f;
+    public float velocity_dissipation = 0.995f;
     public float temperature_dissipation = 0.99f;
-    public float density_dissipation = 0.9999f;
+    public float density_dissipation = 0.999f;
+
     [Space]
 
     [Header("Temperatures")]

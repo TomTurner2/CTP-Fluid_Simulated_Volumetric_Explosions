@@ -9,16 +9,18 @@ float4 size;
 RWStructuredBuffer<float> write_R;
 StructuredBuffer<float> read_R;
 
+
 int GetIndex(int3 _id, float4 _size)
 {
 	return _id.x + _id.y * _size.x + _id.z * _size.x * _size.y;
 }
 
+
 [numthreads(8,8,8)]
 void Impulse (uint3 id : SV_DispatchThreadID)
 {
 	float3 pos = id / (size.xyz - 1.0f) - source_pos.xyz;
-	float magnitude = pos.x * pos.x + pos.y * pos.y + pos.z * pos.z;
+	float magnitude = pos.x * pos.x + pos.y * pos.y + pos.z * pos.z;//length doesn't work?
 	float radius_squared = radius * radius;
 
 	//Gauss Impulse

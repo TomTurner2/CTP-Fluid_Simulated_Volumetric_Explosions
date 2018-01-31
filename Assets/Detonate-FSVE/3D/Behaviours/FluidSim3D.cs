@@ -6,10 +6,15 @@ namespace Detonate
 {
     public class FluidSim3D : MonoBehaviour
     {
+        [Header("Draw Debug")]
+        [SerializeField] private bool draw_bounds = true;
+
+        [Space]
         [SerializeField] FluidSim3DParams sim_params = new FluidSim3DParams();
 
         [Space]
         [SerializeField] Vector3 impulse_position = new Vector3(0.5f, 0.5f, 0.5f);
+        [SerializeField] Transform impulse_target_transform = null;
         [SerializeField] float impulse_radius = 1.0f;
         [SerializeField] float density_amount = 1.0f;
         [SerializeField] private float temperature_amount = 10.0f;
@@ -45,10 +50,10 @@ namespace Detonate
         private const uint READ = 0; //for accessing grid sets
         private const uint WRITE = 1;
         private const uint THREAD_COUNT = 8; //threads used by compute shader
-        private const float DT = 0.05f;//simulation blows up with large time steps?
+        private const float DT = 0.1f;//simulation blows up with large time steps?
 
 
-        void Start()
+        private void Start()
         {
             ResetSim();
         }
@@ -133,7 +138,7 @@ namespace Detonate
         }
 
 
-        void Swap(ComputeBuffer[] _grid)
+        private void Swap(ComputeBuffer[] _grid)
         {
             ComputeBuffer temp = _grid[READ];
             _grid[READ] = _grid[WRITE];
@@ -141,10 +146,10 @@ namespace Detonate
         }
 
 
-        void Update()
+        private void Update()
         {
-            ApplyAdvection(sim_params.temperature_dissipation, 0.0f, temperature_grids);
-            ApplyAdvection(sim_params.density_dissipation, 0.0f, density_grids);
+            ApplyAdvection(sim_params.temperature_dissipation, temperature_grids);
+            ApplyAdvection(sim_params.density_dissipation, density_grids);
             ApplyAdvectionVelocity();
 
             ApplyBuoyancy();
@@ -164,7 +169,6 @@ namespace Detonate
             if (output_renderer == null)
                 return;
 
-
             ////convert structured buffer to 3d volume texture using gpu
             int kernel_id = output_converter.FindKernel("ConvertToVolume");
             output_converter.SetBuffer(kernel_id, "read_R", density_grids[READ]);
@@ -174,22 +178,14 @@ namespace Detonate
 
             output_renderer.size = size;
             output_renderer.texture = volume_output;
-            //transform.rotation = Quaternion.identity;
-            //GetComponent<Renderer>().material.SetVector("_translation", transform.localPosition);
-            //GetComponent<Renderer>().material.SetVector("_scale", transform.localScale);
-            //GetComponent<Renderer>().material.SetTexture("_density", volume_output);
-            //GetComponent<Renderer>().material.SetVector("_size", size);
         }
 
 
-        private void ApplyAdvection(float _dissipation, float _decay, ComputeBuffer[] _grids,
-            float _forward = 1.0f)
+        private void ApplyAdvection(float _dissipation, ComputeBuffer[] _grids)
         {
             advect.SetVector("size", size);
             advect.SetFloat("dt", DT);
             advect.SetFloat("dissipation", _dissipation);
-            advect.SetFloat("forward", _forward);
-            advect.SetFloat("decay", _decay);
 
             int kernel_id = advect.FindKernel("Advect");
             advect.SetBuffer(kernel_id, "read_R", _grids[READ]);
@@ -246,6 +242,12 @@ namespace Detonate
             impulse.SetFloat("radius", impulse_radius);
             impulse.SetFloat("source_amount", _amount);
             impulse.SetFloat("dt", DT);
+
+            if (impulse_target_transform != null)
+            {
+                impulse_position = ConvertPositionToGridSpace(impulse_target_transform.position);
+            }
+
             impulse.SetVector("source_pos", impulse_position);
 
             int kernel_id = impulse.FindKernel("Impulse");
@@ -253,6 +255,21 @@ namespace Detonate
             impulse.SetBuffer(kernel_id, "write_R", _grids[WRITE]);
             impulse.Dispatch(kernel_id, x_thread_count, y_thread_count, z_thread_count);
             Swap(_grids);
+        }
+
+
+        public Vector3 ConvertPositionToGridSpace(Vector3 _pos)
+        {
+            return ConvertToGridScale(_pos - transform.localPosition);//get relative position then factor in scale
+        }
+
+
+        private Vector3 ConvertToGridScale(Vector3 _pos)
+        {
+            Vector3 scale_convert = (_pos + transform.localScale * 0.5f);
+
+            return new Vector3(scale_convert.x / transform.localScale.x,
+                scale_convert.y / transform.localScale.y, scale_convert.z / transform.localScale.z);//as a uv coord
         }
 
 
@@ -319,11 +336,12 @@ namespace Detonate
 
         private void OnDrawGizmos()
         {
-            Gizmos.color = Color.cyan;
-            Gizmos.DrawWireCube(transform.position, transform.localScale);
+            if (draw_bounds)
+            {
+                Gizmos.color = Color.cyan;
+                Gizmos.DrawWireCube(transform.position, transform.localScale);
+            }
         }
-
-
 
     }
 }
