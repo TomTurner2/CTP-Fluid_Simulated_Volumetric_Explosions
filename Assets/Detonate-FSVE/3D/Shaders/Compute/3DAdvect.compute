@@ -12,29 +12,33 @@ RWStructuredBuffer<float> write_R;//render textures with only R channel to store
 StructuredBuffer<float> read_R;
 
 
-float SampleBilinear(StructuredBuffer<float> _grid, float3 _coord, float3 size)
+
+int GetIndex(int3 _id, float4 _size)
+{
+	return _id.x + _id.y * _size.x + _id.z * _size.x * _size.y;
+}
+
+
+float SampleBilinear(StructuredBuffer<float> _grid, float3 _coord, float4 size)
 {
 	int x = _coord.x;
 	int y = _coord.y;
 	int z = _coord.z;
 	
-	int X = size.x;
-	int XY = size.x*size.y;
-	
 	float fx = _coord.x-x;
 	float fy = _coord.y-y;
 	float fz = _coord.z-z;
 	
-	int xp1 = min(size.x-1, x+1);
-	int yp1 = min(size.y-1, y+1);
-	int zp1 = min(size.z-1, z+1);
+	//optimisation - only want to validate once
+	int x_plus_one = min(size.x-1, x+1);
+	int y_plus_one = min(size.y-1, y+1);
+	int z_plus_one = min(size.z-1, z+1);
 	
-
-	float x0 = _grid[x+y*X+z*XY] * (1.0f-fx) + _grid[xp1+y*X+z*XY] * fx;
-	float x1 = _grid[x+y*X+zp1*XY] * (1.0f-fx) + _grid[xp1+y*X+zp1*XY] * fx;
-	
-	float x2 = _grid[x+yp1*X+z*XY] * (1.0f-fx) + _grid[xp1+yp1*X+z*XY] * fx;
-	float x3 = _grid[x+yp1*X+zp1*XY] * (1.0f-fx) + _grid[xp1+yp1*X+zp1*XY] * fx;
+	float x0 = _grid[GetIndex(_coord, size)] * (1.0f-fx) + _grid[GetIndex(int3(x_plus_one, y, z), size)] * fx;
+	float x1 = _grid[GetIndex(int3(x, y, z_plus_one), size)] *
+	(1.0f-fx) + _grid[GetIndex(int3(x_plus_one, y, z_plus_one), size)] * fx;	
+	float x2 = _grid[GetIndex(int3(x, y_plus_one, z), size)] * (1.0f-fx) + _grid[GetIndex(int3(x_plus_one, y_plus_one, z), size)] * fx;
+	float x3 = _grid[GetIndex(int3(x, y_plus_one, z_plus_one), size)] * (1.0f-fx) + _grid[GetIndex(int3(x_plus_one, y_plus_one, z_plus_one), size)] * fx;
 	
 	float z0 = x0 * (1.0f-fz) + x1 * fz;
 	float z1 = x2 * (1.0f-fz) + x3 * fz;
@@ -43,28 +47,25 @@ float SampleBilinear(StructuredBuffer<float> _grid, float3 _coord, float3 size)
 }
 
 
-float3 SampleBilinear(StructuredBuffer<float3> _grid, float3 _coord, float3 size)
+float3 SampleBilinear(StructuredBuffer<float3> _grid, float3 _coord, float4 size)
 {
 	int x = _coord.x;
 	int y = _coord.y;
 	int z = _coord.z;
 	
-	int X = size.x;
-	int XY = size.x*size.y;
-	
 	float fx = _coord.x-x;
 	float fy = _coord.y-y;
 	float fz = _coord.z-z;
 	
-	int xp1 = min(size.x-1, x+1);
-	int yp1 = min(size.y-1, y+1);
-	int zp1 = min(size.z-1, z+1);
+	//optimisation - only want to validate once
+	int x_plus_one = min(size.x-1, x+1);
+	int y_plus_one = min(size.y-1, y+1);
+	int z_plus_one = min(size.z-1, z+1);
 	
-	float3 x0 = _grid[x+y*X+z*XY] * (1.0f-fx) + _grid[xp1+y*X+z*XY] * fx;
-	float3 x1 = _grid[x+y*X+zp1*XY] * (1.0f-fx) + _grid[xp1+y*X+zp1*XY] * fx;
-	
-	float3 x2 = _grid[x+yp1*X+z*XY] * (1.0f-fx) + _grid[xp1+yp1*X+z*XY] * fx;
-	float3 x3 = _grid[x+yp1*X+zp1*XY] * (1.0f-fx) + _grid[xp1+yp1*X+zp1*XY] * fx;
+	float3 x0 = _grid[GetIndex(_coord, size)] * (1.0f-fx) + _grid[GetIndex(int3(x_plus_one, y, z), size)] * fx;
+	float3 x1 = _grid[GetIndex(int3(x, y, z_plus_one), size)] * (1.0f-fx) + _grid[GetIndex(int3(x_plus_one, y, z_plus_one), size)] * fx;	
+	float3 x2 = _grid[GetIndex(int3(x, y_plus_one, z), size)] * (1.0f-fx) + _grid[GetIndex(int3(x_plus_one, y_plus_one, z), size)] * fx;
+	float3 x3 = _grid[GetIndex(int3(x, y_plus_one, z_plus_one), size)] * (1.0f-fx) + _grid[GetIndex(int3(x_plus_one, y_plus_one, z_plus_one), size)] * fx;
 	
 	float3 z0 = x0 * (1.0f-fz) + x1 * fz;
 	float3 z1 = x2 * (1.0f-fz) + x3 * fz;
@@ -80,11 +81,6 @@ float3 GetAdvectedPosition(float3 _position, int _index)
 }
 
 
-int GetIndex(int3 _id, float4 _size)
-{
-	return _id.x + _id.y * _size.x + _id.z * _size.x * _size.y;
-}
-
 
 #pragma kernel Advect
 [numthreads(8, 8, 8)]
@@ -99,8 +95,8 @@ void Advect(uint3 id : SV_DispatchThreadID)//single value advection
 	}
 
 	float3 advect_pos = GetAdvectedPosition(id, index);
-	write_R[index] = max(0, SampleBilinear(read_R, advect_pos, size.xyz) * dissipation);
-	//write_R[index] = max(0, read_R[GetIndex(advect_pos, size)] * dissipation - decay);//no bilinear interpolation
+	write_R[index] = max(0, SampleBilinear(read_R, advect_pos, size) * dissipation);
+	//write_R[index] = max(0, read_R[GetIndex(advect_pos, size)] * dissipation);//no bilinear interpolation
 }
 
 
@@ -117,6 +113,6 @@ void AdvectVelocity(uint3 id : SV_DispatchThreadID)//for vector advection
 	}
 
 	float3 advect_pos = GetAdvectedPosition(id, index);
-	write_RGB[index] = SampleBilinear(read_RGB, advect_pos, size.xyz) * dissipation;
+	write_RGB[index] = SampleBilinear(read_RGB, advect_pos, size) * dissipation;
 	//write_RGB[index] = read_RGB[GetIndex(advect_pos, size)] * dissipation;
 }
