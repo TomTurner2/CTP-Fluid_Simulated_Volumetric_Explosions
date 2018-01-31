@@ -25,14 +25,14 @@ void Projection (uint3 id : SV_DispatchThreadID)
 		return;
 	}
 
-	uint up_id =  id.x + min(size.y - 1, id.y + 1)*size.x + id.z*size.x*size.y;
-	uint down_id =  id.x + max(0, id.y-1)*size.x + id.z*size.x*size.y;
+	int up_id =  id.x + min(size.y - 1, id.y + 1)*size.x + id.z*size.x*size.y;
+	int down_id =  id.x + max(0, id.y-1)*size.x + id.z*size.x*size.y;
 
-	uint left_id =  max(0, id.x-1) + id.y*size.x + id.z*size.x*size.y;
-	uint right_id =  min(size.x-1, id.x+1) + id.y*size.x + id.z*size.x*size.y;
+	int left_id =  max(0, id.x-1) + id.y*size.x + id.z*size.x*size.y;
+	int right_id =  min(size.x-1, id.x+1) + id.y*size.x + id.z*size.x*size.y;
 
-	uint forward_id = id.x + id.y*size.x + max(0, id.z-1)*size.x*size.y;;
-	uint back_id = id.x + id.y*size.x + min(size.z-1, id.z+1)*size.x*size.y;;
+	int front_id = id.x + id.y*size.x + max(0, id.z-1)*size.x*size.y;
+	int back_id = id.x + id.y*size.x + min(size.z-1, id.z+1)*size.x*size.y;
 
 	//get cell neighbours pressure
 	float pressure_up = pressure[up_id];
@@ -41,8 +41,8 @@ void Projection (uint3 id : SV_DispatchThreadID)
 	float pressure_left = pressure[left_id];
 	float pressure_right = pressure[right_id];
 
-	float pressure_forward = pressure[forward_id];
-	float pressure_backward = pressure[back_id];
+	float pressure_front = pressure[front_id];
+	float pressure_back = pressure[back_id];
 
 	float cell_pressure = pressure[index];
 	float3 mask = float3(1, 1, 1);
@@ -51,7 +51,7 @@ void Projection (uint3 id : SV_DispatchThreadID)
 	if (obstacles[up_id] > 0.1f)
 	{
 		pressure_up = cell_pressure;
-		mask.y = 0;//mask this cell
+		mask.y = 0;//mask this direction
 	}
 
 	if (obstacles[down_id] > 0.1f)
@@ -72,19 +72,19 @@ void Projection (uint3 id : SV_DispatchThreadID)
 		mask.x = 0;
 	}
 
-	if (obstacles[forward_id] > 0.1f)
+	if (obstacles[front_id] > 0.1f)
 	{
-		pressure_forward = cell_pressure;
+		pressure_front = cell_pressure;
 		mask.z = 0;
 	}
 
 	if (obstacles[back_id] > 0.1f)
 	{
-		pressure_backward = cell_pressure;
+		pressure_back = cell_pressure;
 		mask.z = 0;
 	}
 
 	float3 cell_velocity = velocity[index] - float3(pressure_right - pressure_left,
-	pressure_up - pressure_down, pressure_backward - pressure_forward ) * 0.5f;
+	pressure_up - pressure_down, pressure_back - pressure_front ) * 0.5f;
 	write_RGB[index] = cell_velocity * mask;
 }

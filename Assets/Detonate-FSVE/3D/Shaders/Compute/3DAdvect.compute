@@ -101,6 +101,7 @@ void Advect(uint3 id : SV_DispatchThreadID)//single value advection
 
 	float3 advect_pos = GetAdvectedPosition(id, index);
 	write_R[index] = max(0, SampleBilinear(read_R, advect_pos, size.xyz) * dissipation - decay);
+	//write_R[index] = max(0, read_R[GetIndex(advect_pos, size)] * dissipation - decay);//no bilinear interpolation
 }
 
 
@@ -118,4 +119,5 @@ void AdvectVelocity(uint3 id : SV_DispatchThreadID)//for vector advection
 
 	float3 advect_pos = GetAdvectedPosition(id, index);
 	write_RGB[index] = SampleBilinear(read_RGB, advect_pos, size.xyz) * dissipation;
+	//write_RGB[index] = read_RGB[GetIndex(advect_pos, size)] * dissipation;
 }

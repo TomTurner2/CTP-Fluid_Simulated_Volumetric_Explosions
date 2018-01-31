@@ -26,14 +26,14 @@ namespace Detonate
         [SerializeField] ComputeShader obstacles = null;
         [SerializeField] ComputeShader output_converter = null;
 
-        private RenderTexture volume_output;
-        [SerializeField] private VolumeRenderer volume_renderer;
+        [SerializeField] private VolumeRenderer output_renderer = null;
 
+        private RenderTexture volume_output;
         private ComputeBuffer[] density_grids = new ComputeBuffer[2];
         private ComputeBuffer[] velocity_grids = new ComputeBuffer[2];
         private ComputeBuffer[] temperature_grids = new ComputeBuffer[2];
         private ComputeBuffer[] pressure_grids = new ComputeBuffer[2];
-        private ComputeBuffer temp_grid;
+        private ComputeBuffer divergence_grid;
         private ComputeBuffer obstacle_grid;
 
         private Vector3 size = Vector3.zero;
@@ -51,7 +51,6 @@ namespace Detonate
         void Start()
         {
             ResetSim();
-            volume_renderer.texture = volume_output;
         }
 
 
@@ -120,7 +119,7 @@ namespace Detonate
             pressure_grids[READ] = new ComputeBuffer(buffer_size, sizeof(float));
             pressure_grids[WRITE] = new ComputeBuffer(buffer_size, sizeof(float));
 
-            temp_grid = new ComputeBuffer(buffer_size, sizeof(float) * 3);
+            divergence_grid = new ComputeBuffer(buffer_size, sizeof(float) * 3);
             obstacle_grid = new ComputeBuffer(buffer_size, sizeof(float));
         }
 
@@ -156,20 +155,30 @@ namespace Detonate
             CalculatePressure();
             CalculateProjection();
 
-            UpdateVolumeRenderer();
+            UpdateVolumeRenderer();//may want to interact with shader directly
         }
 
 
         private void UpdateVolumeRenderer()
         {
-            //convert structured buffer to 3d volume texture using gpu
+            if (output_renderer == null)
+                return;
+
+
+            ////convert structured buffer to 3d volume texture using gpu
             int kernel_id = output_converter.FindKernel("ConvertToVolume");
             output_converter.SetBuffer(kernel_id, "read_R", density_grids[READ]);
             output_converter.SetTexture(kernel_id, "write_R", volume_output);
             output_converter.SetVector("size", size);
             output_converter.Dispatch(kernel_id, x_thread_count, y_thread_count, z_thread_count);
 
-            volume_renderer.texture = volume_output;
+            output_renderer.size = size;
+            output_renderer.texture = volume_output;
+            //transform.rotation = Quaternion.identity;
+            //GetComponent<Renderer>().material.SetVector("_translation", transform.localPosition);
+            //GetComponent<Renderer>().material.SetVector("_scale", transform.localScale);
+            //GetComponent<Renderer>().material.SetTexture("_density", volume_output);
+            //GetComponent<Renderer>().material.SetVector("_size", size);
         }
 
 
@@ -221,7 +230,7 @@ namespace Detonate
             buoyancy.SetFloat("dt", DT);
 
             int kernel_id = buoyancy.FindKernel("ApplyBuoyancy");
-            buoyancy.SetBuffer(kernel_id, "write_R", velocity_grids[WRITE]);
+            buoyancy.SetBuffer(kernel_id, "write_RGB", velocity_grids[WRITE]);
             buoyancy.SetBuffer(kernel_id, "velocity", velocity_grids[READ]);
             buoyancy.SetBuffer(kernel_id, "density", density_grids[READ]);
             buoyancy.SetBuffer(kernel_id, "temperature", temperature_grids[READ]);
@@ -251,7 +260,7 @@ namespace Detonate
         {
             divergence.SetVector("size", size);
             int kernel_id = divergence.FindKernel("Divergence");
-            divergence.SetBuffer(kernel_id, "write_RGB", temp_grid);
+            divergence.SetBuffer(kernel_id, "write_RGB", divergence_grid);
             divergence.SetBuffer(kernel_id, "velocity", velocity_grids[READ]);
             divergence.SetBuffer(kernel_id, "obstacles", obstacle_grid);
             divergence.Dispatch(kernel_id, x_thread_count, y_thread_count, z_thread_count);
@@ -262,7 +271,7 @@ namespace Detonate
         {
             jacobi.SetVector("size", size);
             int kernel_id = jacobi.FindKernel("Jacobi");
-            jacobi.SetBuffer(kernel_id, "divergence", temp_grid);
+            jacobi.SetBuffer(kernel_id, "divergence", divergence_grid);
             jacobi.SetBuffer(kernel_id, "obstacles", obstacle_grid);
 
             for (int i = 0; i < sim_params.jacobi_iterations; ++i)
@@ -305,7 +314,16 @@ namespace Detonate
             pressure_grids[WRITE].Release();
 
             obstacle_grid.Release();
-            temp_grid.Release();
-        }  
+            divergence_grid.Release();
+        }
+
+        private void OnDrawGizmos()
+        {
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawWireCube(transform.position, transform.localScale);
+        }
+
+
+
     }
 }

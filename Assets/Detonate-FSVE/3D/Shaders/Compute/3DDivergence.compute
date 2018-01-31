@@ -26,14 +26,14 @@ void Divergence (uint3 id : SV_DispatchThreadID)
 	int index = GetIndex(id, size); 
 
 	//get neighbour indexs
-	uint up_id =  id.x + min(size.y - 1, id.y + 1)*size.x + id.z*size.x*size.y;
-	uint down_id =  id.x + max(0, id.y-1)*size.x + id.z*size.x*size.y;
+	int up_id =  id.x + min(size.y - 1, id.y + 1)*size.x + id.z*size.x*size.y;
+	int down_id =  id.x + max(0, id.y-1)*size.x + id.z*size.x*size.y;
 
-	uint left_id =  max(0, id.x-1) + id.y*size.x + id.z*size.x*size.y;
-	uint right_id =  min(size.x-1, id.x+1) + id.y*size.x + id.z*size.x*size.y;
+	int left_id =  max(0, id.x-1) + id.y*size.x + id.z*size.x*size.y;
+	int right_id =  min(size.x-1, id.x+1) + id.y*size.x + id.z*size.x*size.y;
 
-	uint forward_id = id.x + id.y*size.x + max(0, id.z-1)*size.x*size.y;;
-	uint back_id = id.x + id.y*size.x + min(size.z-1, id.z+1)*size.x*size.y;;
+	int front_id = id.x + id.y*size.x + max(0, id.z-1)*size.x*size.y;
+	int back_id = id.x + id.y*size.x + min(size.z-1, id.z+1)*size.x*size.y;
 
 	//get cell neighbours velocity
 	float3 velocity_up = velocity[up_id];
@@ -42,7 +42,7 @@ void Divergence (uint3 id : SV_DispatchThreadID)
 	float3 velocity_left = velocity[left_id];
 	float3 velocity_right = velocity[right_id];
 
-	float3 velocity_forward = velocity[forward_id];
+	float3 velocity_front = velocity[front_id];
 	float3 velocity_back = velocity[back_id];
 
 	//get cell neighbours obstacles
@@ -50,7 +50,7 @@ void Divergence (uint3 id : SV_DispatchThreadID)
 	float obstacles_down = obstacles[down_id];
 	float obstacles_right = obstacles[right_id];
 	float obstacles_left = obstacles[left_id];
-	float obstacles_forward = obstacles[forward_id];
+	float obstacles_forward = obstacles[front_id];
 	float obstacles_back = obstacles[back_id];
 
 	//set any solid cells to zero velocity
@@ -58,11 +58,11 @@ void Divergence (uint3 id : SV_DispatchThreadID)
 	velocity_down = CheckSolidCells(obstacles_down, velocity_down);
 	velocity_right= CheckSolidCells(obstacles_right, velocity_right);
 	velocity_left = CheckSolidCells(obstacles_left, velocity_left);
-	velocity_forward = CheckSolidCells(obstacles_forward, velocity_forward);
+	velocity_front = CheckSolidCells(obstacles_forward, velocity_front);
 	velocity_back = CheckSolidCells(obstacles_back, velocity_back);
 
 	float divergence = 0.5f * ((velocity_right.x - velocity_left.x) +
-	(velocity_up.y - velocity_down.y) + (velocity_forward.z - velocity_back.z));
+	(velocity_up.y - velocity_down.y) + (velocity_back.z - velocity_front.z));
 
 	write_RGB[index] = float3(divergence, 0, 0);
 }

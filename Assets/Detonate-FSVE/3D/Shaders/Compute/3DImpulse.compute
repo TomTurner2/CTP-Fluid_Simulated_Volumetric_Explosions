@@ -23,7 +23,7 @@ void Impulse (uint3 id : SV_DispatchThreadID)
 
 	//Gauss Impulse
 	float amount = exp(-magnitude/radius_squared) * source_amount * dt;
-	int index = GetIndex(id, size);
 
+	int index = GetIndex(id, size);
 	write_R[index] = read_R[index] + amount;
 }

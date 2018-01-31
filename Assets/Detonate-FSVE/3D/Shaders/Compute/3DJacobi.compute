@@ -1,4 +1,5 @@
-﻿
+﻿#pragma kernel Jacobi
+
 RWStructuredBuffer<float> write_R;
 StructuredBuffer<float> pressure;
 StructuredBuffer<float> obstacles;
@@ -21,19 +22,18 @@ float DetermineCellPressure(float _obstacle, float _neighbour_pressure, float _c
 }
 
 
-#pragma kernel Jacobi
 [numthreads(8,8,8)]
 void Jacobi (uint3 id : SV_DispatchThreadID)
 {
 	int index = GetIndex(id, size);
 
-	int up_id = id.x + min(size.y - 1, id.y + 1)*size.x + id.z*size.x*size.y;
-	int down_id = id.x + max(0, id.y-1)*size.x + id.z*size.x*size.y;
+	int up_id =  id.x + min(size.y - 1, id.y + 1)*size.x + id.z*size.x*size.y;
+	int down_id =  id.x + max(0, id.y-1)*size.x + id.z*size.x*size.y;
 
-	int left_id = max(0, id.x-1) + id.y*size.x + id.z*size.x*size.y;
-	int right_id = min(size.x-1, id.x+1) + id.y*size.x + id.z*size.x*size.y;
+	int left_id =  max(0, id.x-1) + id.y*size.x + id.z*size.x*size.y;
+	int right_id =  min(size.x-1, id.x+1) + id.y*size.x + id.z*size.x*size.y;
 
-	int forward_id = id.x + id.y*size.x + max(0, id.z-1)*size.x*size.y;
+	int front_id = id.x + id.y*size.x + max(0, id.z-1)*size.x*size.y;
 	int back_id = id.x + id.y*size.x + min(size.z-1, id.z+1)*size.x*size.y;
 
 	//get cell neighbours pressure
@@ -43,7 +43,7 @@ void Jacobi (uint3 id : SV_DispatchThreadID)
 	float pressure_left = pressure[left_id];
 	float pressure_right = pressure[right_id];
 
-	float pressure_forward = pressure[forward_id];
+	float pressure_front = pressure[front_id];
 	float pressure_back = pressure[back_id];
 
 	//get cell neighbours obstacles
@@ -53,7 +53,7 @@ void Jacobi (uint3 id : SV_DispatchThreadID)
 	float obstacles_left = obstacles[left_id];
 	float obstacles_right= obstacles[right_id];
 
-	float obstacles_forward = obstacles[forward_id];
+	float obstacles_front = obstacles[front_id];
 	float obstacles_back = obstacles[back_id];
 	
 	float cell_pressure = pressure[index];
@@ -63,11 +63,11 @@ void Jacobi (uint3 id : SV_DispatchThreadID)
 	pressure_down  = DetermineCellPressure(obstacles_down, pressure_down, cell_pressure);
 	pressure_left = DetermineCellPressure(obstacles_right, pressure_right, cell_pressure);
 	pressure_right = DetermineCellPressure(obstacles_left, pressure_left, cell_pressure);
-	pressure_forward = DetermineCellPressure(obstacles_forward, pressure_forward, cell_pressure);
+	pressure_front = DetermineCellPressure(obstacles_front, pressure_front, cell_pressure);
 	pressure_back= DetermineCellPressure(obstacles_back, pressure_back, cell_pressure);
 
 	//calculate jacobi
 	float cell_divergence = divergence[index].r;
-	float jacobi = (pressure_left + pressure_right + pressure_down + pressure_up + pressure_forward + pressure_back - cell_divergence) / 6;//divide by six because there are six neighbours
+	float jacobi = (pressure_left + pressure_right + pressure_down + pressure_up +  pressure_back + pressure_front - cell_divergence) / 6;//average of neighbours
 	write_R[index] = jacobi;
 }

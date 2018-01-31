@@ -1,4 +1,5 @@
-﻿
+﻿#pragma kernel ApplyBuoyancy
+
 RWStructuredBuffer<float3> write_RGB;
 StructuredBuffer<float3> velocity;
 StructuredBuffer<float> density;
@@ -16,7 +17,7 @@ int GetIndex(int3 _id, float4 _size)
 	return _id.x + _id.y * _size.x + _id.z * _size.x * _size.y;
 }
 
-#pragma kernel ApplyBuoyancy
+
 [numthreads(8,8,8)]
 void ApplyBuoyancy (uint3 id : SV_DispatchThreadID)
 {
