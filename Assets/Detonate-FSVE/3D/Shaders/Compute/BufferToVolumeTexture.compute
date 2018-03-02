@@ -1,5 +1,4 @@
-﻿// Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel ConvertToVolume
+﻿#pragma kernel ConvertToVolume
 float4 size;
 StructuredBuffer<float> read_R;
 RWTexture3D<float4> write_R;

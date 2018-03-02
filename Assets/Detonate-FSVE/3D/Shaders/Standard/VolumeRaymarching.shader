@@ -81,7 +81,7 @@
 				ray.pos = pos;
 				ray.dir = normalize(IN.world_pos - pos);
 
-				//Create collision boc based on scale and translation
+				//Create collision box based on scale and translation
 				AABB collision_box;
 				collision_box.min = float3(-0.5f, -0.5f, -0.5f) * _scale + _translation;
 				collision_box.max = float3(0.5f, 0.5f, 0.5f) * _scale + _translation;

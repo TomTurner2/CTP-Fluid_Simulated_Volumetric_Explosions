@@ -29,7 +29,7 @@ float SampleBilinear(StructuredBuffer<float> _grid, float3 _coord, float4 size)
 	float fy = _coord.y-y;
 	float fz = _coord.z-z;
 	
-	//optimisation - only want to validate once
+	//only want to validate once
 	int x_plus_one = min(size.x-1, x+1);
 	int y_plus_one = min(size.y-1, y+1);
 	int z_plus_one = min(size.z-1, z+1);
@@ -57,7 +57,7 @@ float3 SampleBilinear(StructuredBuffer<float3> _grid, float3 _coord, float4 size
 	float fy = _coord.y-y;
 	float fz = _coord.z-z;
 	
-	//optimisation - only want to validate once
+	//only need to validate once
 	int x_plus_one = min(size.x-1, x+1);
 	int y_plus_one = min(size.y-1, y+1);
 	int z_plus_one = min(size.z-1, z+1);

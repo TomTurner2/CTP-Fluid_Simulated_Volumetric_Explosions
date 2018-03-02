@@ -27,7 +27,7 @@ void Jacobi (uint3 id : SV_DispatchThreadID)
 {
 	int index = GetIndex(id, size);
 
-		//get neighbour indexs
+	//get neighbour indexs
 	int up_id =  GetIndex(int3(id.x, min(size.y - 1, id.y + 1), id.z), size);
 	int down_id = GetIndex(int3(id.x, max(0, id.y-1), id.z), size);
 

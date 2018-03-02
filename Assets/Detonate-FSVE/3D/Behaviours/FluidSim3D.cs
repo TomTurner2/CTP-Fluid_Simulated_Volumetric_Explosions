@@ -112,20 +112,41 @@ namespace Detonate
         {
             int buffer_size = sim_params.width * sim_params.height * sim_params.depth;
 
-            density_grids[READ] = new ComputeBuffer(buffer_size, sizeof(float));
-            density_grids[WRITE] = new ComputeBuffer(buffer_size, sizeof(float));
-
-            velocity_grids[READ] = new ComputeBuffer(buffer_size, sizeof(float) * 3);//will store float 3
-            velocity_grids[WRITE] = new ComputeBuffer(buffer_size, sizeof(float) * 3);
-
-            temperature_grids[READ] = new ComputeBuffer(buffer_size, sizeof(float));
-            temperature_grids[WRITE] = new ComputeBuffer(buffer_size, sizeof(float));
-
-            pressure_grids[READ] = new ComputeBuffer(buffer_size, sizeof(float));
-            pressure_grids[WRITE] = new ComputeBuffer(buffer_size, sizeof(float));
-
+            CreateDensityGrids(buffer_size);
+            CreateVelocityGrids(buffer_size);
+            CreateTemperatureGrids(buffer_size);
+            CreatePressureGrids(buffer_size);
+            
             divergence_grid = new ComputeBuffer(buffer_size, sizeof(float) * 3);
             obstacle_grid = new ComputeBuffer(buffer_size, sizeof(float));
+        }
+
+
+        private void CreateDensityGrids(int _buffer_size)
+        {
+            density_grids[READ] = new ComputeBuffer(_buffer_size, sizeof(float));
+            density_grids[WRITE] = new ComputeBuffer(_buffer_size, sizeof(float));
+        }
+
+
+        private void CreateVelocityGrids(int _buffer_size)
+        {
+            velocity_grids[READ] = new ComputeBuffer(_buffer_size, sizeof(float) * 3);//will store float 3
+            velocity_grids[WRITE] = new ComputeBuffer(_buffer_size, sizeof(float) * 3);
+        }
+
+
+        private void CreateTemperatureGrids(int _buffer_size)
+        {
+            temperature_grids[READ] = new ComputeBuffer(_buffer_size, sizeof(float));
+            temperature_grids[WRITE] = new ComputeBuffer(_buffer_size, sizeof(float));
+        }
+
+
+        private void CreatePressureGrids(int _buffer_size)
+        {
+            pressure_grids[READ] = new ComputeBuffer(_buffer_size, sizeof(float));
+            pressure_grids[WRITE] = new ComputeBuffer(_buffer_size, sizeof(float));
         }
 
 
@@ -148,19 +169,34 @@ namespace Detonate
 
         private void Update()
         {
-            ApplyAdvection(sim_params.temperature_dissipation, temperature_grids);
-            ApplyAdvection(sim_params.density_dissipation, density_grids);
-            ApplyAdvectionVelocity();
+            MoveStage();
+            AddForcesStage();
+            CalculateDivergence();//i.e. fluid diffusion
+            MassConservationStage();
+            UpdateVolumeRenderer();//may want to interact with shader directly
+        }
 
+
+        private void MoveStage()
+        {
+            ApplyAdvection(sim_params.temperature_dissipation, temperature_grids);//move temperature
+            ApplyAdvection(sim_params.density_dissipation, density_grids);//move densities
+            ApplyAdvectionVelocity();//move velocites
+        }
+
+
+        private void AddForcesStage()
+        {
             ApplyBuoyancy();
             ApplyImpulse(density_amount, density_grids);
             ApplyImpulse(temperature_amount, temperature_grids);
+        }
 
-            CalculateDivergence();
-            CalculatePressure();
-            CalculateProjection();
 
-            UpdateVolumeRenderer();//may want to interact with shader directly
+        private void MassConservationStage()
+        {
+            CalculatePressure();//produce pressure gradient
+            CalculateProjection();//use pressure gradient to maintain mass conservation
         }
 
 
@@ -245,7 +281,7 @@ namespace Detonate
 
             if (impulse_target_transform != null)
             {
-                impulse_position = ConvertPositionToGridSpace(impulse_target_transform.position);
+                impulse_position = ConvertPositionToGridSpace(impulse_target_transform.position);//use transform target as source position
             }
 
             impulse.SetVector("source_pos", impulse_position);
@@ -269,7 +305,7 @@ namespace Detonate
             Vector3 scale_convert = (_pos + transform.localScale * 0.5f);
 
             return new Vector3(scale_convert.x / transform.localScale.x,
-                scale_convert.y / transform.localScale.y, scale_convert.z / transform.localScale.z);//as a uv coord
+                scale_convert.y / transform.localScale.y, scale_convert.z / transform.localScale.z);
         }
 
 
@@ -333,6 +369,7 @@ namespace Detonate
             obstacle_grid.Release();
             divergence_grid.Release();
         }
+
 
         private void OnDrawGizmos()
         {
