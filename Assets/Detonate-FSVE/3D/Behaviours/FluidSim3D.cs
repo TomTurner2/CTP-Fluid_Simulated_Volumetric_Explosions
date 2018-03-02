@@ -17,21 +17,22 @@ namespace Detonate
         [SerializeField] Transform impulse_target_transform = null;
         [SerializeField] float impulse_radius = 1.0f;
         [SerializeField] float density_amount = 1.0f;
-        [SerializeField] private float temperature_amount = 10.0f;
+        [SerializeField] float temperature_amount = 10.0f;
 
-        //Compute shaders
+        //Compute shader interfacing classes
         [Space]
-        [Header("GPU Functions")]
-        [SerializeField] ComputeShader jacobi = null;
-        [SerializeField] ComputeShader advect = null;
-        [SerializeField] ComputeShader buoyancy = null;
-        [SerializeField] ComputeShader impulse = null;
-        [SerializeField] ComputeShader divergence = null;
-        [SerializeField] ComputeShader projection = null;
-        [SerializeField] ComputeShader obstacles = null;
-        [SerializeField] ComputeShader output_converter = null;
+        [Header("GPU Modules")]
+        [SerializeField] AdvectModule3D advection_module = new AdvectModule3D();
+        [SerializeField] DivergenceModule3D divergence_module = new DivergenceModule3D();
+        [SerializeField] JacobiModule3D jacobi_module = new JacobiModule3D();
+        [SerializeField] BuoyancyModule3D buoyancy_module = new BuoyancyModule3D();
+        [SerializeField] ImpulseModule3D impulse_module = new ImpulseModule3D();
+        [SerializeField] ProjectionModule3D projection_module = new ProjectionModule3D();
+        [SerializeField] ObstacleModule3D obstacle_module = new ObstacleModule3D();
+        [SerializeField] OutputModule3D output_module = new OutputModule3D();
+        [Space]
+        [SerializeField] VolumeRenderer output_renderer = null;
 
-        [SerializeField] private VolumeRenderer output_renderer = null;
 
         private RenderTexture volume_output;
         private ComputeBuffer[] density_grids = new ComputeBuffer[2];
@@ -42,10 +43,7 @@ namespace Detonate
         private ComputeBuffer obstacle_grid;
 
         private Vector3 size = Vector3.zero;
-
-        private int x_thread_count = 0;
-        private int y_thread_count = 0;
-        private int z_thread_count = 0;
+        private intVector3 thread_count = intVector3.Zero;
 
         private const uint READ = 0; //for accessing grid sets
         private const uint WRITE = 1;
@@ -87,9 +85,9 @@ namespace Detonate
 
         private void CalculateThreadCount()
         {
-            x_thread_count = (int)(sim_params.width / THREAD_COUNT);
-            y_thread_count = (int)(sim_params.height / THREAD_COUNT);
-            z_thread_count = (int) (sim_params.depth / THREAD_COUNT);
+            thread_count.x = (int)(sim_params.width / THREAD_COUNT);
+            thread_count.y = (int)(sim_params.height / THREAD_COUNT);
+            thread_count.z = (int)(sim_params.depth / THREAD_COUNT);
         }
 
 
@@ -100,10 +98,9 @@ namespace Detonate
                 dimension = UnityEngine.Rendering.TextureDimension.Tex3D,
                 volumeDepth = sim_params.depth,
                 wrapMode = TextureWrapMode.Clamp,
-                enableRandomWrite = true
+                enableRandomWrite = true//must be set before creation
             };
-
-            //must be set before creation
+ 
             volume_output.Create();
         }
 
@@ -152,18 +149,7 @@ namespace Detonate
 
         private void SetBoundary()
         {
-            obstacles.SetVector("size", size);
-            int kernel_id = obstacles.FindKernel("Boundary");
-            obstacles.SetBuffer(kernel_id, "write_R", obstacle_grid);
-            obstacles.Dispatch(kernel_id, x_thread_count, y_thread_count, z_thread_count);
-        }
-
-
-        private void Swap(ComputeBuffer[] _grid)
-        {
-            ComputeBuffer temp = _grid[READ];
-            _grid[READ] = _grid[WRITE];
-            _grid[WRITE] = temp;
+            obstacle_module.SetBoundary(size, obstacle_grid, thread_count);
         }
 
 
@@ -179,9 +165,14 @@ namespace Detonate
 
         private void MoveStage()
         {
-            ApplyAdvection(sim_params.temperature_dissipation, temperature_grids);//move temperature
-            ApplyAdvection(sim_params.density_dissipation, density_grids);//move densities
-            ApplyAdvectionVelocity();//move velocites
+            advection_module.ApplyAdvection(DT, size, sim_params.temperature_dissipation,
+                temperature_grids, velocity_grids, obstacle_grid, thread_count);
+
+            advection_module.ApplyAdvection(DT, size, sim_params.density_dissipation,
+                density_grids, velocity_grids, obstacle_grid, thread_count);
+
+            advection_module.ApplyAdvectionVelocity(DT, size, sim_params.velocity_dissipation,
+                velocity_grids, obstacle_grid, thread_count);
         }
 
 
@@ -205,92 +196,27 @@ namespace Detonate
             if (output_renderer == null)
                 return;
 
-            ////convert structured buffer to 3d volume texture using gpu
-            int kernel_id = output_converter.FindKernel("ConvertToVolume");
-            output_converter.SetBuffer(kernel_id, "read_R", density_grids[READ]);
-            output_converter.SetTexture(kernel_id, "write_R", volume_output);
-            output_converter.SetVector("size", size);
-            output_converter.Dispatch(kernel_id, x_thread_count, y_thread_count, z_thread_count);
-
+            output_module.ConvertToVolume(size, density_grids, volume_output, thread_count);
             output_renderer.size = size;
             output_renderer.texture = volume_output;
         }
 
 
-        private void ApplyAdvection(float _dissipation, ComputeBuffer[] _grids)
-        {
-            advect.SetVector("size", size);
-            advect.SetFloat("dt", DT);
-            advect.SetFloat("dissipation", _dissipation);
-
-            int kernel_id = advect.FindKernel("Advect");
-            advect.SetBuffer(kernel_id, "read_R", _grids[READ]);
-            advect.SetBuffer(kernel_id, "write_R", _grids[WRITE]);
-            advect.SetBuffer(kernel_id, "velocity", velocity_grids[READ]);
-            advect.SetBuffer(kernel_id, "obstacles", obstacle_grid);
-
-            advect.Dispatch(kernel_id, x_thread_count, y_thread_count, z_thread_count);
-            Swap(_grids);
-        }
-
-        private void ApplyAdvectionVelocity()
-        {
-            advect.SetVector("size", size);
-            advect.SetFloat("dt", DT);
-            advect.SetFloat("dissipation", sim_params.velocity_dissipation);
-            advect.SetFloat("forward", 1.0f);
-            advect.SetFloat("decay", sim_params.velocity_dissipation);
-
-            int kernel_id = advect.FindKernel("AdvectVelocity");
-            advect.SetBuffer(kernel_id, "read_RGB", velocity_grids[READ]);
-            advect.SetBuffer(kernel_id, "write_RGB", velocity_grids[WRITE]);
-            advect.SetBuffer(kernel_id, "velocity", velocity_grids[READ]);
-            advect.SetBuffer(kernel_id, "obstacles", obstacle_grid);
-
-            advect.Dispatch(kernel_id, x_thread_count, y_thread_count, z_thread_count);
-            Swap(velocity_grids);
-        }
-
-
         private void ApplyBuoyancy()
         {
-            buoyancy.SetVector("size", size);
-            buoyancy.SetVector("up", new Vector4(0,1,0,0));
-            buoyancy.SetFloat("buoyancy", sim_params.smoke_buoyancy);
-            buoyancy.SetFloat("weight", sim_params.smoke_weight);
-            buoyancy.SetFloat("ambient_temperature", sim_params.ambient_temperature);
-            buoyancy.SetFloat("dt", DT);
-
-            int kernel_id = buoyancy.FindKernel("ApplyBuoyancy");
-            buoyancy.SetBuffer(kernel_id, "write_RGB", velocity_grids[WRITE]);
-            buoyancy.SetBuffer(kernel_id, "velocity", velocity_grids[READ]);
-            buoyancy.SetBuffer(kernel_id, "density", density_grids[READ]);
-            buoyancy.SetBuffer(kernel_id, "temperature", temperature_grids[READ]);
-
-            buoyancy.Dispatch(kernel_id, x_thread_count, y_thread_count, z_thread_count);
-            Swap(velocity_grids);
+            buoyancy_module.ApplyBuoyancy(DT, size, sim_params.smoke_buoyancy, sim_params.smoke_weight, sim_params.ambient_temperature,
+                velocity_grids, density_grids, temperature_grids, thread_count);
         }
 
 
         private void ApplyImpulse(float _amount, ComputeBuffer[] _grids)
         {
-            impulse.SetVector("size", size);
-            impulse.SetFloat("radius", impulse_radius);
-            impulse.SetFloat("source_amount", _amount);
-            impulse.SetFloat("dt", DT);
-
             if (impulse_target_transform != null)
             {
                 impulse_position = ConvertPositionToGridSpace(impulse_target_transform.position);//use transform target as source position
             }
 
-            impulse.SetVector("source_pos", impulse_position);
-
-            int kernel_id = impulse.FindKernel("Impulse");
-            impulse.SetBuffer(kernel_id, "read_R", _grids[READ]);
-            impulse.SetBuffer(kernel_id, "write_R", _grids[WRITE]);
-            impulse.Dispatch(kernel_id, x_thread_count, y_thread_count, z_thread_count);
-            Swap(_grids);
+            impulse_module.ApplyImpulse(DT, size, _amount, impulse_radius, impulse_position, _grids, thread_count);
         }
 
 
@@ -311,43 +237,20 @@ namespace Detonate
 
         private void CalculateDivergence()
         {
-            divergence.SetVector("size", size);
-            int kernel_id = divergence.FindKernel("Divergence");
-            divergence.SetBuffer(kernel_id, "write_RGB", divergence_grid);
-            divergence.SetBuffer(kernel_id, "velocity", velocity_grids[READ]);
-            divergence.SetBuffer(kernel_id, "obstacles", obstacle_grid);
-            divergence.Dispatch(kernel_id, x_thread_count, y_thread_count, z_thread_count);
+            divergence_module.CalculateDivergence(size, divergence_grid, velocity_grids, obstacle_grid, thread_count);
         }
 
 
         private void CalculatePressure()
         {
-            jacobi.SetVector("size", size);
-            int kernel_id = jacobi.FindKernel("Jacobi");
-            jacobi.SetBuffer(kernel_id, "divergence", divergence_grid);
-            jacobi.SetBuffer(kernel_id, "obstacles", obstacle_grid);
-
-            for (int i = 0; i < sim_params.jacobi_iterations; ++i)
-            {
-                jacobi.SetBuffer(kernel_id, "write_R", pressure_grids[WRITE]);
-                jacobi.SetBuffer(kernel_id, "pressure", pressure_grids[READ]);
-                jacobi.Dispatch(kernel_id, x_thread_count, y_thread_count, z_thread_count);
-                Swap(pressure_grids);
-            }
+            jacobi_module.CalculatePressure(size, divergence_grid, obstacle_grid,
+                sim_params.jacobi_iterations, pressure_grids, thread_count);
         }
 
 
         private void CalculateProjection()
         {
-            projection.SetVector("size", size);
-            int kernel_id = projection.FindKernel("Projection");
-            projection.SetBuffer(kernel_id, "obstacles", obstacle_grid);
-            projection.SetBuffer(kernel_id, "pressure", pressure_grids[READ]);
-            projection.SetBuffer(kernel_id, "velocity", velocity_grids[READ]);
-            projection.SetBuffer(kernel_id, "write_RGB", velocity_grids[WRITE]);
-
-            projection.Dispatch(kernel_id, x_thread_count, y_thread_count, z_thread_count);
-            Swap(velocity_grids);
+           projection_module.CalculateProjection(size, pressure_grids, obstacle_grid, velocity_grids, thread_count);
         }
 
 
@@ -373,11 +276,11 @@ namespace Detonate
 
         private void OnDrawGizmos()
         {
-            if (draw_bounds)
-            {
-                Gizmos.color = Color.cyan;
-                Gizmos.DrawWireCube(transform.position, transform.localScale);
-            }
+            if (!draw_bounds)
+                return;
+
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawWireCube(transform.position, transform.localScale);
         }
 
     }
