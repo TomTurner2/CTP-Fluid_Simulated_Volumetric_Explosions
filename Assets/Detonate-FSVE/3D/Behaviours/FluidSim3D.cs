@@ -12,13 +12,6 @@ namespace Detonate
         [Space]
         [SerializeField] FluidSim3DParams sim_params = new FluidSim3DParams();
 
-        [Space]
-        [SerializeField] Vector3 impulse_position = new Vector3(0.5f, 0.5f, 0.5f);
-        [SerializeField] Transform impulse_target_transform = null;
-        [SerializeField] float impulse_radius = 1.0f;
-        [SerializeField] float density_amount = 1.0f;
-        [SerializeField] float temperature_amount = 10.0f;
-
         //Compute shader interfacing classes
         [Space]
         [Header("GPU Modules")]
@@ -32,6 +25,10 @@ namespace Detonate
         [SerializeField] OutputModule3D output_module = new OutputModule3D();
         [Space]
         [SerializeField] VolumeRenderer output_renderer = null;
+        [Space]
+
+        [Header("Emitters")]
+        [SerializeField] List<FluidEmitter> emitters = new List<FluidEmitter>();
 
 
         private RenderTexture volume_output;
@@ -179,15 +176,59 @@ namespace Detonate
         private void AddForcesStage()
         {
             ApplyBuoyancy();
-            ApplyImpulse(density_amount, density_grids);
-            ApplyImpulse(temperature_amount, temperature_grids);
+            ApplyEmitters();
+        }
+
+
+        private void ApplyBuoyancy()
+        {
+            buoyancy_module.ApplyBuoyancy(DT, size, sim_params.smoke_buoyancy, sim_params.smoke_weight, sim_params.ambient_temperature,
+                velocity_grids, density_grids, temperature_grids, thread_count);
+        }
+
+
+        public List<FluidEmitter> Emitters
+        {
+            get
+            {
+                return emitters;
+            }
+            set
+            {
+                emitters = value;
+            }
+        }
+
+
+        private void ApplyEmitters()
+        {
+            for(int i = 0; i < emitters.Count; ++i)
+            {
+                if (emitters[i] == null)
+                {
+                    emitters.RemoveAt(i);
+                    continue;
+                }
+
+                if (!emitters[i].isActiveAndEnabled)
+                    continue;
+
+                if (!emitters[i].Emit)
+                    continue;
+
+                ApplyImpulse(emitters[i].DenisityAmount, emitters[i].EmissionRadius, density_grids, emitters[i].transform.position);
+                ApplyImpulse(emitters[i].TemperatureAmount, emitters[i].EmissionRadius, temperature_grids, emitters[i].transform.position);
+            }
         }
 
 
         private void MassConservationStage()
         {
-            CalculatePressure();//produce pressure gradient
-            CalculateProjection();//use pressure gradient to maintain mass conservation
+            jacobi_module.CalculatePressure(size, divergence_grid, obstacle_grid,
+                sim_params.jacobi_iterations, pressure_grids, thread_count);
+
+            projection_module.CalculateProjection(size, pressure_grids,
+                obstacle_grid, velocity_grids, thread_count);
         }
 
 
@@ -202,21 +243,10 @@ namespace Detonate
         }
 
 
-        private void ApplyBuoyancy()
+        private void ApplyImpulse(float _amount, float _radius, ComputeBuffer[] _grids, Vector3 _position)
         {
-            buoyancy_module.ApplyBuoyancy(DT, size, sim_params.smoke_buoyancy, sim_params.smoke_weight, sim_params.ambient_temperature,
-                velocity_grids, density_grids, temperature_grids, thread_count);
-        }
-
-
-        private void ApplyImpulse(float _amount, ComputeBuffer[] _grids)
-        {
-            if (impulse_target_transform != null)
-            {
-                impulse_position = ConvertPositionToGridSpace(impulse_target_transform.position);//use transform target as source position
-            }
-
-            impulse_module.ApplyImpulse(DT, size, _amount, impulse_radius, impulse_position, _grids, thread_count);
+            impulse_module.ApplyImpulse(DT, size, _amount, _radius,
+                ConvertPositionToGridSpace(_position), _grids, thread_count);
         }
 
 
@@ -238,19 +268,6 @@ namespace Detonate
         private void CalculateDivergence()
         {
             divergence_module.CalculateDivergence(size, divergence_grid, velocity_grids, obstacle_grid, thread_count);
-        }
-
-
-        private void CalculatePressure()
-        {
-            jacobi_module.CalculatePressure(size, divergence_grid, obstacle_grid,
-                sim_params.jacobi_iterations, pressure_grids, thread_count);
-        }
-
-
-        private void CalculateProjection()
-        {
-           projection_module.CalculateProjection(size, pressure_grids, obstacle_grid, velocity_grids, thread_count);
         }
 
 

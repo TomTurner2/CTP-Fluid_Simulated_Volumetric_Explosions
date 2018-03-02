@@ -9,12 +9,12 @@ public class VolumeRenderTest : MonoBehaviour
     [SerializeField] private Vector3 size = new Vector3(256,256,256);
     [SerializeField] private RenderTexture texture;
     private int x, y, z;
-    private Renderer renderer;
+    private Renderer volume_renderer;
 
 	// Use this for initialization
 	void Start ()
 	{
-	    renderer = GetComponent<Renderer>();
+	    volume_renderer = GetComponent<Renderer>();
 
         x = Mathf.ClosestPowerOfTwo((int)size.x);
 	    y = Mathf.ClosestPowerOfTwo((int)size.y);
@@ -39,9 +39,9 @@ public class VolumeRenderTest : MonoBehaviour
 	void Update ()
     {
         transform.rotation = Quaternion.identity;
-        renderer.material.SetVector("_translation", transform.localPosition);
-        renderer.material.SetVector("_scale", transform.localScale);
-        renderer.material.SetTexture("_density", texture);
-        renderer.material.SetVector("_size", new Vector4(x,y,z));
+        volume_renderer.material.SetVector("_translation", transform.localPosition);
+        volume_renderer.material.SetVector("_scale", transform.localScale);
+        volume_renderer.material.SetTexture("_density", texture);
+        volume_renderer.material.SetVector("_size", new Vector4(x,y,z));
     }
 }

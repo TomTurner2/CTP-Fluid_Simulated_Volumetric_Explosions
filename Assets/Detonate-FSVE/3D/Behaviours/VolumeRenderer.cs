@@ -1,19 +1,17 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
+
 
 public class VolumeRenderer : MonoBehaviour
 {
-    public RenderTexture texture = null;
-    public Vector4 size;
+    [HideInInspector] public RenderTexture texture = null;
+    [HideInInspector] public Vector4 size;
 
-    private Renderer renderer;
+    private Renderer volume_renderer;
     
-
 
     void Start()
     {
-        renderer = GetComponent<Renderer>();
+        volume_renderer = GetComponent<Renderer>();
     }
 
 
@@ -23,9 +21,9 @@ public class VolumeRenderer : MonoBehaviour
             return;
 
         transform.rotation = Quaternion.identity;
-        renderer.material.SetVector("_translation", transform.localPosition);
-        renderer.material.SetVector("_scale", transform.localScale);
-        renderer.material.SetTexture("_density", texture);
-        renderer.material.SetVector("_size", size);
+        volume_renderer.material.SetVector("_translation", transform.localPosition);
+        volume_renderer.material.SetVector("_scale", transform.localScale);
+        volume_renderer.material.SetTexture("_density", texture);
+        volume_renderer.material.SetVector("_size", size);
     }
 }
