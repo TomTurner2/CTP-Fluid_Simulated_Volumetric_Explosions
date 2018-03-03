@@ -1,33 +1,28 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Detonate
 {
     public class FluidSim3D : MonoBehaviour
     {
-        [Header("Draw Debug")]
-        [SerializeField] private bool draw_bounds = true;
 
-        [Space]
         [SerializeField] FluidSim3DParams sim_params = new FluidSim3DParams();
 
         //Compute shader interfacing classes
-        [Space]
-        [Header("GPU Modules")]
         [SerializeField] AdvectModule3D advection_module = new AdvectModule3D();
         [SerializeField] DivergenceModule3D divergence_module = new DivergenceModule3D();
         [SerializeField] JacobiModule3D jacobi_module = new JacobiModule3D();
         [SerializeField] BuoyancyModule3D buoyancy_module = new BuoyancyModule3D();
         [SerializeField] ImpulseModule3D impulse_module = new ImpulseModule3D();
         [SerializeField] ProjectionModule3D projection_module = new ProjectionModule3D();
+
         [SerializeField] ObstacleModule3D obstacle_module = new ObstacleModule3D();
         [SerializeField] OutputModule3D output_module = new OutputModule3D();
-        [Space]
         [SerializeField] VolumeRenderer output_renderer = null;
-        [Space]
 
-        [Header("Emitters")]
+
         [SerializeField] List<FluidEmitter> emitters = new List<FluidEmitter>();
 
 
@@ -50,11 +45,18 @@ namespace Detonate
 
         private void Start()
         {
-            ResetSim();
+            InitSim();
         }
 
 
         public void ResetSim()
+        {
+            OnDestroy();//in case of reset
+            InitSim();
+        }
+
+
+        private void InitSim()
         {
             CalculateSize();
             CalculateThreadCount();
@@ -289,16 +291,5 @@ namespace Detonate
             obstacle_grid.Release();
             divergence_grid.Release();
         }
-
-
-        private void OnDrawGizmos()
-        {
-            if (!draw_bounds)
-                return;
-
-            Gizmos.color = Color.cyan;
-            Gizmos.DrawWireCube(transform.position, transform.localScale);
-        }
-
     }
 }

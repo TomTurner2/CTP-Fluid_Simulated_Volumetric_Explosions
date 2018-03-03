@@ -198,7 +198,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 102a7997b77cbf54995bb3dc8b808d4f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  draw_bounds: 1
   sim_params:
     width: 128
     height: 128
