@@ -7,7 +7,6 @@ namespace Detonate
 {
     public class FluidSim3D : MonoBehaviour
     {
-
         [SerializeField] FluidSim3DParams sim_params = new FluidSim3DParams();
 
         //Compute shader interfacing classes
@@ -41,6 +40,8 @@ namespace Detonate
         private const uint WRITE = 1;
         private const uint THREAD_COUNT = 8; //threads used by compute shader
         private const float DT = 0.1f;//simulation blows up with large time steps?
+
+        [SerializeField] private bool draw_bounds = false;
 
 
         private void Start()
@@ -290,6 +291,29 @@ namespace Detonate
 
             obstacle_grid.Release();
             divergence_grid.Release();
+        }
+
+
+        public bool DrawBounds
+        {
+            get
+            {
+                return draw_bounds;
+            }
+            set
+            {
+                draw_bounds = value;
+            }
+        }
+
+
+        private void OnDrawGizmos()
+        {
+            if (!draw_bounds)
+                return;
+
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawWireCube(transform.position, transform.localScale);
         }
     }
 }

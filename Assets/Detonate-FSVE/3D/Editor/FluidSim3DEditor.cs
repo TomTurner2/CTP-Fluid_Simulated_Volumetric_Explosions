@@ -8,7 +8,6 @@ using UnityEditor;
 [CustomEditor(typeof(FluidSim3D))]
 public class FluidSim3DEditor : Editor
 {
-    bool draw_bounds = false;
     FluidSim3D sim = null;
 
 
@@ -115,22 +114,13 @@ public class FluidSim3DEditor : Editor
         EditorGUILayout.BeginVertical("Box");
         EditorGUILayout.LabelField("Simulation Debug Controls", EditorStyles.boldLabel);
         EditorGUILayout.Space();
-        draw_bounds = EditorGUILayout.ToggleLeft(new GUIContent("Draw Bounds"), draw_bounds);
-        if (GUILayout.Button("Reset Simulation") && Application.isPlaying)
+        sim.DrawBounds = EditorGUILayout.ToggleLeft(new GUIContent("Draw Bounds"), sim.DrawBounds);
+
+            if (GUILayout.Button("Reset Simulation") && Application.isPlaying)
         {
             sim.ResetSim();
         }
         EditorGUILayout.Space();
         EditorGUILayout.EndVertical();
-    }
-
-
-    public void OnSceneGUI()
-    {
-        if (!draw_bounds)
-            return;
-
-        Handles.color = Color.cyan;
-        Handles.DrawWireCube(sim.transform.position, sim.transform.localScale);
     }
 }
