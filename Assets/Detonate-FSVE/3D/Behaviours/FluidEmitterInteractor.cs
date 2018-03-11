@@ -4,9 +4,11 @@
 namespace Detonate
 { 
     [RequireComponent(typeof(FluidSim3D))]
+    [DisallowMultipleComponent]
     public class FluidEmitterInteractor : MonoBehaviour
     {
-        FluidSim3D fluid_simulation = null;
+        private FluidSim3D fluid_simulation = null;
+
 
         void Start()
         {
@@ -21,6 +23,15 @@ namespace Detonate
 
             AddEmitters();
             RemoveEmitters();
+        }
+
+
+        private void OnDisable()
+        {
+            if (fluid_simulation == null)
+                return;
+
+            fluid_simulation.Emitters.Clear();
         }
 
 
@@ -69,7 +80,8 @@ namespace Detonate
                   fluid_simulation.transform.localScale.z * 0.5f))
                 return false;
 
-            if (_emitter_position.z < fluid_simulation.transform.position.z + fluid_simulation.transform.localScale.z * 0.5f)
+            if (_emitter_position.z < fluid_simulation.transform.position.z +
+                fluid_simulation.transform.localScale.z * 0.5f)
                 return true;
 
             return false;

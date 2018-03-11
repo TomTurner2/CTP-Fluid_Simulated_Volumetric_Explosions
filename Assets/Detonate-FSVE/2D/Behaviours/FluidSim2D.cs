@@ -9,6 +9,7 @@ namespace Detonate
     [System.Serializable]
     public class RenderTextureEvent : UnityEvent<RenderTexture> { }//event that passes render texture
 
+    //2D fluid sim development abandoned due to texture issue
     public class FluidSim2D : MonoBehaviour
     {
         [SerializeField] FluidSim2DParams sim_params = new FluidSim2DParams();

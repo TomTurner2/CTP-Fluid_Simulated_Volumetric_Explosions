@@ -1,7 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
+
 
 namespace Detonate
 {
@@ -16,13 +15,24 @@ namespace Detonate
         [SerializeField] BuoyancyModule3D buoyancy_module = new BuoyancyModule3D();
         [SerializeField] ImpulseModule3D impulse_module = new ImpulseModule3D();
         [SerializeField] ProjectionModule3D projection_module = new ProjectionModule3D();
-
         [SerializeField] ObstacleModule3D obstacle_module = new ObstacleModule3D();
+
+        enum GridType
+        {
+            DENSITY,
+            OBSTACLE,
+            TEMPERATURE,
+            PRESSURE,
+            VELOCITY
+        }
+
         [SerializeField] OutputModule3D output_module = new OutputModule3D();
+        [SerializeField] GridType grid_to_output = GridType.DENSITY;
         [SerializeField] VolumeRenderer output_renderer = null;
 
 
         [SerializeField] List<FluidEmitter> emitters = new List<FluidEmitter>();
+        [SerializeField] List<SphereCollider> sphere_colliders = new List<SphereCollider>();
 
 
         private RenderTexture volume_output;
@@ -154,12 +164,37 @@ namespace Detonate
 
 
         private void Update()
-        {
+        {       
             MoveStage();
             AddForcesStage();
             CalculateDivergence();//i.e. fluid diffusion
             MassConservationStage();
-            UpdateVolumeRenderer();//may want to interact with shader directly
+            CreateObstacles();
+            UpdateVolumeRenderer();
+        }
+
+
+        private void CreateObstacles()
+        {
+            obstacle_module.ClearObstacles(obstacle_grid);       
+            SetBoundary();
+            AddSphereObstacles();
+        }
+
+
+        private void AddSphereObstacles()
+        {
+            for (int i = 0; i < sphere_colliders.Count; ++i)
+            {
+                if (sphere_colliders[i] == null)
+                {
+                    emitters.RemoveAt(i);
+                    continue;
+                }
+
+                obstacle_module.AddSphereObstacle(size, ConvertPositionToGridSpace(sphere_colliders[i].transform.position),
+                    sphere_colliders[i].radius, obstacle_grid, thread_count);//voxelise sphere to obstacle grid
+            }
         }
 
 
@@ -203,6 +238,19 @@ namespace Detonate
         }
 
 
+        public List<SphereCollider> SphereColliders
+        {
+            get
+            {
+                return sphere_colliders;
+            }
+            set
+            {
+                sphere_colliders = value;
+            }
+        }
+
+
         private void ApplyEmitters()
         {
             for(int i = 0; i < emitters.Count; ++i)
@@ -240,9 +288,34 @@ namespace Detonate
             if (output_renderer == null)
                 return;
 
-            output_module.ConvertToVolume(size, density_grids, volume_output, thread_count);
+            ConvertGridToVolume(grid_to_output);
             output_renderer.size = size;
             output_renderer.texture = volume_output;
+        }
+
+
+        private void ConvertGridToVolume(GridType _grid_type)
+        {
+            switch (_grid_type)
+            {
+                case GridType.DENSITY:
+                    output_module.ConvertToVolume(size, density_grids[READ], volume_output, thread_count);
+                    break;
+                case GridType.OBSTACLE:
+                    output_module.ConvertToVolume(size, obstacle_grid, volume_output, thread_count);
+                    break;
+                case GridType.TEMPERATURE:
+                    output_module.ConvertToVolume(size, temperature_grids[READ], volume_output, thread_count);
+                    break;
+                case GridType.PRESSURE:
+                    output_module.ConvertToVolume(size, pressure_grids[READ], volume_output, thread_count);
+                    break;
+                case GridType.VELOCITY:
+                    output_module.ConvertToVolume(size, velocity_grids[READ], volume_output, thread_count);
+                    break;
+                default:
+                    break;
+            }
         }
 
 

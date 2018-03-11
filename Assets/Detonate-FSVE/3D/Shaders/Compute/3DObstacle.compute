@@ -1,7 +1,10 @@
 ﻿#pragma kernel Boundary
 
+
 float4 size;
 RWStructuredBuffer<float> write_R;
+float4 sphere_position;
+float sphere_radius;
 
 
 int GetIndex(int3 _id, float4 _size)
@@ -11,19 +14,55 @@ int GetIndex(int3 _id, float4 _size)
 
 
 [numthreads(8,8,8)]
-void Boundary (uint3 id : SV_DispatchThreadID)
+void Boundary(uint3 id : SV_DispatchThreadID)
 {
 	float obstacle = 0;
 
 	//if at edge add an obstacle
-	if (id.x - 1  < 0)	{ obstacle = 1;	}
-	if (id.x + 1 > (int)size.x - 1)	{ obstacle = 1;	}
+	if (id.x - 1  <= 0)	
+	{ 
+		obstacle = 1;
+	}
 
-	if (id.y - 1 < 0)	{ obstacle = 1;	}
-	if (id.y + 1 > (int)size.y - 1)	{ obstacle = 1;	}
+	if (id.x + 1 > (uint)size.x - 1)
+	{ 
+		obstacle = 1;
+	}
 
-	if (id.z - 1 < 0)	{ obstacle = 1;	}
-	if (id.z + 1 > (int)size.z - 1)	{ obstacle = 1;	}
+	if (id.y - 1 <= 0)
+	{ 
+		obstacle = 1;
+	}
+
+	if (id.y + 1 > (uint)size.y - 1)
+	{ 
+		obstacle = 1;
+	}
+
+	if (id.z - 1 <= 0)
+	{ 
+		obstacle = 1;
+	
+	}
+
+	if (id.z + 1 > (uint)size.z - 1)	
+	{ 
+		obstacle = 1;
+	}
 
 	write_R[GetIndex(id, size)] = obstacle;
+}
+
+
+#pragma kernel AddSphereObstacle
+[numthreads(8,8,8)]
+void AddSphereObstacle(uint3 id : SV_DispatchThreadID)
+{
+	float3 pos = id / (size.xyz - 1.0f) - sphere_position.xyz;
+	float magnitude = pos.x * pos.x + pos.y * pos.y + pos.z * pos.z;
+	float radius_squared = sphere_radius * sphere_radius;
+
+
+	int index = GetIndex(id, size);
+	write_R[index] = 1;//for some reason this has no effect, might need two grids for obstacle?
 }
