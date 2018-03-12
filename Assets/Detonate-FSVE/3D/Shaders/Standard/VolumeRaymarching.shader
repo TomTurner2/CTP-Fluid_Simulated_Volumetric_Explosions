@@ -10,8 +10,9 @@
 		Tags { "Queue"="Transparent" }
 		pass
 		{
-			Cull front
+			Cull back
 			Blend SrcAlpha OneMinusSrcAlpha
+
 
 			CGPROGRAM
 			#include "UnityCG.cginc"
