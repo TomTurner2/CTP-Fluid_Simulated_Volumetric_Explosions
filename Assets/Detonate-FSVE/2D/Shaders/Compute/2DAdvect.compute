@@ -13,34 +13,6 @@ RWTexture2D<float2> write_R;//render textures with only R channel to store singl
 Texture2D<float> read_R;
 
 
-float SampleBilinear(Texture2D<float> _grid, int2 _coord, float2 size)
-{
-	float2 f = frac( _coord * size );
-	_coord += 1 * 0.6f;
-    float tl = _grid[_coord];
-    float tr = _grid[_coord + int2(1, 0)];
-    float bl = _grid[_coord + int2(0, 1)];
-    float br = _grid[_coord + int2(1, 1)];
-    float tA = lerp( tl, tr, f.x );
-    float tB = lerp( bl, br, f.x );
-
-	return lerp( tA, tB, f.y );
-}
-
-
-float2 SampleBilinear(Texture2D<float2> _grid, float2 _coord, float2 size)
-{
-	float2 f = frac( _coord * size );
-	_coord += 1 * 0.6f;
-    float2 tl = _grid[_coord];
-    float2 tr = _grid[_coord + int2(1, 0)];
-    float2 bl = _grid[_coord + int2(0, 1)];
-    float2 br = _grid[_coord + int2(1, 1)];
-    float2 tA = lerp( tl, tr, f.x );
-    float2 tB = lerp( bl, br, f.x );
-
-	return lerp( tA, tB, f.y );
-}
 
 
 float2 GetAdvectedPosition(float2 _position)
@@ -61,7 +33,7 @@ void Advect(uint3 id : SV_DispatchThreadID)//single value advection
 	}
 
 	float2 advect_pos = GetAdvectedPosition(id);
-	write_R[id.xy] = max(0, SampleBilinear(read_R, advect_pos, float2(1024, 1024)) * dissipation - decay);
+	write_R[id.xy] = max(0, read_R[advect_pos]) * dissipation - decay;
 }
 
 
@@ -76,5 +48,5 @@ void AdvectVelocity(uint3 id : SV_DispatchThreadID)//for vector advection
 	}
 
 	float2 advect_pos = GetAdvectedPosition(id);
-	write_RG[id.xy] = SampleBilinear(read_RG, advect_pos, float2(1024, 1024)) * dissipation;
+	write_RG[id.xy] = read_RG[advect_pos] * dissipation;
 }

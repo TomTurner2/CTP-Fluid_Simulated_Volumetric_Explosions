@@ -197,7 +197,7 @@ Prefab:
         type: 2}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2026621205}
+      objectReference: {fileID: 2100000, guid: 011194192392f9146b2624590ac4266c, type: 2}
     - target: {fileID: 114352365106820792, guid: 7e57d9d7d6380134a89f819cdd218f6b,
         type: 2}
       propertyPath: obstacle_module.compute_shader
@@ -218,6 +218,11 @@ Prefab:
     - target: {fileID: 114352365106820792, guid: 7e57d9d7d6380134a89f819cdd218f6b,
         type: 2}
       propertyPath: velocity_debug
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 114352365106820792, guid: 7e57d9d7d6380134a89f819cdd218f6b,
+        type: 2}
+      propertyPath: grid_to_output
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -568,8 +573,8 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1948574004}
-  m_LocalRotation: {x: 0.09619428, y: 0.47761962, z: -0.052553277, w: 0.871702}
-  m_LocalPosition: {x: -6.6523914, y: 4.6098833, z: -4.132283}
+  m_LocalRotation: {x: -0.063713744, y: 0.70506537, z: -0.06386395, w: -0.70338106}
+  m_LocalPosition: {x: 8.301268, y: 4.541961, z: -0.03121714}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
