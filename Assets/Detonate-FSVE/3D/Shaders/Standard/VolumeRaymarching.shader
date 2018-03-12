@@ -10,7 +10,7 @@
 		Tags { "Queue"="Transparent" }
 		pass
 		{
-			Cull back
+			Cull off
 			Blend SrcAlpha OneMinusSrcAlpha
 
 
