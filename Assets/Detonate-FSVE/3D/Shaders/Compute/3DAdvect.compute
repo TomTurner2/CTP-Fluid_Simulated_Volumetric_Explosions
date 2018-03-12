@@ -81,7 +81,6 @@ float3 GetAdvectedPosition(float3 _position, int _index)
 }
 
 
-
 #pragma kernel Advect
 [numthreads(8, 8, 8)]
 void Advect(uint3 id : SV_DispatchThreadID)//single value advection

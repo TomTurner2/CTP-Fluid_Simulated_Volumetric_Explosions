@@ -4,20 +4,20 @@ using UnityEditor;
 
 namespace Detonate
 {
-    [CustomEditor(typeof(FluidSim3D))]
-    public class FluidSim3DEditor : Editor
+    [CustomEditor(typeof(FluidExplosion3D))]
+    public class FluidExplosion3DEditor : Editor
     {
-        FluidSim3D sim = null;
+        FluidExplosion3D sim = null;
 
 
         public override void OnInspectorGUI()
         {
             GUIStart();
 
+            ExplosionParametersGroup();
             SimParametersGroup();
             FluidSimModuleGroup();
             OutputGroup();
-            InteractablesGroup();
             DebugControlsGroup();
 
             GUIEnd();
@@ -27,7 +27,7 @@ namespace Detonate
         private void GUIStart()
         {
             serializedObject.Update();
-            sim = (FluidSim3D)target;
+            sim = (FluidExplosion3D)target;
         }
 
 
@@ -42,9 +42,22 @@ namespace Detonate
         {
             EditorGUILayout.Space();
             EditorGUILayout.BeginVertical("Box");
-            EditorGUILayout.LabelField("Simulation Parameters", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Fluid Parameters", EditorStyles.boldLabel);
             ++EditorGUI.indentLevel;
             EditorGUILayout.PropertyField(serializedObject.FindProperty("sim_params"), true);
+            --EditorGUI.indentLevel;
+            EditorGUILayout.Space();
+            EditorGUILayout.EndVertical();
+        }
+
+
+        private void ExplosionParametersGroup()
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.BeginVertical("Box");
+            EditorGUILayout.LabelField("Explosion Parameters", EditorStyles.boldLabel);
+            ++EditorGUI.indentLevel;
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("explosion_params"), true);
             --EditorGUI.indentLevel;
             EditorGUILayout.Space();
             EditorGUILayout.EndVertical();
@@ -95,31 +108,13 @@ namespace Detonate
         }
 
 
-        private void InteractablesGroup()
-        {
-            EditorGUILayout.Space();
-            EditorGUILayout.BeginVertical("Box");
-            EditorGUILayout.LabelField("Current Interactables", EditorStyles.boldLabel);
-            ++EditorGUI.indentLevel;
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("emitters"), true);
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("sphere_colliders"), true);
-            --EditorGUI.indentLevel;
-            EditorGUILayout.Space();
-            EditorGUILayout.EndVertical();
-        }
-
-
         private void DebugControlsGroup()
         {
             EditorGUILayout.Space();
-            EditorGUILayout.BeginVertical("Box"); 
+            EditorGUILayout.BeginVertical("Box");
             EditorGUILayout.LabelField("Simulation Debug Controls", EditorStyles.boldLabel);
             EditorGUILayout.Space();
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("draw_bounds"), true);
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("velocity_debug"), true); 
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("velocity_debug_resolution"), true); 
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("velocity_debug_colour_threshold"), true);
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("velocity_debug_normalise"), true);
+            sim.DrawBounds = EditorGUILayout.ToggleLeft(new GUIContent("Draw Bounds"), sim.DrawBounds);
 
             if (GUILayout.Button("Reset Simulation") && Application.isPlaying)
             {

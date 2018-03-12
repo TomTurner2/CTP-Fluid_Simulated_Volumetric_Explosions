@@ -50,8 +50,14 @@ namespace Detonate
 
         private void RemoveEmitters()
         {
-            for (int i = 0; i < fluid_simulation.Emitters.Count; ++i)
+            for (int i = fluid_simulation.Emitters.Count-1; i >= 0; --i)
             {
+                if (fluid_simulation.Emitters[i] == null)
+                {
+                    fluid_simulation.Emitters.RemoveAt(i);
+                    continue;
+                }
+
                 if (!AABBCollisionCheck(fluid_simulation.Emitters[i].transform.position))
                     fluid_simulation.Emitters.RemoveAt(i);//remove any emitters outside of simulation
             }

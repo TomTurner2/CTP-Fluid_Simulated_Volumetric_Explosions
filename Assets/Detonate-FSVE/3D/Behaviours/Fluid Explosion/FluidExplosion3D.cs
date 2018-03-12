@@ -1,12 +1,14 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 
 namespace Detonate
 {
-    public class FluidSim3D : MonoBehaviour
+    public class FluidExplosion3D : MonoBehaviour
     {
         [SerializeField] FluidSim3DParams sim_params = new FluidSim3DParams();
+        [SerializeField] FluidExplosion3DParams explosion_params = new FluidExplosion3DParams();
 
         //Compute shader interfacing classes
         [SerializeField] AdvectModule3D advection_module = new AdvectModule3D();
@@ -29,19 +31,24 @@ namespace Detonate
         [SerializeField] OutputModule3D output_module = new OutputModule3D();
         [SerializeField] GridType grid_to_output = GridType.DENSITY;
         [SerializeField] VolumeRenderer output_renderer = null;
-
-
-        [SerializeField] List<FluidEmitter> emitters = new List<FluidEmitter>();
-        [SerializeField] List<SphereCollider> sphere_colliders = new List<SphereCollider>();
-
-
         private RenderTexture volume_output;
-        private ComputeBuffer[] density_grids = new ComputeBuffer[2];
+
+        //fluid sim buffers
         private ComputeBuffer[] velocity_grids = new ComputeBuffer[2];
         private ComputeBuffer[] temperature_grids = new ComputeBuffer[2];
         private ComputeBuffer[] pressure_grids = new ComputeBuffer[2];
         private ComputeBuffer divergence_grid;
         private ComputeBuffer obstacle_grid;
+
+
+        //particle sim buffers
+        private ComputeBuffer particle_positions = null;
+        private ComputeBuffer particle_velocities = null;
+        private ComputeBuffer particle_temperatures = null;
+        private ComputeBuffer particle_masses = null;
+        private ComputeBuffer particle_soot_accumulation = null;
+        private int particle_count = 0;//use this so count isn't changed at runtime
+
 
         private Vector3 size = Vector3.zero;
         private intVector3 thread_count = intVector3.Zero;
@@ -72,6 +79,7 @@ namespace Detonate
             CalculateSize();
             CalculateThreadCount();
             CreateGridSets(); //creates render texture grid sets
+            CreateParticleBuffers();
             SetBoundary();
             CreateOutputTexture();
         }
@@ -119,7 +127,6 @@ namespace Detonate
         {
             int buffer_size = sim_params.width * sim_params.height * sim_params.depth;
 
-            CreateDensityGrids(buffer_size);
             CreateVelocityGrids(buffer_size);
             CreateTemperatureGrids(buffer_size);
             CreatePressureGrids(buffer_size);
@@ -129,17 +136,52 @@ namespace Detonate
         }
 
 
-        private void CreateDensityGrids(int _buffer_size)
-        {
-            density_grids[READ] = new ComputeBuffer(_buffer_size, sizeof(float));
-            density_grids[WRITE] = new ComputeBuffer(_buffer_size, sizeof(float));
-        }
-
-
         private void CreateVelocityGrids(int _buffer_size)
         {
             velocity_grids[READ] = new ComputeBuffer(_buffer_size, sizeof(float) * 3);//will store float 3
             velocity_grids[WRITE] = new ComputeBuffer(_buffer_size, sizeof(float) * 3);
+
+            Vector3[] noise = GenerateNoiseArray();
+            velocity_grids[READ].SetData(noise);
+            velocity_grids[WRITE].SetData(noise);       
+        }
+
+
+        private Vector3[] GenerateNoiseArray()
+        {
+            Vector3[] noise = new Vector3[(int)(size.x * size.y * size.z)];
+
+            for (int y = 0; y < size.y; ++y)
+            {
+                for (int x = 0; x < size.x; ++x)
+                {
+                    for (int z = 0; z < size.z; ++z)
+                    {
+                        float noise_value = PerlinNoise3D(x, y, z);
+
+                        int index = (int)(x + y * size.x + z * size.x * size.y);
+                        noise[index].x = noise_value;
+                        noise[index].y = noise_value;
+                        noise[index].z = noise_value;
+                    }
+                }
+            }
+
+            return noise;
+        }
+
+
+        private float PerlinNoise3D(int _x, int _y, int _z)
+        {
+            float ab = Mathf.PerlinNoise(_x, _y);//get permutations
+            float bc = Mathf.PerlinNoise(_y, _z);
+            float ac = Mathf.PerlinNoise(_x, _z);
+
+            float ba = Mathf.PerlinNoise(_y, _x);//get reverse permutation
+            float cb = Mathf.PerlinNoise(_z, _y);
+            float ca = Mathf.PerlinNoise(_z, _x);
+
+            return (ab + bc + ac + ba + cb + ca) / 6.0f;//return average
         }
 
 
@@ -147,6 +189,12 @@ namespace Detonate
         {
             temperature_grids[READ] = new ComputeBuffer(_buffer_size, sizeof(float));
             temperature_grids[WRITE] = new ComputeBuffer(_buffer_size, sizeof(float));
+
+            temperature_grids[READ].SetData(Enumerable.Repeat(sim_params.ambient_temperature,
+                temperature_grids[READ].count).ToArray());// set all values to ambient temperature
+
+            temperature_grids[WRITE].SetData(Enumerable.Repeat(sim_params.ambient_temperature,
+                temperature_grids[WRITE].count).ToArray());// set all values to ambient temperature
         }
 
 
@@ -156,6 +204,50 @@ namespace Detonate
             pressure_grids[WRITE] = new ComputeBuffer(_buffer_size, sizeof(float));
         }
 
+
+        private void CreateParticleBuffers()
+        {
+            particle_count = explosion_params.particle_count;
+
+            particle_positions = new ComputeBuffer(particle_count, sizeof(float) * 3);
+            particle_velocities = new ComputeBuffer(particle_count, sizeof(float) * 3);
+            particle_temperatures = new ComputeBuffer(particle_count, sizeof(float));
+            particle_masses = new ComputeBuffer(particle_count, sizeof(float));
+            particle_soot_accumulation = new ComputeBuffer(particle_count, sizeof(float));
+
+            InitParticles();
+        }
+
+
+        private void InitParticles()
+        {
+            int soot_insert_index = Mathf.FloorToInt(particle_count * 0.5f);
+
+
+            Vector3[] positions_in_radius = new Vector3[particle_count];
+            float[] start_masses = new float[particle_count];
+
+            for (int i = 0; i < particle_count; ++i)
+            {
+                if (i < soot_insert_index)//regular fuel particle init
+                {
+                    float random_radius = Random.Range(-explosion_params.fuse_radius, explosion_params.fuse_radius);//random radius within fuse radius
+                    positions_in_radius[i] = Random.insideUnitSphere * random_radius + explosion_params.fuse_position;//random position in circle
+                    start_masses[i] = explosion_params.mass;
+                }
+                else//init soot particle
+                {
+                    positions_in_radius[i] = Vector3.zero;
+                    start_masses[i] = explosion_params.soot_mass;
+                }
+            }
+
+            particle_positions.SetData(positions_in_radius);
+            particle_masses.SetData(start_masses);
+            particle_temperatures.SetData(Enumerable.Repeat(
+                sim_params.ambient_temperature, particle_count).ToArray());
+        }
+       
 
         private void SetBoundary()
         {
@@ -169,32 +261,7 @@ namespace Detonate
             AddForcesStage();
             CalculateDivergence();//i.e. fluid diffusion
             MassConservationStage();
-            CreateObstacles();
             UpdateVolumeRenderer();
-        }
-
-
-        private void CreateObstacles()
-        {
-            obstacle_module.ClearObstacles(obstacle_grid);       
-            SetBoundary();
-            AddSphereObstacles();
-        }
-
-
-        private void AddSphereObstacles()
-        {
-            for (int i = 0; i < sphere_colliders.Count; ++i)
-            {
-                if (sphere_colliders[i] == null)
-                {
-                    emitters.RemoveAt(i);
-                    continue;
-                }
-
-                obstacle_module.AddSphereObstacle(size, ConvertPositionToGridSpace(sphere_colliders[i].transform.position),
-                    sphere_colliders[i].radius, obstacle_grid, thread_count);//voxelise sphere to obstacle grid
-            }
         }
 
 
@@ -202,9 +269,6 @@ namespace Detonate
         {
             advection_module.ApplyAdvection(DT, size, sim_params.temperature_dissipation,
                 temperature_grids, velocity_grids, obstacle_grid, thread_count);
-
-            advection_module.ApplyAdvection(DT, size, sim_params.density_dissipation,
-                density_grids, velocity_grids, obstacle_grid, thread_count);
 
             advection_module.ApplyAdvectionVelocity(DT, size, sim_params.velocity_dissipation,
                 velocity_grids, obstacle_grid, thread_count);
@@ -214,62 +278,15 @@ namespace Detonate
         private void AddForcesStage()
         {
             ApplyBuoyancy();
-            ApplyEmitters();
         }
 
 
         private void ApplyBuoyancy()
         {
-            buoyancy_module.ApplyBuoyancy(DT, size, sim_params.smoke_buoyancy, sim_params.smoke_weight, sim_params.ambient_temperature,
-                velocity_grids, density_grids, temperature_grids, thread_count);
-        }
+            //buoyancy_module.ApplyBuoyancy(DT, size, sim_params.smoke_buoyancy, sim_params.smoke_weight, sim_params.ambient_temperature,
+            //    velocity_grids, density_grids, temperature_grids, thread_count);
 
-
-        public List<FluidEmitter> Emitters
-        {
-            get
-            {
-                return emitters;
-            }
-            set
-            {
-                emitters = value;
-            }
-        }
-
-
-        public List<SphereCollider> SphereColliders
-        {
-            get
-            {
-                return sphere_colliders;
-            }
-            set
-            {
-                sphere_colliders = value;
-            }
-        }
-
-
-        private void ApplyEmitters()
-        {
-            for(int i = 0; i < emitters.Count; ++i)
-            {
-                if (emitters[i] == null)
-                {
-                    emitters.RemoveAt(i);
-                    continue;
-                }
-
-                if (!emitters[i].isActiveAndEnabled)
-                    continue;
-
-                if (!emitters[i].Emit)
-                    continue;
-
-                ApplyImpulse(emitters[i].DenisityAmount, emitters[i].EmissionRadius, density_grids, emitters[i].transform.position);
-                ApplyImpulse(emitters[i].TemperatureAmount, emitters[i].EmissionRadius, temperature_grids, emitters[i].transform.position);
-            }
+            //instead of density it should be particle mass
         }
 
 
@@ -299,7 +316,7 @@ namespace Detonate
             switch (_grid_type)
             {
                 case GridType.DENSITY:
-                    output_module.ConvertToVolume(size, density_grids[READ], volume_output, thread_count);
+                   //output_module.ConvertToVolume(size, density_grids[READ], volume_output, thread_count);
                     break;
                 case GridType.OBSTACLE:
                     output_module.ConvertToVolume(size, obstacle_grid, volume_output, thread_count);
@@ -350,8 +367,25 @@ namespace Detonate
         //all buffers should be released on destruction
         private void OnDestroy()
         {
-            density_grids[READ].Release();
-            density_grids[WRITE].Release();
+            ReleaseFluidSimBuffers();
+            ReleaseParticleBuffers();
+        }
+
+
+        private void ReleaseParticleBuffers()
+        {
+            particle_positions.Release();
+            particle_velocities.Release();
+            particle_temperatures.Release();
+            particle_masses.Release();
+            particle_soot_accumulation.Release();
+        }
+
+
+        private void ReleaseFluidSimBuffers()
+        {
+            //density_grids[READ].Release();
+            //density_grids[WRITE].Release();
 
             velocity_grids[READ].Release();
             velocity_grids[WRITE].Release();
@@ -382,11 +416,30 @@ namespace Detonate
 
         private void OnDrawGizmos()
         {
-            if (!draw_bounds)
-                return;
+            if (draw_bounds)
+            {
+                Gizmos.color = Color.cyan;
+                Gizmos.DrawWireCube(transform.position, transform.localScale);
+            }
 
-            Gizmos.color = Color.cyan;
-            Gizmos.DrawWireCube(transform.position, transform.localScale);
+
+            if (particle_positions != null)
+            {
+                Vector3[] particles = new Vector3[particle_count];
+                particle_positions.GetData(particles);
+
+                int i = 0;
+                foreach (var particle in particles)
+                {
+                    ++i;
+                    Gizmos.color = Color.gray;
+
+                    if (i <= particle_count * 0.5f)
+                        Gizmos.color = Color.red;
+
+                    Gizmos.DrawSphere(transform.localPosition + particle, explosion_params.particle_radius);
+                }
+            }
         }
     }
 }

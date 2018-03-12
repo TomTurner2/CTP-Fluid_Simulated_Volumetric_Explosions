@@ -58,11 +58,15 @@ void Boundary(uint3 id : SV_DispatchThreadID)
 [numthreads(8,8,8)]
 void AddSphereObstacle(uint3 id : SV_DispatchThreadID)
 {
-	float3 pos = id / (size.xyz - 1.0f) - sphere_position.xyz;
+	float3 pos = id / (size.xyz - 1.0f) - sphere_position.xyz;//need to take into account simulation scaling
 	float magnitude = pos.x * pos.x + pos.y * pos.y + pos.z * pos.z;
-	float radius_squared = sphere_radius * sphere_radius;
 
+	float radius_percent = sphere_radius * 0.1f;//sphere collider conversion to grid
+	float radius_squared = radius_percent * radius_percent;
+
+	float amount = exp(-magnitude/radius_squared);
+	amount = step(0.01f, amount);//if greater than or equal 0.01f, set obstacle to 1
 
 	int index = GetIndex(id, size);
-	write_R[index] = 1;//for some reason this has no effect, might need two grids for obstacle?
+	write_R[index] = write_R[index] + amount;//for some reason this has no effect, might need two grids for obstacle?
 }
