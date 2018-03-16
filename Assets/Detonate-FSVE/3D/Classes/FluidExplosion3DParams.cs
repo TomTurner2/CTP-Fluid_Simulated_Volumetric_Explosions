@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 
 [System.Serializable]
@@ -14,16 +12,16 @@ public class FluidExplosion3DParams
     [Space]
     [Header("Fuel Particles")]
     public uint particle_count = 200;
-    public float mass = 1;
-    public float soot_mass = 2;
-    public float thermal_mass = 3;
-    public float particle_radius = 0.01f;
-    public float particle_drag = 1;
-    public float fluid_drag_effect = 2;
-    public float ignition_temperature = 4;
-    public float burn_rate = 2;
-    public float fuel_burn_amount = 1;
-    public float fuel_divergence_amount = 2;
-    public float generated_soot_amount = 2;
-    public float soot_threshold = 2;
+    public float mass = 0.7f;
+    public float soot_mass = 0.001f;
+    public float thermal_mass = 1.6f;
+    public float particle_radius = 0.1f;
+    public float particle_drag = 950.0f;
+    public float fluid_drag_effect = 0.001f;
+    public float ignition_temperature = 50;
+    public float burn_rate = 0.67f;
+    public float fuel_burn_amount = 40;
+    public float fuel_divergence_amount = 40;
+    public float generated_soot_amount = 260;
+    public float soot_threshold = 1.0f;
 }

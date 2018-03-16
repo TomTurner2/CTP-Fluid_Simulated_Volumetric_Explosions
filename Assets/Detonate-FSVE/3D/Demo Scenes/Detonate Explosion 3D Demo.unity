@@ -168,7 +168,7 @@ MonoBehaviour:
   explosion_params:
     fuse_position: {x: 0, y: 0, z: 0}
     fuse_radius: 0.1
-    particle_count: 200
+    particle_count: 100
     mass: 1
     soot_mass: 2
     thermal_mass: 3
@@ -189,15 +189,15 @@ MonoBehaviour:
     compute_shader: {fileID: 7200000, guid: 5bd717b1d2ba97347b7d9ff9797647b2, type: 3}
   buoyancy_module:
     compute_shader: {fileID: 7200000, guid: d2c023e1ba7907546bf270d5326734a7, type: 3}
-  impulse_module:
-    compute_shader: {fileID: 7200000, guid: 44cc972b3dfcb0d43a25a947d5d6ce56, type: 3}
   projection_module:
     compute_shader: {fileID: 7200000, guid: 15b47727fdb78ad41952b985caa35e11, type: 3}
   obstacle_module:
     compute_shader: {fileID: 7200000, guid: dd21b5533fab170418e1046c76bb8323, type: 3}
+  fuel_particle_module:
+    compute_shader: {fileID: 7200000, guid: 922c043289c4c6c48bfe0d1a1446a183, type: 3}
   output_module:
     compute_shader: {fileID: 7200000, guid: c99754ab361730a4aa9f7578ec315296, type: 3}
-  grid_to_output: 1
+  grid_to_output: 4
   output_renderer: {fileID: 797914335}
   draw_bounds: 0
 --- !u!23 &797914337
@@ -250,7 +250,7 @@ Transform:
   m_GameObject: {fileID: 797914334}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 3, z: 0}
-  m_LocalScale: {x: 3, y: 6, z: 3}
+  m_LocalScale: {x: 5, y: 5, z: 5}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2

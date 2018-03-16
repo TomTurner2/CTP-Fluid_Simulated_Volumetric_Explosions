@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 
@@ -15,10 +16,11 @@ namespace Detonate
         [SerializeField] DivergenceModule3D divergence_module = new DivergenceModule3D();
         [SerializeField] JacobiModule3D jacobi_module = new JacobiModule3D();
         [SerializeField] BuoyancyModule3D buoyancy_module = new BuoyancyModule3D();
-        [SerializeField] ImpulseModule3D impulse_module = new ImpulseModule3D();
         [SerializeField] ProjectionModule3D projection_module = new ProjectionModule3D();
         [SerializeField] ObstacleModule3D obstacle_module = new ObstacleModule3D();
 
+        [SerializeField] FuelParticleSimulationModule fuel_particle_module = new FuelParticleSimulationModule();
+        
         enum GridType
         {
             DENSITY,
@@ -86,7 +88,7 @@ namespace Detonate
             CalculateSize();
             CalculateThreadCount();
             CreateGridSets(); //creates render texture grid sets
-            CreateParticleBuffers();
+            CreateParticleBuffer();
             SetBoundary();
             CreateOutputTexture();
         }
@@ -148,50 +150,36 @@ namespace Detonate
             velocity_grids[READ] = new ComputeBuffer(_buffer_size, sizeof(float) * 3);//will store float 3
             velocity_grids[WRITE] = new ComputeBuffer(_buffer_size, sizeof(float) * 3);
 
-            Vector3[] noise = GenerateNoiseArray();
+            Vector3[] noise = GetRandomVelocities(_buffer_size);
             velocity_grids[READ].SetData(noise);
             velocity_grids[WRITE].SetData(noise);       
         }
 
 
-        private Vector3[] GenerateNoiseArray()
+        Vector3[] GetRandomVelocities(int _buffer_size, float _scalar = 1)
         {
-            Vector3[] noise = new Vector3[(int)(size.x * size.y * size.z)];
-
-            for (int y = 0; y < size.y; ++y)
+            Vector3[] velocities = new Vector3[_buffer_size];
+            for(int i = 0; i < velocities.Length; ++i)
             {
-                for (int x = 0; x < size.x; ++x)
-                {
-                    for (int z = 0; z < size.z; ++z)
-                    {
-                        float noise_value = PerlinNoise3D(x, y, z);
-
-                        int index = (int)(x + y * size.x + z * size.x * size.y);
-                        noise[index].x = noise_value;
-                        noise[index].y = noise_value;
-                        noise[index].z = noise_value;
-                    }
-                }
+                velocities[i] = RandomVelocity() * _scalar;
             }
 
-            return noise;
+            return velocities;
         }
 
 
-        private float PerlinNoise3D(int _x, int _y, int _z)
+        Vector3 RandomVelocity()
         {
-            float ab = Mathf.PerlinNoise(_x, _y);//get permutations
-            float bc = Mathf.PerlinNoise(_y, _z);
-            float ac = Mathf.PerlinNoise(_x, _z);
-
-            float ba = Mathf.PerlinNoise(_y, _x);//get reverse permutation
-            float cb = Mathf.PerlinNoise(_z, _y);
-            float ca = Mathf.PerlinNoise(_z, _x);
-
-            return (ab + bc + ac + ba + cb + ca) / 6.0f;//return average
+            Vector3 velocity = new Vector3
+            {
+                x = Random.Range(-1, 1),
+                y = Random.Range(-1, 1),
+                z = Random.Range(-1, 1)
+            };
+            return velocity;
         }
 
-
+  
         private void CreateTemperatureGrids(int _buffer_size)
         {
             temperature_grids[READ] = new ComputeBuffer(_buffer_size, sizeof(float));
@@ -212,7 +200,7 @@ namespace Detonate
         }
 
 
-        private void CreateParticleBuffers()
+        private void CreateParticleBuffer()
         {
             particle_count = explosion_params.particle_count;
             const int float_count = 9;//Can't use sizeof for custom types in Unity -_-
@@ -233,6 +221,7 @@ namespace Detonate
                     float random_radius = Random.Range(-explosion_params.fuse_radius, explosion_params.fuse_radius);//random radius within fuse radius
                     initial_fuel_particles[i].position = Random.insideUnitSphere * random_radius + explosion_params.fuse_position;//random position in circle
                     initial_fuel_particles[i].mass = explosion_params.mass;
+                    //initial_fuel_particles[i].velocity = Vector3.up;//test
                 }
                 else//init soot particle
                 {
@@ -253,11 +242,24 @@ namespace Detonate
 
         private void Update()
         {       
+            FluidSimulationUpdate();
+            ParticleSimulationUpdate();
+            UpdateVolumeRenderer();
+        }
+
+
+        private void FluidSimulationUpdate()
+        {
             MoveStage();
             AddForcesStage();
             CalculateDivergence();//i.e. fluid diffusion
             MassConservationStage();
-            UpdateVolumeRenderer();
+        }
+
+
+        private void ParticleSimulationUpdate()
+        {
+            fuel_particle_module.UpdateParticlePhysics(fuel_particles_buffer, particle_count, DT);
         }
 
 
@@ -330,13 +332,6 @@ namespace Detonate
         }
 
 
-        private void ApplyImpulse(float _amount, float _radius, ComputeBuffer[] _grids, Vector3 _position)
-        {
-            impulse_module.ApplyImpulse(DT, size, _amount, _radius,
-                ConvertPositionToGridSpace(_position), _grids, thread_count);
-        }
-
-
         public Vector3 ConvertPositionToGridSpace(Vector3 _pos)
         {
             return ConvertToGridScale(_pos - transform.localPosition);//get relative position then factor in scale
@@ -368,9 +363,6 @@ namespace Detonate
 
         private void ReleaseFluidSimBuffers()
         {
-            //density_grids[READ].Release();
-            //density_grids[WRITE].Release();
-
             velocity_grids[READ].Release();
             velocity_grids[WRITE].Release();
 

@@ -85,9 +85,9 @@ namespace Detonate
             EditorGUILayout.PropertyField(serializedObject.FindProperty("divergence_module"), true);
             EditorGUILayout.PropertyField(serializedObject.FindProperty("jacobi_module"), true);
             EditorGUILayout.PropertyField(serializedObject.FindProperty("buoyancy_module"), true);
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("impulse_module"), true);
             EditorGUILayout.PropertyField(serializedObject.FindProperty("projection_module"), true);
             EditorGUILayout.PropertyField(serializedObject.FindProperty("obstacle_module"), true);
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("fuel_particle_module"), true);
         }
 
 

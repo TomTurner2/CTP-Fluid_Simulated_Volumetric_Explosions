@@ -1,5 +1,5 @@
 ﻿#pragma kernel ApplyBuoyancy
-#pragma Kernel ApplyBuoyancySimple
+#pragma kernel ApplyBuoyancySimple
 
 RWStructuredBuffer<float3> write_RGB;
 StructuredBuffer<float3> velocity;
@@ -32,7 +32,7 @@ void ApplyBuoyancy (uint3 id : SV_DispatchThreadID)
 	if (cell_temperature > ambient_temperature)//rise if hotter than normal temperature
 	{
 		cell_velocity += (dt * (cell_temperature - ambient_temperature) *
-		buoyancy - cell_density * weight) * up.xyz;//buoyancy that factors in density weight and temperature effect
+		buoyancy - cell_density * weight) * up.xyz;//buoyancy factors in density weight and temperature
 	}
 
 	write_RGB[index] = cell_velocity;//write the new velocity
@@ -49,7 +49,7 @@ void ApplyBuoyancySimple(uint3 id : SV_DispatchThreadID)
 	if (cell_temperature > ambient_temperature)//rise if hotter than normal temperature
 	{
 		cell_velocity += (dt * (cell_temperature - ambient_temperature) *
-		buoyancy) * up.xyz;//simple buoyancy dosen't factor in weight
+		buoyancy) * up.xyz;//simple buoyancy dosen't factor in weight, for sims that don't use density
 	}
 
 	write_RGB[index] = cell_velocity;
