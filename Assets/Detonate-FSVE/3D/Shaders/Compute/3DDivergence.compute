@@ -62,8 +62,8 @@ void Divergence (uint3 id : SV_DispatchThreadID)
 	velocity_front = CheckSolidCells(obstacles_forward, velocity_front);
 	velocity_back = CheckSolidCells(obstacles_back, velocity_back);
 
-	float divergence = 0.5f * ((velocity_right.x - velocity_left.x) +
-	(velocity_up.y - velocity_down.y) + (velocity_back.z - velocity_front.z));
+	float divergence = ((velocity_right.x - velocity_left.x) +
+	(velocity_up.y - velocity_down.y) + (velocity_back.z - velocity_front.z)) * 0.5f;
 
 	write_RGB[index] = float3(divergence, 0, 0);
 }
