@@ -28,6 +28,7 @@ namespace Detonate
             VELOCITY
         }
 
+        //output
         [SerializeField] OutputModule3D output_module = new OutputModule3D();
         [SerializeField] GridType grid_to_output = GridType.DENSITY;
         [SerializeField] VolumeRenderer output_renderer = null;
@@ -41,13 +42,19 @@ namespace Detonate
         private ComputeBuffer obstacle_grid;
 
 
+        struct FuelParticle
+        {
+            public Vector3 position;
+            public Vector3 velocity;
+            public float temperature;
+            public float mass;
+            public float soot_accumulation;
+        }
+
+
         //particle sim buffers
-        private ComputeBuffer particle_positions = null;
-        private ComputeBuffer particle_velocities = null;
-        private ComputeBuffer particle_temperatures = null;
-        private ComputeBuffer particle_masses = null;
-        private ComputeBuffer particle_soot_accumulation = null;
-        private int particle_count = 0;//use this so count isn't changed at runtime
+        private ComputeBuffer fuel_particles_buffer = null;
+        private uint particle_count = 0;//use this so count isn't changed at runtime
 
 
         private Vector3 size = Vector3.zero;
@@ -208,13 +215,8 @@ namespace Detonate
         private void CreateParticleBuffers()
         {
             particle_count = explosion_params.particle_count;
-
-            particle_positions = new ComputeBuffer(particle_count, sizeof(float) * 3);
-            particle_velocities = new ComputeBuffer(particle_count, sizeof(float) * 3);
-            particle_temperatures = new ComputeBuffer(particle_count, sizeof(float));
-            particle_masses = new ComputeBuffer(particle_count, sizeof(float));
-            particle_soot_accumulation = new ComputeBuffer(particle_count, sizeof(float));
-
+            const int float_count = 9;//Can't use sizeof for custom types in Unity -_-
+            fuel_particles_buffer = new ComputeBuffer((int)particle_count, sizeof(float) * float_count, ComputeBufferType.Append);
             InitParticles();
         }
 
@@ -222,30 +224,24 @@ namespace Detonate
         private void InitParticles()
         {
             int soot_insert_index = Mathf.FloorToInt(particle_count * 0.5f);
-
-
-            Vector3[] positions_in_radius = new Vector3[particle_count];
-            float[] start_masses = new float[particle_count];
+            FuelParticle[] initial_fuel_particles = new FuelParticle[particle_count];
 
             for (int i = 0; i < particle_count; ++i)
             {
                 if (i < soot_insert_index)//regular fuel particle init
                 {
                     float random_radius = Random.Range(-explosion_params.fuse_radius, explosion_params.fuse_radius);//random radius within fuse radius
-                    positions_in_radius[i] = Random.insideUnitSphere * random_radius + explosion_params.fuse_position;//random position in circle
-                    start_masses[i] = explosion_params.mass;
+                    initial_fuel_particles[i].position = Random.insideUnitSphere * random_radius + explosion_params.fuse_position;//random position in circle
+                    initial_fuel_particles[i].mass = explosion_params.mass;
                 }
                 else//init soot particle
                 {
-                    positions_in_radius[i] = Vector3.zero;
-                    start_masses[i] = explosion_params.soot_mass;
+                    initial_fuel_particles[i].position = Vector3.zero;
+                    initial_fuel_particles[i].mass = explosion_params.soot_mass;
                 }
             }
-
-            particle_positions.SetData(positions_in_radius);
-            particle_masses.SetData(start_masses);
-            particle_temperatures.SetData(Enumerable.Repeat(
-                sim_params.ambient_temperature, particle_count).ToArray());
+            
+            fuel_particles_buffer.SetData(initial_fuel_particles);
         }
        
 
@@ -368,17 +364,7 @@ namespace Detonate
         private void OnDestroy()
         {
             ReleaseFluidSimBuffers();
-            ReleaseParticleBuffers();
-        }
-
-
-        private void ReleaseParticleBuffers()
-        {
-            particle_positions.Release();
-            particle_velocities.Release();
-            particle_temperatures.Release();
-            particle_masses.Release();
-            particle_soot_accumulation.Release();
+            fuel_particles_buffer.Release();
         }
 
 
@@ -416,30 +402,40 @@ namespace Detonate
 
         private void OnDrawGizmos()
         {
-            if (draw_bounds)
+            DrawBoundGizmos();
+            DrawFuelParticlesGizmos();
+        }
+
+
+        private void DrawBoundGizmos()
+        {
+            if (!draw_bounds)
+                return;
+
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawWireCube(transform.position, transform.localScale);
+        }
+
+
+        private void DrawFuelParticlesGizmos()
+        {
+            if (fuel_particles_buffer == null)
+                return;
+            FuelParticle[] particles = new FuelParticle[fuel_particles_buffer.count];
+            fuel_particles_buffer.GetData(particles);
+
+            int i = 0;
+            foreach (FuelParticle particle in particles)
             {
-                Gizmos.color = Color.cyan;
-                Gizmos.DrawWireCube(transform.position, transform.localScale);
-            }
+                ++i;
+                Gizmos.color = Color.gray;
 
+                if (i <= particle_count * 0.5f)
+                    Gizmos.color = Color.red;
 
-            if (particle_positions != null)
-            {
-                Vector3[] particles = new Vector3[particle_count];
-                particle_positions.GetData(particles);
-
-                int i = 0;
-                foreach (var particle in particles)
-                {
-                    ++i;
-                    Gizmos.color = Color.gray;
-
-                    if (i <= particle_count * 0.5f)
-                        Gizmos.color = Color.red;
-
-                    Gizmos.DrawSphere(transform.localPosition + particle, explosion_params.particle_radius);
-                }
+                Gizmos.DrawSphere(transform.localPosition + particle.position, explosion_params.particle_radius);
             }
         }
+       
     }
 }

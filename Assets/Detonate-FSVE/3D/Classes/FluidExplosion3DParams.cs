@@ -13,7 +13,7 @@ public class FluidExplosion3DParams
 
     [Space]
     [Header("Fuel Particles")]
-    public int particle_count = 200;
+    public uint particle_count = 200;
     public float mass = 1;
     public float soot_mass = 2;
     public float thermal_mass = 3;
