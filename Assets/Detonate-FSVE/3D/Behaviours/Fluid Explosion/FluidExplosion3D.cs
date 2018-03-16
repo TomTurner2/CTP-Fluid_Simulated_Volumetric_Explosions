@@ -279,10 +279,8 @@ namespace Detonate
 
         private void ApplyBuoyancy()
         {
-            //buoyancy_module.ApplyBuoyancy(DT, size, sim_params.smoke_buoyancy, sim_params.smoke_weight, sim_params.ambient_temperature,
-            //    velocity_grids, density_grids, temperature_grids, thread_count);
-
-            //instead of density it should be particle mass
+            buoyancy_module.ApplyBuoyancySimple(DT, size, sim_params.smoke_buoyancy, sim_params.smoke_weight, sim_params.ambient_temperature,
+                velocity_grids, temperature_grids, thread_count);
         }
 
 

@@ -1,4 +1,5 @@
 ﻿#pragma kernel ApplyBuoyancy
+#pragma Kernel ApplyBuoyancySimple
 
 RWStructuredBuffer<float3> write_RGB;
 StructuredBuffer<float3> velocity;
@@ -35,4 +36,21 @@ void ApplyBuoyancy (uint3 id : SV_DispatchThreadID)
 	}
 
 	write_RGB[index] = cell_velocity;//write the new velocity
+}
+
+
+[numthreads(8,8,8)]
+void ApplyBuoyancySimple(uint3 id : SV_DispatchThreadID)
+{
+	int index = GetIndex(id, size);
+	float cell_temperature = temperature[index];
+	float3 cell_velocity = velocity[index];
+
+	if (cell_temperature > ambient_temperature)//rise if hotter than normal temperature
+	{
+		cell_velocity += (dt * (cell_temperature - ambient_temperature) *
+		buoyancy) * up.xyz;//simple buoyancy dosen't factor in weight
+	}
+
+	write_RGB[index] = cell_velocity;
 }
