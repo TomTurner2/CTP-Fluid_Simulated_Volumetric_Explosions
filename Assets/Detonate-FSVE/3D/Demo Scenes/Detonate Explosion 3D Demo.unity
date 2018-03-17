@@ -164,7 +164,7 @@ MonoBehaviour:
     velocity_dissipation: 0.995
     temperature_dissipation: 0.99
     density_dissipation: 0.999
-    ambient_temperature: 0
+    ambient_temperature: 28
   explosion_params:
     fuse_position: {x: 0, y: 0, z: 0}
     fuse_radius: 0.1

@@ -12,7 +12,7 @@ namespace Detonate
         {
             compute_shader.SetVector("size", _size);
             int kernel_id = compute_shader.FindKernel("Divergence");
-            compute_shader.SetBuffer(kernel_id, "write_RGB", _divergence_grid);
+            compute_shader.SetBuffer(kernel_id, "write_R", _divergence_grid);
             compute_shader.SetBuffer(kernel_id, "velocity", _velocity_grids[READ]);
             compute_shader.SetBuffer(kernel_id, "obstacles", _obstacle_grid);
             compute_shader.Dispatch(kernel_id, _thread_count.x, _thread_count.y, _thread_count.z);

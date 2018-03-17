@@ -1,6 +1,6 @@
 ﻿#pragma kernel Divergence
 
-RWStructuredBuffer<float3> write_RGB;
+RWStructuredBuffer<float> write_R;
 StructuredBuffer<float3> velocity;
 StructuredBuffer<float> obstacles;
 float4 size;
@@ -65,5 +65,5 @@ void Divergence (uint3 id : SV_DispatchThreadID)
 	float divergence = ((velocity_right.x - velocity_left.x) +
 	(velocity_up.y - velocity_down.y) + (velocity_back.z - velocity_front.z)) * 0.5f;
 
-	write_RGB[index] = float3(divergence, 0, 0);
+	write_R[index] = divergence;
 }

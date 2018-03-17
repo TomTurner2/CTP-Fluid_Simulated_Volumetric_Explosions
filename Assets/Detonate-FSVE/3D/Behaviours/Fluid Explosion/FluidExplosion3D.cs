@@ -62,6 +62,7 @@ namespace Detonate
         private Vector3 size = Vector3.zero;
         private intVector3 thread_count = intVector3.Zero;
 
+
         private const uint READ = 0; //for accessing grid sets
         private const uint WRITE = 1;
         private const uint THREAD_COUNT = 8; //threads used by compute shader
@@ -140,7 +141,7 @@ namespace Detonate
             CreateTemperatureGrids(buffer_size);
             CreatePressureGrids(buffer_size);
             
-            divergence_grid = new ComputeBuffer(buffer_size, sizeof(float) * 3);
+            divergence_grid = new ComputeBuffer(buffer_size, sizeof(float));
             obstacle_grid = new ComputeBuffer(buffer_size, sizeof(float));
         }
 

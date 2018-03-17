@@ -3,7 +3,7 @@
 RWStructuredBuffer<float> write_R;
 StructuredBuffer<float> pressure;
 StructuredBuffer<float> obstacles;
-StructuredBuffer<float3> divergence;
+StructuredBuffer<float> divergence;
 float4 size;
 
 
@@ -68,7 +68,7 @@ void Jacobi (uint3 id : SV_DispatchThreadID)
 	pressure_back= DetermineCellPressure(obstacles_back, pressure_back, cell_pressure);
 
 	//calculate jacobi
-	float cell_divergence = divergence[index].r;
+	float cell_divergence = divergence[index];
 	float jacobi = (pressure_left + pressure_right + pressure_down + pressure_up +  pressure_back + pressure_front - cell_divergence) / 6;//average of neighbours
 	write_R[index] = jacobi;
 }

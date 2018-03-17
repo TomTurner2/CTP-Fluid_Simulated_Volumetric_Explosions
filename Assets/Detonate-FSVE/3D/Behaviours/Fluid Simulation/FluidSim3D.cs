@@ -128,7 +128,7 @@ namespace Detonate
             CreateTemperatureGrids(buffer_size);
             CreatePressureGrids(buffer_size);
             
-            divergence_grid = new ComputeBuffer(buffer_size, sizeof(float) * 3);
+            divergence_grid = new ComputeBuffer(buffer_size, sizeof(float));
             obstacle_grid = new ComputeBuffer(buffer_size, sizeof(float));
         }
 
