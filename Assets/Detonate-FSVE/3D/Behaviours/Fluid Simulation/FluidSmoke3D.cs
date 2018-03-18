@@ -41,8 +41,10 @@ namespace Detonate
         }
 
 
-        private void Update()
-        {       
+        protected override void Update()
+        {
+            base.Update();//determines which time step to use
+
             MoveStage();
             AddForcesStage();
             CalculateDivergence();//i.e. fluid diffusion
@@ -54,7 +56,7 @@ namespace Detonate
 
         protected override void MoveStage()
         {
-            advection_module.ApplyAdvection(DT, size, smoke_params.density_dissipation,
+            advection_module.ApplyAdvection(sim_dt, size, smoke_params.density_dissipation,
                 density_grids, velocity_grids, obstacle_grid, thread_count);
 
             base.MoveStage();
@@ -70,7 +72,7 @@ namespace Detonate
 
         private void ApplyBuoyancy()
         {
-            buoyancy_module.ApplyBuoyancy(DT, size, smoke_params.smoke_buoyancy,
+            buoyancy_module.ApplyBuoyancy(sim_dt, size, smoke_params.smoke_buoyancy,
                 smoke_params.smoke_weight, sim_params.ambient_temperature,
                 velocity_grids, density_grids, temperature_grids, thread_count);
         }

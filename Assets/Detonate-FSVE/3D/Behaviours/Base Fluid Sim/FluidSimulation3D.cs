@@ -44,7 +44,7 @@ namespace Detonate
         protected const uint READ = 0;//for accessing grid sets
         protected const uint WRITE = 1;
         protected const uint THREAD_GROUP_COUNT = 8;//threads used by compute shader
-        protected const float DT = 0.1f;//simulation blows up with large time steps?
+        protected float sim_dt = 0.1f;//simulation blows up with large time steps?
 
         [SerializeField] private bool draw_bounds = false;
         [SerializeField] private bool velocity_debug = false;
@@ -153,13 +153,26 @@ namespace Detonate
             obstacle_module.SetBoundary(size, obstacle_grid, thread_count);//sets solid edges in the sim bounds
         }
 
+
+        protected virtual void Update()
+        {
+            if (sim_params.dynamic_time_step)
+            {
+                sim_dt = Time.deltaTime * sim_params.simulation_speed;
+            }
+            else
+            {   
+                sim_dt = sim_params.fixed_time_step;
+            }
+        }
+
         
         protected virtual void MoveStage()
         {
-            advection_module.ApplyAdvection(DT, size, sim_params.temperature_dissipation,
+            advection_module.ApplyAdvection(sim_dt, size, sim_params.temperature_dissipation,
                 temperature_grids, velocity_grids, obstacle_grid, thread_count);//move temperature according to velocity
 
-            advection_module.ApplyAdvectionVelocity(DT, size, sim_params.velocity_dissipation,
+            advection_module.ApplyAdvectionVelocity(sim_dt, size, sim_params.velocity_dissipation,
                 velocity_grids, obstacle_grid, thread_count);//move velocity according to velocity
         }
 
@@ -253,7 +266,7 @@ namespace Detonate
 
         protected void ApplyImpulse(float _amount, float _radius, ComputeBuffer[] _grids, Vector3 _position)
         {
-            impulse_module.ApplyImpulse(DT, size, _amount, _radius,
+            impulse_module.ApplyImpulse(sim_dt, size, _amount, _radius,
                 ConvertPositionToGridSpace(_position), _grids, thread_count);
         }
 
@@ -315,7 +328,7 @@ namespace Detonate
                             continue;
 
                         const float debug_scale = 0.1f;
-                        Vector3 grid_pos = ConvertPositionToGridSpace(new Vector3(x, y, z) );//scale it down so its not enormous
+                        Vector3 grid_pos = new Vector3(x, y, z) * debug_scale;//scale it down so its not enormous
                         grid_pos += transform.localPosition;
 
                         Vector3 velocity = velocity_debug_normalise ? velocities[index].normalized : velocities[index];
