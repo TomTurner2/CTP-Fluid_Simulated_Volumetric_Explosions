@@ -1,12 +1,13 @@
-﻿using UnityEditor;
+﻿using UnityEngine;
+using UnityEditor;
 
 
 namespace Detonate
 {
-    [CustomEditor(typeof(FluidSmoke3D))]
-    public class FluidSmoke3DEditor : FluidSimulation3DEditor
+    [CustomEditor(typeof(FluidExplosion3D))]
+    public class FluidExplosion3DEditor : FluidSimulation3DEditor
     {
-        FluidSmoke3D sim = null;
+        FluidExplosion3D sim = null;
 
 
         public override void OnInspectorGUI()
@@ -16,21 +17,20 @@ namespace Detonate
             GUIEnd();
         }
 
-
         private void DrawCustomInspector()
         {
             DrawSimParametersGroup();
             DrawFluidSimModuleGroup();
             DrawOutputGroup();
             DrawInteractablesGroup();
-            DrawDebugControlsGroup(sim);//debug may need sim functions
+            DrawDebugControlsGroup(sim);
         }
 
 
         protected override void GUIStart()
         {
             base.GUIStart();
-            sim = (FluidSmoke3D)target;//get targeted fluid sim
+            sim = (FluidExplosion3D)target;
         }
 
 
@@ -38,26 +38,27 @@ namespace Detonate
         {
             base.DrawSimParametersGroup();
 
-            StartGroup("Smoke Parameters");
+            StartGroup("Explosion Parameters");
 
-            ++EditorGUI.indentLevel;        
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("smoke_params"), true);
+            ++EditorGUI.indentLevel;
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("explosion_params"), true);
             --EditorGUI.indentLevel;
 
             EndGroup();
         }
 
 
+        protected override void DrawModuleProperties()
+        {
+            base.DrawModuleProperties();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("fuel_particle_module"), true);
+        }
+
+
         private void DrawInteractablesGroup()
         {
             StartGroup("Current Interactables");
-
             DrawBaseInteractables();//draw interactable common to all fluid sims
-
-            ++EditorGUI.indentLevel;
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("smoke_emitters"), true);
-            --EditorGUI.indentLevel;
-
             EndGroup();
         }
 

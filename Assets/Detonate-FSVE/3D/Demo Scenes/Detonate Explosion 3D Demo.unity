@@ -122,6 +122,7 @@ GameObject:
   - component: {fileID: 797914337}
   - component: {fileID: 797914336}
   - component: {fileID: 797914335}
+  - component: {fileID: 797914340}
   m_Layer: 0
   m_Name: 3D Explosion Simulation
   m_TagString: Untagged
@@ -159,47 +160,56 @@ MonoBehaviour:
     height: 128
     depth: 128
     jacobi_iterations: 10
-    smoke_buoyancy: 1
-    smoke_weight: 0.0125
+    dynamic_time_step: 0
+    simulation_speed: 1.5
+    fixed_time_step: 0.1
     velocity_dissipation: 0.995
     temperature_dissipation: 0.99
-    density_dissipation: 0.999
     ambient_temperature: 28
-  explosion_params:
-    fuse_position: {x: 0.5, y: 0.5, z: 0.5}
-    fuse_radius: 0.1
-    particle_count: 200
-    mass: 0.7
-    soot_mass: 0.001
-    thermal_mass: 1.6
-    particle_radius: 0.1
-    particle_drag: 950
-    fluid_drag_effect: 0.001
-    ignition_temperature: 50
-    burn_rate: 0.67
-    fuel_burn_amount: 40
-    fuel_divergence_amount: 40
-    generated_soot_amount: 260
-    soot_threshold: 1
   advection_module:
     compute_shader: {fileID: 7200000, guid: 4dfaafd747a97944490991560db1ec05, type: 3}
   divergence_module:
     compute_shader: {fileID: 7200000, guid: 4874083116abdda4c8db77f722c49e8e, type: 3}
   jacobi_module:
     compute_shader: {fileID: 7200000, guid: 5bd717b1d2ba97347b7d9ff9797647b2, type: 3}
-  buoyancy_module:
-    compute_shader: {fileID: 7200000, guid: d2c023e1ba7907546bf270d5326734a7, type: 3}
+  impulse_module:
+    compute_shader: {fileID: 0}
   projection_module:
     compute_shader: {fileID: 7200000, guid: 15b47727fdb78ad41952b985caa35e11, type: 3}
   obstacle_module:
     compute_shader: {fileID: 7200000, guid: dd21b5533fab170418e1046c76bb8323, type: 3}
-  fuel_particle_module:
-    compute_shader: {fileID: 7200000, guid: 922c043289c4c6c48bfe0d1a1446a183, type: 3}
+  buoyancy_module:
+    compute_shader: {fileID: 7200000, guid: d2c023e1ba7907546bf270d5326734a7, type: 3}
   output_module:
     compute_shader: {fileID: 7200000, guid: c99754ab361730a4aa9f7578ec315296, type: 3}
-  grid_to_output: 4
   output_renderer: {fileID: 797914335}
-  draw_bounds: 0
+  grid_to_output: 4
+  sphere_colliders: []
+  draw_bounds: 1
+  velocity_debug: 0
+  velocity_debug_resolution: 10
+  velocity_debug_colour_threshold: 0.5
+  velocity_debug_normalise: 0
+  explosion_params:
+    fuse_position: {x: 0, y: 0, z: 0}
+    fuse_radius: 0.1
+    particle_count: 200
+    particle_radius: 0.1
+    particle_drag: 950
+    mass: 0.7
+    soot_mass: 0.001
+    thermal_mass: 1.6
+    fuel_divergence_amount: 40
+    fluid_drag_effect: 0.001
+    fluid_weight: 0.02
+    fluid_buoyancy: 9
+    ignition_temperature: 50
+    burn_rate: 0.67
+    fuel_burn_amount: 40
+    generated_soot_amount: 260
+    soot_threshold: 1
+  fuel_particle_module:
+    compute_shader: {fileID: 7200000, guid: 922c043289c4c6c48bfe0d1a1446a183, type: 3}
 --- !u!23 &797914337
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -255,6 +265,17 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &797914340
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 797914334}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69d6d86d3d4a4e941a41e2b1e6534201, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1826467830
 GameObject:
   m_ObjectHideFlags: 0

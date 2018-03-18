@@ -1,77 +1,41 @@
-﻿using UnityEngine;
-using UnityEditor;
+﻿using UnityEditor;
+using UnityEngine;
 
 
 namespace Detonate
 {
-    [CustomEditor(typeof(FluidSmoke3D))]
-    public class FluidSim3DEditor : Editor
+    public class FluidSimulation3DEditor : Editor
     {
-        FluidSmoke3D sim = null;
-
-
-        public override void OnInspectorGUI()
-        {
-            GUIStart();
-            DrawCustomInspector();
-            GUIEnd();
-        }
-
-
-        private void DrawCustomInspector()
-        {
-            DrawSimParametersGroup();
-            DrawFluidSimModuleGroup();
-            DrawOutputGroup();
-            DrawInteractablesGroup();
-            DrawDebugControlsGroup();
-        }
-
-
-        private void GUIStart()
+        protected virtual void GUIStart()
         {
             serializedObject.Update();
-            sim = (FluidSmoke3D)target;//get targeted fluid sim
         }
 
 
-        private void GUIEnd()
+        protected void GUIEnd()
         {
             serializedObject.ApplyModifiedProperties();//apply the changed properties
             SceneView.RepaintAll();//to update draw bounds gizmo
         }
 
 
-        private void StartGroup(string _group_name)
+        protected void StartGroup(string _group_name)
         {
             EditorGUILayout.Space();
             EditorGUILayout.BeginVertical("Box");//create a box field in the inspector
-            EditorGUILayout.LabelField(_group_name, EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(_group_name, EditorStyles.largeLabel);
+            EditorGUILayout.Space();
         }
 
 
-        private void EndGroup()
+        protected void EndGroup()
         {
             EditorGUILayout.Space();
             EditorGUILayout.EndVertical();//end current box field
         }
 
 
-        private void DrawSimParametersGroup()
-        {
-            StartGroup("Simulation Parameters");
-
-            ++EditorGUI.indentLevel;
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("sim_params"), true);
-            EditorGUILayout.Space();
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("smoke_params"), true);
-            --EditorGUI.indentLevel;
-
-            EndGroup();
-        }
-
-
-        private void DrawFluidSimModuleGroup()
+        protected void DrawFluidSimModuleGroup()
         {
             StartGroup("Simulation Modules");
 
@@ -83,7 +47,7 @@ namespace Detonate
         }
 
 
-        private void DrawModuleProperties()
+        protected virtual void DrawModuleProperties()
         {
             EditorGUILayout.PropertyField(serializedObject.FindProperty("advection_module"), true);//display all modules
             EditorGUILayout.PropertyField(serializedObject.FindProperty("divergence_module"), true);
@@ -95,7 +59,7 @@ namespace Detonate
         }
 
 
-        private void DrawOutputGroup()
+        protected void DrawOutputGroup()
         {
             StartGroup("Simulation Output");
 
@@ -110,34 +74,40 @@ namespace Detonate
         }
 
 
-        private void DrawInteractablesGroup()
-        {
-            StartGroup("Current Interactables");
-
-            ++EditorGUI.indentLevel;
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("emitters"), true);
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("sphere_colliders"), true);
-            --EditorGUI.indentLevel;
-
-            EndGroup();
-        }
-
-
-        private void DrawDebugControlsGroup()
+        protected virtual void DrawDebugControlsGroup(FluidSimulation3D _sim)
         {
             StartGroup("Simulation Debug Controls");
 
             EditorGUILayout.PropertyField(serializedObject.FindProperty("draw_bounds"), true);//debug paramaters to display
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("velocity_debug"), true); 
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("velocity_debug_resolution"), true); 
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("velocity_debug"), true);
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("velocity_debug_resolution"), true);
             EditorGUILayout.PropertyField(serializedObject.FindProperty("velocity_debug_colour_threshold"), true);
             EditorGUILayout.PropertyField(serializedObject.FindProperty("velocity_debug_normalise"), true);
             if (GUILayout.Button("Reset Simulation") && Application.isPlaying)//button for reseting simulation
             {
-                sim.ResetSim();
+                _sim.ResetSim();
             }
 
             EndGroup();
         }
+
+
+        protected virtual void DrawSimParametersGroup()
+        {
+            StartGroup("Simulation Parameters");
+            ++EditorGUI.indentLevel;
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("sim_params"), true);
+            --EditorGUI.indentLevel;
+            EndGroup();
+        }
+
+
+        protected void DrawBaseInteractables()
+        {          
+            ++EditorGUI.indentLevel;
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("sphere_colliders"), true);
+            --EditorGUI.indentLevel;
+        }
+
     }
 }

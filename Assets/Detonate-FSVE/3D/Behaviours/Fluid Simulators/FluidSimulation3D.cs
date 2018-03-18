@@ -54,12 +54,6 @@ namespace Detonate
         [SerializeField] private bool velocity_debug_normalise = false;
 
 
-        protected virtual void Start()
-        {
-            InitSim();
-        }
-
-
         protected virtual void InitSim()
         {
             CalculateSize();
@@ -157,14 +151,8 @@ namespace Detonate
 
         protected virtual void Update()
         {
-            if (sim_params.dynamic_time_step)
-            {
-                sim_dt = Time.deltaTime * sim_params.simulation_speed;
-            }
-            else
-            {   
-                sim_dt = sim_params.fixed_time_step;
-            }
+            sim_dt = sim_params.dynamic_time_step ?
+                Time.deltaTime * sim_params.simulation_speed : sim_params.fixed_time_step;//if dynamic use dt else use fixed step
         }
 
         
@@ -224,10 +212,10 @@ namespace Detonate
         protected void MassConservationStage()
         {
             jacobi_module.CalculatePressure(size, divergence_grid, obstacle_grid,
-                sim_params.jacobi_iterations, pressure_grids, thread_count);//pressure relax gradiant
+                sim_params.jacobi_iterations, pressure_grids, thread_count);//pressure relax gradient
 
             projection_module.CalculateProjection(size, pressure_grids,
-                obstacle_grid, velocity_grids, thread_count);//subtract gradiant (Hodge Decomposition)
+                obstacle_grid, velocity_grids, thread_count);//subtract gradient (Hodge Decomposition) mass conserving field = any velocity field - gradient field
         }
 
 
@@ -314,7 +302,6 @@ namespace Detonate
         {
             Vector3[] velocities = new Vector3[velocity_grids[READ].count];
             velocity_grids[READ].GetData(velocities);
-
             velocity_debug_resolution = (uint)Mathf.Max(5, velocity_debug_resolution);//should be 5 minimum
 
             for (uint x = 0; x < size.x; x += velocity_debug_resolution)
@@ -332,12 +319,9 @@ namespace Detonate
                         Vector3 grid_pos = new Vector3(x, y, z) * debug_scale;//scale it down so its not enormous
                         grid_pos += transform.localPosition;
 
-                        Vector3 velocity = velocity_debug_normalise ? velocities[index].normalized : velocities[index];
-
-
-                        Gizmos.color = velocity.magnitude > velocity_debug_colour_threshold ? Color.red : Color.yellow;
-
-                        Gizmos.DrawLine(grid_pos, grid_pos + (velocity * 0.1f));
+                        Vector3 velocity = velocity_debug_normalise ? velocities[index].normalized : velocities[index];//determine normalised
+                        Gizmos.color = velocity.magnitude > velocity_debug_colour_threshold ? Color.red : Color.yellow;//determine colour
+                        Gizmos.DrawLine(grid_pos, grid_pos + (velocity * debug_scale));//draw velocity vector
                     }
                 }
             }

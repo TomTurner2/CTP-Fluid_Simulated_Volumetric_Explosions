@@ -6,14 +6,13 @@ namespace Detonate
 {
     public class FluidSmoke3D : FluidSimulation3D
     {
-        [SerializeField] FluidSmoke3DParams smoke_params = new FluidSmoke3DParams(); 
-        
-        [SerializeField] protected List<SmokeEmitter> emitters = new List<SmokeEmitter>();
+        [SerializeField] FluidSmoke3DParams smoke_params = new FluidSmoke3DParams();       
+        [SerializeField] List<SmokeEmitter> smoke_emitters = new List<SmokeEmitter>();
 
         private ComputeBuffer[] density_grids = new ComputeBuffer[2];//smoke simulates movement of density
 
 
-        protected override void Start()
+        protected void Start()
         {
             InitSim();
         }
@@ -79,42 +78,42 @@ namespace Detonate
         }
 
 
-        public List<SmokeEmitter> Emitters
+        public List<SmokeEmitter> SmokeEmitters
         {
             get
             {
-                return emitters;
+                return smoke_emitters;
             }
             set
             {
-                emitters = value;
+                smoke_emitters = value;
             }
         }
 
 
         private void ApplyEmitters()
         {
-            for(int i = 0; i < emitters.Count; ++i)
+            for(int i = 0; i < smoke_emitters.Count; ++i)
             {
-                if (emitters[i] == null)
+                if (smoke_emitters[i] == null)
                 {
-                    emitters.RemoveAt(i);
+                    smoke_emitters.RemoveAt(i);
                     continue;
                 }
 
-                if (!emitters[i].isActiveAndEnabled)
+                if (!smoke_emitters[i].isActiveAndEnabled)
                     continue;
 
-                if (!emitters[i].gameObject.activeInHierarchy)
+                if (!smoke_emitters[i].gameObject.activeInHierarchy)
                     continue;
 
-                if (!emitters[i].Emit)
+                if (!smoke_emitters[i].Emit)
                     continue;
 
-                ApplyImpulse(emitters[i].DenisityAmount, emitters[i].EmissionRadius,
-                    density_grids, emitters[i].transform.position);
-                ApplyImpulse(emitters[i].TemperatureAmount, emitters[i].EmissionRadius,
-                    temperature_grids, emitters[i].transform.position);
+                ApplyImpulse(smoke_emitters[i].DenisityAmount, smoke_emitters[i].EmissionRadius,
+                    density_grids, smoke_emitters[i].transform.position);
+                ApplyImpulse(smoke_emitters[i].TemperatureAmount, smoke_emitters[i].EmissionRadius,
+                    temperature_grids, smoke_emitters[i].transform.position);
             }
         }
 

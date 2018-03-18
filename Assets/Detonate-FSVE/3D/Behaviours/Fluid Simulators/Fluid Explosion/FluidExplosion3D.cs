@@ -25,7 +25,7 @@ namespace Detonate
         private uint particle_count = 0;//use this so count isn't changed at runtime
 
 
-        protected override void Start()
+        protected void Start()
         {
             InitSim();
         }
@@ -51,33 +51,33 @@ namespace Detonate
         private void NoiseVelocityGrids()
         {
             int buffer_size = sim_params.width * sim_params.height * sim_params.depth;
-            Vector3[] noise = GetRandomVelocities(buffer_size);
-            velocity_grids[READ].SetData(noise);
+            Vector3[] noise = GetRandomVelocities(buffer_size);//get random velocities
+            velocity_grids[READ].SetData(noise);//set velocites in compute buffer to random ones
             velocity_grids[WRITE].SetData(noise);       
         }
 
 
-        Vector3[] GetRandomVelocities(int _buffer_size, float _scalar = 1)
+        private static Vector3[] GetRandomVelocities(int _buffer_size, float _scalar = 1)
         {
             Vector3[] velocities = new Vector3[_buffer_size];
             for(int i = 0; i < velocities.Length; ++i)
             {
-                velocities[i] = RandomVelocity() * _scalar;
+                velocities[i] = RandomNormalisedVector() * _scalar;//scalar can be used to control magnitude
             }
 
             return velocities;
         }
 
 
-        Vector3 RandomVelocity()
+        private static Vector3 RandomNormalisedVector()
         {
-            Vector3 velocity = new Vector3
+            Vector3 random_vector = new Vector3
             {
                 x = Random.Range(-1, 1),
                 y = Random.Range(-1, 1),
                 z = Random.Range(-1, 1)
             };
-            return velocity;
+            return random_vector;//return random normalised vector
         }
 
 
@@ -175,18 +175,15 @@ namespace Detonate
         {
             if (fuel_particles_buffer == null)
                 return;
-            FuelParticle[] particles = new FuelParticle[fuel_particles_buffer.count];
-            fuel_particles_buffer.GetData(particles);
 
-            int i = 0;
+            FuelParticle[] particles = new FuelParticle[fuel_particles_buffer.count];
+            fuel_particles_buffer.GetData(particles);//get particles from buffer
+
+            uint i = 0;
             foreach (FuelParticle particle in particles)
             {
                 ++i;
-                Gizmos.color = Color.gray;
-
-                if (i <= particle_count * 0.5f)
-                    Gizmos.color = Color.red;
-
+                Gizmos.color = i <= particle_count * 0.5f ? Color.red : Color.grey;//half the particles are soot, colour them grey 
                 Gizmos.DrawSphere(transform.localPosition + particle.position, explosion_params.particle_radius);
             }
         }

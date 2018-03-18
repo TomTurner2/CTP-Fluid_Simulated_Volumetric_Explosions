@@ -122,6 +122,9 @@ MonoBehaviour:
     height: 128
     depth: 128
     jacobi_iterations: 10
+    dynamic_time_step: 0
+    simulation_speed: 1.5
+    fixed_time_step: 0.1
     velocity_dissipation: 0.995
     temperature_dissipation: 0.99
     ambient_temperature: 0
@@ -137,10 +140,12 @@ MonoBehaviour:
     compute_shader: {fileID: 7200000, guid: 15b47727fdb78ad41952b985caa35e11, type: 3}
   obstacle_module:
     compute_shader: {fileID: 7200000, guid: dd21b5533fab170418e1046c76bb8323, type: 3}
+  buoyancy_module:
+    compute_shader: {fileID: 7200000, guid: d2c023e1ba7907546bf270d5326734a7, type: 3}
   output_module:
     compute_shader: {fileID: 7200000, guid: c99754ab361730a4aa9f7578ec315296, type: 3}
-  grid_to_output: 0
   output_renderer: {fileID: 114949193608386040}
+  grid_to_output: 0
   sphere_colliders: []
   draw_bounds: 1
   velocity_debug: 0
@@ -151,8 +156,6 @@ MonoBehaviour:
     smoke_buoyancy: 9
     smoke_weight: 0.02
     density_dissipation: 0.999
-  buoyancy_module:
-    compute_shader: {fileID: 7200000, guid: d2c023e1ba7907546bf270d5326734a7, type: 3}
   emitters: []
 --- !u!114 &114949193608386040
 MonoBehaviour:

@@ -5,7 +5,7 @@ namespace Detonate
 { 
     [RequireComponent(typeof(FluidSmoke3D))]
     [DisallowMultipleComponent]
-    public class FluidEmitterInteractor : MonoBehaviour
+    public class FluidSmokeEmitterInteractor : MonoBehaviour
     {
         private FluidSmoke3D fluid_simulation = null;
 
@@ -31,7 +31,7 @@ namespace Detonate
             if (fluid_simulation == null)
                 return;
 
-            fluid_simulation.Emitters.Clear();
+            fluid_simulation.SmokeEmitters.Clear();
         }
 
 
@@ -39,27 +39,27 @@ namespace Detonate
         {
             foreach (SmokeEmitter emitter in SmokeEmitter.emitters_in_scene)//for every emitter in the scene
             {
-                if (fluid_simulation.Emitters.Contains(emitter))
+                if (fluid_simulation.SmokeEmitters.Contains(emitter))
                     continue;
 
                 if (AABBCollisionCheck(emitter.transform.position))//add the emitter if it is within the simulation grid
-                    fluid_simulation.Emitters.Add(emitter);
+                    fluid_simulation.SmokeEmitters.Add(emitter);
             }
         }
 
 
         private void RemoveEmitters()
         {
-            for (int i = fluid_simulation.Emitters.Count-1; i >= 0; --i)
+            for (int i = fluid_simulation.SmokeEmitters.Count-1; i >= 0; --i)
             {
-                if (fluid_simulation.Emitters[i] == null)
+                if (fluid_simulation.SmokeEmitters[i] == null)
                 {
-                    fluid_simulation.Emitters.RemoveAt(i);
+                    fluid_simulation.SmokeEmitters.RemoveAt(i);
                     continue;
                 }
 
-                if (!AABBCollisionCheck(fluid_simulation.Emitters[i].transform.position))
-                    fluid_simulation.Emitters.RemoveAt(i);//remove any emitters outside of simulation
+                if (!AABBCollisionCheck(fluid_simulation.SmokeEmitters[i].transform.position))
+                    fluid_simulation.SmokeEmitters.RemoveAt(i);//remove any emitters outside of simulation
             }
         }
 
