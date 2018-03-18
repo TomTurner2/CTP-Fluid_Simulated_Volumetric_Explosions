@@ -3,16 +3,16 @@
 
 namespace Detonate
 { 
-    [RequireComponent(typeof(FluidSim3D))]
+    [RequireComponent(typeof(FluidSmoke3D))]
     [DisallowMultipleComponent]
     public class FluidEmitterInteractor : MonoBehaviour
     {
-        private FluidSim3D fluid_simulation = null;
+        private FluidSmoke3D fluid_simulation = null;
 
 
         void Start()
         {
-            fluid_simulation = GetComponent<FluidSim3D>();
+            fluid_simulation = GetComponent<FluidSmoke3D>();
         }
 
 
@@ -37,7 +37,7 @@ namespace Detonate
 
         private void AddEmitters()
         {
-            foreach (FluidEmitter emitter in FluidEmitter.emitters_in_scene)//for every emitter in the scene
+            foreach (SmokeEmitter emitter in SmokeEmitter.emitters_in_scene)//for every emitter in the scene
             {
                 if (fluid_simulation.Emitters.Contains(emitter))
                     continue;

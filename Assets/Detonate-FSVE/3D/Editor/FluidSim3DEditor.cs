@@ -4,10 +4,10 @@ using UnityEditor;
 
 namespace Detonate
 {
-    [CustomEditor(typeof(FluidSim3D))]
+    [CustomEditor(typeof(FluidSmoke3D))]
     public class FluidSim3DEditor : Editor
     {
-        FluidSim3D sim = null;
+        FluidSmoke3D sim = null;
 
 
         public override void OnInspectorGUI()
@@ -27,7 +27,7 @@ namespace Detonate
         private void GUIStart()
         {
             serializedObject.Update();
-            sim = (FluidSim3D)target;
+            sim = (FluidSmoke3D)target;
         }
 
 
@@ -45,6 +45,8 @@ namespace Detonate
             EditorGUILayout.LabelField("Simulation Parameters", EditorStyles.boldLabel);
             ++EditorGUI.indentLevel;
             EditorGUILayout.PropertyField(serializedObject.FindProperty("sim_params"), true);
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("smoke_params"), true);
             --EditorGUI.indentLevel;
             EditorGUILayout.Space();
             EditorGUILayout.EndVertical();

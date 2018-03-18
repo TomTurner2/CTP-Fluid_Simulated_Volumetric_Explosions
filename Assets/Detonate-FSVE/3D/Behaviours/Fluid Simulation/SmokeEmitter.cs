@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Detonate
 {
     [Serializable]
-    public class FluidEmitter : MonoBehaviour
+    public class SmokeEmitter : MonoBehaviour
     {
         [SerializeField] bool draw_debug = true;
         [SerializeField] bool emit = true;
@@ -14,14 +14,14 @@ namespace Detonate
         [SerializeField] float density_amount = 6.0f;
         [SerializeField] float temperature_amount = 10.0f;
 
-        public static List<FluidEmitter> emitters_in_scene = null;
+        public static List<SmokeEmitter> emitters_in_scene = null;
         const uint MAX_EMITTERS_ALLOWED_IN_SCENE = 50;
 
 
         void Start()
         {
             if (emitters_in_scene == null)
-                emitters_in_scene = new List<FluidEmitter>();
+                emitters_in_scene = new List<SmokeEmitter>();
 
             if (emitters_in_scene.Count > MAX_EMITTERS_ALLOWED_IN_SCENE)
             {

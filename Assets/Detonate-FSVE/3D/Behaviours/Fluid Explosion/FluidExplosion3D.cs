@@ -252,7 +252,7 @@ namespace Detonate
         private void FluidSimulationUpdate()
         {
             MoveStage();
-            AddForcesStage();
+            //AddForcesStage();
             CalculateDivergence();//i.e. fluid diffusion
             MassConservationStage();
         }
@@ -276,18 +276,18 @@ namespace Detonate
         }
 
 
-        private void AddForcesStage()
-        {
-            ApplyBuoyancy();
-        }
+        //private void AddForcesStage()
+        //{
+        //    ApplyBuoyancy();
+        //}
 
 
-        private void ApplyBuoyancy()
-        {
-            buoyancy_module.ApplyBuoyancySimple(DT, size, sim_params.smoke_buoyancy,
-                sim_params.smoke_weight, sim_params.ambient_temperature,
-                velocity_grids, temperature_grids, thread_count);
-        }
+        //private void ApplyBuoyancy()
+        //{
+        //    buoyancy_module.ApplyBuoyancySimple(DT, size, sim_params.smoke_buoyancy,
+        //        sim_params.smoke_weight, sim_params.ambient_temperature,
+        //        velocity_grids, temperature_grids, thread_count);
+        //}
 
 
         private void MassConservationStage()

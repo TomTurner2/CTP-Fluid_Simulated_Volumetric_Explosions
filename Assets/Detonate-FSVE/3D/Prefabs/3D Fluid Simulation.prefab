@@ -122,11 +122,8 @@ MonoBehaviour:
     height: 128
     depth: 128
     jacobi_iterations: 10
-    smoke_buoyancy: 9
-    smoke_weight: 0.02
     velocity_dissipation: 0.995
     temperature_dissipation: 0.99
-    density_dissipation: 0.999
     ambient_temperature: 0
   advection_module:
     compute_shader: {fileID: 7200000, guid: 4dfaafd747a97944490991560db1ec05, type: 3}
@@ -134,8 +131,6 @@ MonoBehaviour:
     compute_shader: {fileID: 7200000, guid: 4874083116abdda4c8db77f722c49e8e, type: 3}
   jacobi_module:
     compute_shader: {fileID: 7200000, guid: 5bd717b1d2ba97347b7d9ff9797647b2, type: 3}
-  buoyancy_module:
-    compute_shader: {fileID: 7200000, guid: d2c023e1ba7907546bf270d5326734a7, type: 3}
   impulse_module:
     compute_shader: {fileID: 7200000, guid: 44cc972b3dfcb0d43a25a947d5d6ce56, type: 3}
   projection_module:
@@ -146,13 +141,19 @@ MonoBehaviour:
     compute_shader: {fileID: 7200000, guid: c99754ab361730a4aa9f7578ec315296, type: 3}
   grid_to_output: 0
   output_renderer: {fileID: 114949193608386040}
-  emitters: []
   sphere_colliders: []
   draw_bounds: 1
   velocity_debug: 0
   velocity_debug_resolution: 10
   velocity_debug_colour_threshold: 0.5
   velocity_debug_normalise: 0
+  smoke_params:
+    smoke_buoyancy: 1
+    smoke_weight: 0.0125
+    density_dissipation: 0.999
+  buoyancy_module:
+    compute_shader: {fileID: 7200000, guid: d2c023e1ba7907546bf270d5326734a7, type: 3}
+  emitters: []
 --- !u!114 &114949193608386040
 MonoBehaviour:
   m_ObjectHideFlags: 1

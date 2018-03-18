@@ -3,17 +3,17 @@
 
 namespace Detonate
 {
-    [RequireComponent(typeof(FluidSim3D))]
+    [RequireComponent(typeof(FluidSmoke3D))]
     [DisallowMultipleComponent]
     public class FluidCollisionInteractor : MonoBehaviour
     {
-        FluidSim3D fluid_simulation = null;
+        FluidSmoke3D fluid_simulation = null;
         BoxCollider simulation_collider = null;
 
 
         void Start()
         {
-            fluid_simulation = GetComponent<FluidSim3D>();
+            fluid_simulation = GetComponent<FluidSmoke3D>();
             UpdateCollisionVolume();
         }
 
