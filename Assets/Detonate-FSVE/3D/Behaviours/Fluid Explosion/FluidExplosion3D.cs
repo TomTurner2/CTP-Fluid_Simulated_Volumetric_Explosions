@@ -260,7 +260,9 @@ namespace Detonate
 
         private void ParticleSimulationUpdate()
         {
-            fuel_particle_module.UpdateParticlePhysics(fuel_particles_buffer, particle_count, DT);
+            fuel_particle_module.UpdateParticleVelocity(fuel_particles_buffer, temperature_grids[READ], velocity_grids[READ],
+                explosion_params.particle_drag, explosion_params.particle_radius, explosion_params.thermal_mass, particle_count, DT, size);
+            fuel_particle_module.UpdateParticlePositions(fuel_particles_buffer, particle_count, DT);
         }
 
 
@@ -282,7 +284,8 @@ namespace Detonate
 
         private void ApplyBuoyancy()
         {
-            buoyancy_module.ApplyBuoyancySimple(DT, size, sim_params.smoke_buoyancy, sim_params.smoke_weight, sim_params.ambient_temperature,
+            buoyancy_module.ApplyBuoyancySimple(DT, size, sim_params.smoke_buoyancy,
+                sim_params.smoke_weight, sim_params.ambient_temperature,
                 velocity_grids, temperature_grids, thread_count);
         }
 

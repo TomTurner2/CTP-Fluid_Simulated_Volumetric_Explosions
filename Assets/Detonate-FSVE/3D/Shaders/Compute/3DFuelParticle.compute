@@ -1,7 +1,8 @@
-﻿#pragma kernel ApplyParticlesVelocities
-
-float dt;
-int num_particles;
+﻿float dt;
+float particle_drag;
+float particle_radius;
+float thermal_mass;
+float4 size;
 
 struct FuelParticle//CPU struct maps to this one
 {
@@ -13,11 +14,117 @@ struct FuelParticle//CPU struct maps to this one
 };
 
 RWStructuredBuffer<FuelParticle> particles;
+StructuredBuffer<float3> velocity;
+StructuredBuffer<float> temperature;
 
 
+int GetIndex(int3 _id, float4 _size)
+{
+	return _id.x + _id.y * _size.x + _id.z * _size.x * _size.y;
+}
+
+
+//cg includes are fairly broken in Unity, so duped code :/
+float SampleBilinear(StructuredBuffer<float> _grid, float3 _coord, float4 size)
+{
+	int x = _coord.x;
+	int y = _coord.y;
+	int z = _coord.z;
+	
+	float fx = _coord.x-x;
+	float fy = _coord.y-y;
+	float fz = _coord.z-z;
+	
+	//only want to validate once
+	int x_plus_one = min(size.x-1, x+1);
+	int y_plus_one = min(size.y-1, y+1);
+	int z_plus_one = min(size.z-1, z+1);
+	
+	float x0 = _grid[GetIndex(_coord, size)] * (1.0f-fx) + _grid[GetIndex(int3(x_plus_one, y, z), size)] * fx;
+	float x1 = _grid[GetIndex(int3(x, y, z_plus_one), size)] *
+	(1.0f-fx) + _grid[GetIndex(int3(x_plus_one, y, z_plus_one), size)] * fx;	
+	float x2 = _grid[GetIndex(int3(x, y_plus_one, z), size)] * (1.0f-fx) + _grid[GetIndex(int3(x_plus_one, y_plus_one, z), size)] * fx;
+	float x3 = _grid[GetIndex(int3(x, y_plus_one, z_plus_one), size)] * (1.0f-fx) + _grid[GetIndex(int3(x_plus_one, y_plus_one, z_plus_one), size)] * fx;
+	
+	float z0 = x0 * (1.0f-fz) + x1 * fz;
+	float z1 = x2 * (1.0f-fz) + x3 * fz;
+	
+	return z0 * (1.0f-fy) + z1 * fy;
+}
+
+
+float3 SampleBilinear(StructuredBuffer<float3> _grid, float3 _coord, float4 size)
+{
+	int x = _coord.x;
+	int y = _coord.y;
+	int z = _coord.z;
+	
+	float fx = _coord.x-x;
+	float fy = _coord.y-y;
+	float fz = _coord.z-z;
+	
+	//only need to validate once
+	int x_plus_one = min(size.x-1, x+1);
+	int y_plus_one = min(size.y-1, y+1);
+	int z_plus_one = min(size.z-1, z+1);
+	
+	float3 x0 = _grid[GetIndex(_coord, size)] * (1.0f-fx) + _grid[GetIndex(int3(x_plus_one, y, z), size)] * fx;
+	float3 x1 = _grid[GetIndex(int3(x, y, z_plus_one), size)] * (1.0f-fx) + _grid[GetIndex(int3(x_plus_one, y, z_plus_one), size)] * fx;	
+	float3 x2 = _grid[GetIndex(int3(x, y_plus_one, z), size)] * (1.0f-fx) + _grid[GetIndex(int3(x_plus_one, y_plus_one, z), size)] * fx;
+	float3 x3 = _grid[GetIndex(int3(x, y_plus_one, z_plus_one), size)] * (1.0f-fx) + _grid[GetIndex(int3(x_plus_one, y_plus_one, z_plus_one), size)] * fx;
+	
+	float3 z0 = x0 * (1.0f-fz) + x1 * fz;
+	float3 z1 = x2 * (1.0f-fz) + x3 * fz;
+	
+	return z0 * (1.0f-fy) + z1 * fy;
+}
+
+
+#pragma kernel ApplyParticlesVelocities
 [numthreads(8,1,1)]
 void ApplyParticlesVelocities (uint3 id : SV_DispatchThreadID)
 {
 	float3 velocity = particles[id.x].velocity;	
 	particles[id.x].position += velocity * dt;
+}
+
+
+bool CheckVelocityDifference(float _velocity, float _dt, float _velocity_diff)
+{
+	return abs(_velocity) < _dt * _velocity_diff;
+}
+
+
+#pragma kernel CalculateParticlesVelocity
+[numthreads(8,1,1)]
+void CalculateParticlesVelocity(uint3 id : SV_DispatchThreadID)
+{
+	FuelParticle particle = particles[id.x];
+	float3 grid_pos = particle.position;
+	float3 fluid_velocity = SampleBilinear(velocity, grid_pos, size);
+
+	if(particle.mass > 0.001f)
+	{
+		float3 velocity_diff = fluid_velocity - particle.velocity;
+		float total_drag = particle_drag * particle_radius * particle_radius;//drag according to particle size
+		float3 final_velocity = dt * (1.0f/particle.mass) * total_drag * velocity_diff;
+
+		if (CheckVelocityDifference(final_velocity.x, dt, velocity_diff.x) &&
+			CheckVelocityDifference(final_velocity.y, dt, velocity_diff.y) &&
+			CheckVelocityDifference(final_velocity.z, dt, velocity_diff.z))
+		{
+			particle.velocity += final_velocity;
+		}
+		else
+		{
+			particle.velocity = fluid_velocity;
+		}
+	}
+	else
+	{
+		particle.velocity = fluid_velocity;
+	}
+
+	particle.temperature += dt * (SampleBilinear(temperature, grid_pos, size) -
+	particle.temperature) / thermal_mass;//apply fluid temperature to particle according to thermal mass
 }

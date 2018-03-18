@@ -43,13 +43,16 @@ namespace Detonate
         private ComputeBuffer divergence_grid;
         private ComputeBuffer obstacle_grid;
 
+
         private Vector3 size = Vector3.zero;
         private intVector3 thread_count = intVector3.Zero;
+
 
         private const uint READ = 0; //for accessing grid sets
         private const uint WRITE = 1;
         private const uint THREAD_COUNT = 8; //threads used by compute shader
         private const float DT = 0.1f;//simulation blows up with large time steps?
+
 
         [SerializeField] private bool draw_bounds = false;
         [SerializeField] private bool velocity_debug = false;

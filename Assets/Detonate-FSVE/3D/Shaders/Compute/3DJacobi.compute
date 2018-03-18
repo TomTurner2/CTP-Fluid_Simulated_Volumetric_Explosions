@@ -69,6 +69,7 @@ void Jacobi (uint3 id : SV_DispatchThreadID)
 
 	//calculate jacobi
 	float cell_divergence = divergence[index];
-	float jacobi = (pressure_left + pressure_right + pressure_down + pressure_up +  pressure_back + pressure_front - cell_divergence) / 6;//average of neighbours
+	float jacobi = (pressure_left + pressure_right + pressure_down + pressure_up +
+	pressure_back + pressure_front - cell_divergence) / 6;//average of neighbours
 	write_R[index] = jacobi;
 }
