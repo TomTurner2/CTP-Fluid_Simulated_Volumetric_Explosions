@@ -6,11 +6,12 @@ namespace Detonate
 {
     public class FluidSmoke3D : FluidSimulation3D
     {
-        [SerializeField] FluidSmoke3DParams smoke_params = new FluidSmoke3DParams();
-
-        [SerializeField] BuoyancyModule3D buoyancy_module = new BuoyancyModule3D();
-        private ComputeBuffer[] density_grids = new ComputeBuffer[2];//smoke simulates movement of density
+        [SerializeField] FluidSmoke3DParams smoke_params = new FluidSmoke3DParams(); 
+        
         [SerializeField] protected List<SmokeEmitter> emitters = new List<SmokeEmitter>();
+
+        private ComputeBuffer[] density_grids = new ComputeBuffer[2];//smoke simulates movement of density
+
 
         protected override void Start()
         {

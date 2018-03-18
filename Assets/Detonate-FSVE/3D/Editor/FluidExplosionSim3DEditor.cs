@@ -114,8 +114,6 @@ namespace Detonate
             EditorGUILayout.BeginVertical("Box");
             EditorGUILayout.LabelField("Simulation Debug Controls", EditorStyles.boldLabel);
             EditorGUILayout.Space();
-            sim.DrawBounds = EditorGUILayout.ToggleLeft(new GUIContent("Draw Bounds"), sim.DrawBounds);
-
             if (GUILayout.Button("Reset Simulation") && Application.isPlaying)
             {
                 sim.ResetSim();

@@ -15,6 +15,7 @@ namespace Detonate
         [SerializeField] protected ImpulseModule3D impulse_module = new ImpulseModule3D();
         [SerializeField] protected ProjectionModule3D projection_module = new ProjectionModule3D();
         [SerializeField] protected ObstacleModule3D obstacle_module = new ObstacleModule3D();
+        [SerializeField] protected BuoyancyModule3D buoyancy_module = new BuoyancyModule3D();
 
         protected enum GridType
         {
@@ -343,7 +344,7 @@ namespace Detonate
         }
 
 
-        protected void OnDrawGizmos()
+        protected virtual void OnDrawGizmos()
         {
             if (draw_bounds)
             {

@@ -1,47 +1,13 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using UnityEditor.SceneManagement;
+﻿using System.Linq;
 using UnityEngine;
 
 
 namespace Detonate
 {
-    public class FluidExplosion3D : MonoBehaviour
-    {
-        [SerializeField] FluidSim3DParams sim_params = new FluidSim3DParams();
+    public class FluidExplosion3D : FluidSimulation3D
+    { 
         [SerializeField] FluidExplosion3DParams explosion_params = new FluidExplosion3DParams();
-
-        //Compute shader interfacing classes
-        [SerializeField] AdvectModule3D advection_module = new AdvectModule3D();
-        [SerializeField] DivergenceModule3D divergence_module = new DivergenceModule3D();
-        [SerializeField] JacobiModule3D jacobi_module = new JacobiModule3D();
-        [SerializeField] BuoyancyModule3D buoyancy_module = new BuoyancyModule3D();
-        [SerializeField] ProjectionModule3D projection_module = new ProjectionModule3D();
-        [SerializeField] ObstacleModule3D obstacle_module = new ObstacleModule3D();
-
         [SerializeField] FuelParticleSimulationModule fuel_particle_module = new FuelParticleSimulationModule();
-        
-        enum GridType
-        {
-            DENSITY,
-            OBSTACLE,
-            TEMPERATURE,
-            PRESSURE,
-            VELOCITY
-        }
-
-        //output
-        [SerializeField] OutputModule3D output_module = new OutputModule3D();
-        [SerializeField] GridType grid_to_output = GridType.DENSITY;
-        [SerializeField] VolumeRenderer output_renderer = null;
-        private RenderTexture volume_output;
-
-        //fluid sim buffers
-        private ComputeBuffer[] velocity_grids = new ComputeBuffer[2];
-        private ComputeBuffer[] temperature_grids = new ComputeBuffer[2];
-        private ComputeBuffer[] pressure_grids = new ComputeBuffer[2];
-        private ComputeBuffer divergence_grid;
-        private ComputeBuffer obstacle_grid;
 
 
         struct FuelParticle
@@ -59,99 +25,33 @@ namespace Detonate
         private uint particle_count = 0;//use this so count isn't changed at runtime
 
 
-        private Vector3 size = Vector3.zero;
-        private intVector3 thread_count = intVector3.Zero;
-
-
-        private const uint READ = 0; //for accessing grid sets
-        private const uint WRITE = 1;
-        private const uint THREAD_COUNT = 8; //threads used by compute shader
-        private const float DT = 0.1f;//simulation blows up with large time steps?
-
-        [SerializeField] private bool draw_bounds = false;
-
-
-        private void Start()
+        protected override void Start()
         {
             InitSim();
         }
 
 
-        public void ResetSim()
+        public override void ResetSim()
         {
+            base.ResetSim();
             OnDestroy();//in case of reset
             InitSim();
         }
 
 
-        private void InitSim()
+        protected override void InitSim()
         {
-            CalculateSize();
-            CalculateThreadCount();
-            CreateGridSets(); //creates render texture grid sets
+            base.InitSim();
             CreateParticleBuffer();
-            SetBoundary();
-            CreateOutputTexture();
+            NoiseVelocityGrids();
         }
 
 
-        private void CalculateSize()
-        {
-            ValidateDimensions();
-            size = new Vector3(sim_params.width, sim_params.height,
-                sim_params.depth);
-        }
 
-
-        private void ValidateDimensions()
-        {
-            sim_params.width = Mathf.ClosestPowerOfTwo(sim_params.width);
-            sim_params.height = Mathf.ClosestPowerOfTwo(sim_params.height);
-            sim_params.depth = Mathf.ClosestPowerOfTwo(sim_params.depth);
-        }
-
-
-        private void CalculateThreadCount()
-        {
-            thread_count.x = (int)(sim_params.width / THREAD_COUNT);
-            thread_count.y = (int)(sim_params.height / THREAD_COUNT);
-            thread_count.z = (int)(sim_params.depth / THREAD_COUNT);
-        }
-
-
-        private void CreateOutputTexture()
-        {   
-            volume_output = new RenderTexture(sim_params.width, sim_params.height, sim_params.depth)
-            {
-                dimension = UnityEngine.Rendering.TextureDimension.Tex3D,
-                volumeDepth = sim_params.depth,
-                wrapMode = TextureWrapMode.Clamp,
-                enableRandomWrite = true//must be set before creation
-            };
- 
-            volume_output.Create();
-        }
-
-
-        private void CreateGridSets()
+        private void NoiseVelocityGrids()
         {
             int buffer_size = sim_params.width * sim_params.height * sim_params.depth;
-
-            CreateVelocityGrids(buffer_size);
-            CreateTemperatureGrids(buffer_size);
-            CreatePressureGrids(buffer_size);
-            
-            divergence_grid = new ComputeBuffer(buffer_size, sizeof(float));
-            obstacle_grid = new ComputeBuffer(buffer_size, sizeof(float));
-        }
-
-
-        private void CreateVelocityGrids(int _buffer_size)
-        {
-            velocity_grids[READ] = new ComputeBuffer(_buffer_size, sizeof(float) * 3);//will store float 3
-            velocity_grids[WRITE] = new ComputeBuffer(_buffer_size, sizeof(float) * 3);
-
-            Vector3[] noise = GetRandomVelocities(_buffer_size);
+            Vector3[] noise = GetRandomVelocities(buffer_size);
             velocity_grids[READ].SetData(noise);
             velocity_grids[WRITE].SetData(noise);       
         }
@@ -178,26 +78,6 @@ namespace Detonate
                 z = Random.Range(-1, 1)
             };
             return velocity;
-        }
-
-  
-        private void CreateTemperatureGrids(int _buffer_size)
-        {
-            temperature_grids[READ] = new ComputeBuffer(_buffer_size, sizeof(float));
-            temperature_grids[WRITE] = new ComputeBuffer(_buffer_size, sizeof(float));
-
-            temperature_grids[READ].SetData(Enumerable.Repeat(sim_params.ambient_temperature,
-                temperature_grids[READ].count).ToArray());// set all values to ambient temperature
-
-            temperature_grids[WRITE].SetData(Enumerable.Repeat(sim_params.ambient_temperature,
-                temperature_grids[WRITE].count).ToArray());// set all values to ambient temperature
-        }
-
-
-        private void CreatePressureGrids(int _buffer_size)
-        {
-            pressure_grids[READ] = new ComputeBuffer(_buffer_size, sizeof(float));
-            pressure_grids[WRITE] = new ComputeBuffer(_buffer_size, sizeof(float));
         }
 
 
@@ -233,16 +113,12 @@ namespace Detonate
             
             fuel_particles_buffer.SetData(initial_fuel_particles);
         }
-       
 
-        private void SetBoundary()
+
+        protected override void Update()
         {
-            obstacle_module.SetBoundary(size, obstacle_grid, thread_count);
-        }
+            base.Update();
 
-
-        private void Update()
-        {       
             FluidSimulationUpdate();
             ParticleSimulationUpdate();
             UpdateVolumeRenderer();
@@ -261,18 +137,8 @@ namespace Detonate
         private void ParticleSimulationUpdate()
         {
             fuel_particle_module.UpdateParticleVelocity(fuel_particles_buffer, temperature_grids[READ], velocity_grids[READ],
-                explosion_params.particle_drag, explosion_params.particle_radius, explosion_params.thermal_mass, particle_count, DT, size);
-            fuel_particle_module.UpdateParticlePositions(fuel_particles_buffer, particle_count, DT);
-        }
-
-
-        private void MoveStage()
-        {
-            advection_module.ApplyAdvection(DT, size, sim_params.temperature_dissipation,
-                temperature_grids, velocity_grids, obstacle_grid, thread_count);
-
-            advection_module.ApplyAdvectionVelocity(DT, size, sim_params.velocity_dissipation,
-                velocity_grids, obstacle_grid, thread_count);
+                explosion_params.particle_drag, explosion_params.particle_radius, explosion_params.thermal_mass, particle_count, sim_dt, size);
+            fuel_particle_module.UpdateParticlePositions(fuel_particles_buffer, particle_count, sim_dt);
         }
 
 
@@ -284,130 +150,24 @@ namespace Detonate
 
         private void ApplyBuoyancy()
         {
-            buoyancy_module.ApplyBuoyancySimple(DT, size, explosion_params.fluid_buoyancy,
+            buoyancy_module.ApplyBuoyancySimple(sim_dt, size, explosion_params.fluid_buoyancy,
                 explosion_params.fluid_weight, sim_params.ambient_temperature,
                 velocity_grids, temperature_grids, thread_count);
         }
 
-
-        private void MassConservationStage()
-        {
-            jacobi_module.CalculatePressure(size, divergence_grid, obstacle_grid,
-                sim_params.jacobi_iterations, pressure_grids, thread_count);
-
-            projection_module.CalculateProjection(size, pressure_grids,
-                obstacle_grid, velocity_grids, thread_count);
-        }
-
-
-        private void UpdateVolumeRenderer()
-        {
-            if (output_renderer == null)
-                return;
-
-            ConvertGridToVolume(grid_to_output);
-            output_renderer.size = size;
-            output_renderer.texture = volume_output;
-        }
-
-
-        private void ConvertGridToVolume(GridType _grid_type)
-        {
-            switch (_grid_type)
-            {
-                case GridType.DENSITY:
-                   //output_module.ConvertToVolume(size, density_grids[READ], volume_output, thread_count);
-                    break;
-                case GridType.OBSTACLE:
-                    output_module.ConvertToVolume(size, obstacle_grid, volume_output, thread_count);
-                    break;
-                case GridType.TEMPERATURE:
-                    output_module.ConvertToVolume(size, temperature_grids[READ], volume_output, thread_count);
-                    break;
-                case GridType.PRESSURE:
-                    output_module.ConvertToVolume(size, pressure_grids[READ], volume_output, thread_count);
-                    break;
-                case GridType.VELOCITY:
-                    output_module.ConvertToVolume(size, velocity_grids[READ], volume_output, thread_count);
-                    break;
-                default:
-                    break;
-            }
-        }
-
-
-        public Vector3 ConvertPositionToGridSpace(Vector3 _pos)
-        {
-            return ConvertToGridScale(_pos - transform.localPosition);//get relative position then factor in scale
-        }
-
-
-        private Vector3 ConvertToGridScale(Vector3 _pos)
-        {
-            Vector3 scale_convert = (_pos + transform.localScale * 0.5f);
-
-            return new Vector3(scale_convert.x / transform.localScale.x,
-                scale_convert.y / transform.localScale.y, scale_convert.z / transform.localScale.z);
-        }
-
-
-        private void CalculateDivergence()
-        {
-            divergence_module.CalculateDivergence(size, divergence_grid, velocity_grids, obstacle_grid, thread_count);
-        }
-
-
+ 
         //all buffers should be released on destruction
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
-            ReleaseFluidSimBuffers();
+            base.OnDestroy();
             fuel_particles_buffer.Release();
         }
 
 
-        private void ReleaseFluidSimBuffers()
+        protected override void OnDrawGizmos()
         {
-            velocity_grids[READ].Release();
-            velocity_grids[WRITE].Release();
-
-            temperature_grids[READ].Release();
-            temperature_grids[WRITE].Release();
-
-            pressure_grids[READ].Release();
-            pressure_grids[WRITE].Release();
-
-            obstacle_grid.Release();
-            divergence_grid.Release();
-        }
-
-
-        public bool DrawBounds
-        {
-            get
-            {
-                return draw_bounds;
-            }
-            set
-            {
-                draw_bounds = value;
-            }
-        }
-
-
-        private void OnDrawGizmos()
-        {
-            DrawBoundGizmos();
+            base.OnDrawGizmos();//draw base sim gizmos
             DrawFuelParticlesGizmos();
-        }
-
-
-        private void DrawBoundGizmos()
-        {
-            if (!draw_bounds)
-                return;
-
-            Gizmos.color = Color.cyan;
-            Gizmos.DrawWireCube(transform.position, transform.localScale);
         }
 
 
