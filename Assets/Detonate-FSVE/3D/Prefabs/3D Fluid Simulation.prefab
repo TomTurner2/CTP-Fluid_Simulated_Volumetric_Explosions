@@ -148,8 +148,8 @@ MonoBehaviour:
   velocity_debug_colour_threshold: 0.5
   velocity_debug_normalise: 0
   smoke_params:
-    smoke_buoyancy: 1
-    smoke_weight: 0.0125
+    smoke_buoyancy: 9
+    smoke_weight: 0.02
     density_dissipation: 0.999
   buoyancy_module:
     compute_shader: {fileID: 7200000, guid: d2c023e1ba7907546bf270d5326734a7, type: 3}

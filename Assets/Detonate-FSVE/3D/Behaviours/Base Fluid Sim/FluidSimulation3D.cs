@@ -1,12 +1,14 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
+
 namespace Detonate
 {
     abstract public class FluidSimulation3D : MonoBehaviour
     {
         [SerializeField] protected FluidSim3DParams sim_params = new FluidSim3DParams();
 
+        //base modules all simulations will use (base requirements for a fluid sim)
         [SerializeField] protected AdvectModule3D advection_module = new AdvectModule3D();
         [SerializeField] protected DivergenceModule3D divergence_module = new DivergenceModule3D();
         [SerializeField] protected JacobiModule3D jacobi_module = new JacobiModule3D();
@@ -23,14 +25,11 @@ namespace Detonate
             VELOCITY
         }
 
-
         [SerializeField] protected OutputModule3D output_module = new OutputModule3D();
-        [SerializeField] protected GridType grid_to_output = GridType.DENSITY;
         [SerializeField] protected VolumeRenderer output_renderer = null;
+        [SerializeField] GridType grid_to_output = GridType.DENSITY;
 
-
-        [SerializeField] protected List<SphereCollider> sphere_colliders = new List<SphereCollider>();
-
+        [SerializeField] private List<SphereCollider> sphere_colliders = new List<SphereCollider>();
 
         protected RenderTexture volume_output;
         protected ComputeBuffer[] velocity_grids = new ComputeBuffer[2];
@@ -39,16 +38,13 @@ namespace Detonate
         protected ComputeBuffer divergence_grid;
         protected ComputeBuffer obstacle_grid;
 
-
         protected Vector3 size = Vector3.zero;
         protected intVector3 thread_count = intVector3.Zero;
-
 
         protected const uint READ = 0;//for accessing grid sets
         protected const uint WRITE = 1;
         protected const uint THREAD_GROUP_COUNT = 8;//threads used by compute shader
         protected const float DT = 0.1f;//simulation blows up with large time steps?
-
 
         [SerializeField] private bool draw_bounds = false;
         [SerializeField] private bool velocity_debug = false;
