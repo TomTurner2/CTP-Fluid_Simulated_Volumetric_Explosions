@@ -4,6 +4,18 @@ StructuredBuffer<float> read_R;
 RWTexture3D<float4> write_R;
 
 
+struct FuelParticle//CPU struct maps to this one
+{
+	float3 position;
+	float3 velocity;
+	float temperature;
+	float mass;
+	float soot_accumulation;
+};
+
+RWStructuredBuffer<FuelParticle> particles;
+
+
 int GetIndex(int3 _id, float4 _size)
 {
 	return _id.x + _id.y * _size.x + _id.z * _size.x * _size.y;
@@ -15,4 +27,14 @@ void ConvertToVolume (uint3 id : SV_DispatchThreadID)
 {
 	float d = read_R[GetIndex(id, size)];
 	write_R[id] = float4(d, d, d, d);//should store in 1 channel, might have to update volume renderer though
+}
+
+
+#pragma kernel ParticleToVolume
+[numthreads(8,1,1)]
+void ParticleToVolume (uint3 id : SV_DispatchThreadID)
+{
+	float3 grid_pos =  particles[id.x].position.xyz * size.xyz;
+	float d = particles[id.x].mass;
+	write_R[grid_pos] = float4(d, d, d, d); 
 }

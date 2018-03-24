@@ -2,6 +2,10 @@
 float particle_drag;
 float particle_radius;
 float thermal_mass;
+float burn_rate;
+float burn_threshold;
+float produced_heat;
+float divergence_amount;
 float4 size;
 
 struct FuelParticle//CPU struct maps to this one
@@ -16,6 +20,7 @@ struct FuelParticle//CPU struct maps to this one
 RWStructuredBuffer<FuelParticle> particles;
 StructuredBuffer<float3> velocity;
 StructuredBuffer<float> temperature;
+StructuredBuffer<float> divergence;
 
 
 int GetIndex(int3 _id, float4 _size)
@@ -24,7 +29,7 @@ int GetIndex(int3 _id, float4 _size)
 }
 
 
-//cg includes are fairly broken in Unity, so duped code :/
+// CG includes are fairly broken in Unity, so duped code :/
 float SampleBilinear(StructuredBuffer<float> _grid, float3 _coord, float4 size)
 {
 	int x = _coord.x;
@@ -99,32 +104,46 @@ bool CheckVelocityDifference(float _velocity, float _dt, float _velocity_diff)
 [numthreads(8,1,1)]
 void CalculateParticlesVelocity(uint3 id : SV_DispatchThreadID)
 {
-	FuelParticle particle = particles[id.x];
-	float3 grid_pos = particle.position;
+
+	float3 grid_pos =  particles[id.x].position.xyz * size.xyz;
 	float3 fluid_velocity = SampleBilinear(velocity, grid_pos, size);
 
-	if(particle.mass > 0.001f)
+	if(particles[id.x].mass > 0.001f)
 	{
-		float3 velocity_diff = fluid_velocity - particle.velocity;
-		float total_drag = particle_drag * particle_radius * particle_radius;//drag according to particle size
-		float3 final_velocity = dt * (1.0f/particle.mass) * total_drag * velocity_diff;
+		float3 velocity_diff = fluid_velocity - particles[id.x].velocity;
+		float total_drag = particle_drag * particle_radius * particle_radius;// Drag according to particle size
+		float3 final_velocity = dt * (1.0f/particles[id.x].mass) * total_drag * velocity_diff;
 
 		if (CheckVelocityDifference(final_velocity.x, dt, velocity_diff.x) &&
 			CheckVelocityDifference(final_velocity.y, dt, velocity_diff.y) &&
 			CheckVelocityDifference(final_velocity.z, dt, velocity_diff.z))
 		{
-			particle.velocity += final_velocity;
+			particles[id.x].velocity += final_velocity;
 		}
-		else
+		else// Velocity change should not be larger than difference between fluid and particl velocity
 		{
-			particle.velocity = fluid_velocity;
+			particles[id.x].velocity = fluid_velocity;
 		}
 	}
 	else
 	{
-		particle.velocity = fluid_velocity;
+		particles[id.x].velocity = fluid_velocity;
 	}
 
-	particle.temperature += dt * (SampleBilinear(temperature, grid_pos, size) -
-	particle.temperature) / thermal_mass;//apply fluid temperature to particle according to thermal mass
+	particles[id.x].temperature += dt * (SampleBilinear(temperature, grid_pos, size) -
+	particles[id.x].temperature) / thermal_mass;// Apply fluid temperature to particle according to thermal mass
+}
+
+
+#pragma kernel BurnParticle
+[numthreads(8,1,1)]
+void BurnParticle(uint3 id : SV_DispatchThreadID)
+{
+	if (particles[id.x].temperature < burn_threshold)// Don't burn if not hot enough
+		return;
+
+	float3 grid_pos =  particles[id.x].position.xyz * size.xyz;// Particles position in volume
+	temperature[grid_pos] += dt * produced_heat * burn_rate;// Add temperature to fluid
+	divergence[grid_pos] += dt * divergence_amount * burn_rate;// Add Divergence
+	particles[id.x] -= dt * burn_rate;// Burn off mass from the particle
 }

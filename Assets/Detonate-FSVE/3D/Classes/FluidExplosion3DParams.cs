@@ -8,7 +8,7 @@ namespace Detonate
     {
         [Space]
         [Header("Fuse")]
-        public Vector3 fuse_position = Vector3.zero;
+        public Transform fuse_transform = null;
         public float fuse_radius = 0.02f;
 
         [Space]

@@ -47,7 +47,6 @@ namespace Detonate
         }
 
 
-
         private void NoiseVelocityGrids()
         {
             int buffer_size = sim_params.width * sim_params.height * sim_params.depth;
@@ -97,16 +96,18 @@ namespace Detonate
 
             for (int i = 0; i < particle_count; ++i)
             {
+                Vector3 start_pos = explosion_params.fuse_transform == null ? transform.position : explosion_params.fuse_transform.position;
+                
                 if (i < soot_insert_index)//regular fuel particle init
                 {
                     float random_radius = Random.Range(-explosion_params.fuse_radius, explosion_params.fuse_radius);//random radius within fuse radius
-                    initial_fuel_particles[i].position = Random.insideUnitSphere * random_radius + explosion_params.fuse_position;//random position in circle
+                    initial_fuel_particles[i].position = ConvertPositionToGridSpace(Random.insideUnitSphere * random_radius + start_pos);//random position in circle
                     initial_fuel_particles[i].mass = explosion_params.mass;
                     //initial_fuel_particles[i].velocity = Vector3.up;//test
                 }
                 else//init soot particle
                 {
-                    initial_fuel_particles[i].position = Vector3.zero;
+                    initial_fuel_particles[i].position = ConvertPositionToGridSpace(start_pos);
                     initial_fuel_particles[i].mass = explosion_params.soot_mass;
                 }
             }
@@ -118,7 +119,6 @@ namespace Detonate
         protected override void Update()
         {
             base.Update();
-
             FluidSimulationUpdate();
             ParticleSimulationUpdate();
             UpdateVolumeRenderer();
@@ -155,7 +155,21 @@ namespace Detonate
                 velocity_grids, temperature_grids, thread_count);
         }
 
- 
+
+        protected override void ConvertGridToVolume(GridType _grid_type)
+        {
+            if (_grid_type == GridType.DENSITY)
+            {
+                int particle_count_int = (int)particle_count;
+                output_module.FuelParticleToVolume(size, fuel_particles_buffer,
+                    volume_output, particle_count_int);
+                return;
+            }
+
+            base.ConvertGridToVolume(_grid_type);
+        }
+
+
         //all buffers should be released on destruction
         protected override void OnDestroy()
         {
@@ -167,7 +181,7 @@ namespace Detonate
         protected override void OnDrawGizmos()
         {
             base.OnDrawGizmos();//draw base sim gizmos
-            DrawFuelParticlesGizmos();
+            //DrawFuelParticlesGizmos();
         }
 
 
@@ -184,7 +198,11 @@ namespace Detonate
             {
                 ++i;
                 Gizmos.color = i <= particle_count * 0.5f ? Color.red : Color.grey;//half the particles are soot, colour them grey 
-                Gizmos.DrawSphere(transform.localPosition + particle.position, explosion_params.particle_radius);
+                Gizmos.DrawSphere(particle.position, explosion_params.particle_radius);
+
+
+                //Vector3 converted_pos = new Vector3(particle.position.x * size.x, particle.position.y * size.y, particle.position.z * size.z);
+                //Debug.Log("passed in: " + particle.position + "convertion: " + converted_pos);
             }
         }
        
