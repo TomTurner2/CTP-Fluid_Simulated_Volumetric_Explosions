@@ -23,16 +23,15 @@ namespace Detonate
         public float thermal_mass = 1.6f;
 
         [Header("Fluid Effect")]
-        public float fuel_divergence_amount = 40;//how much divergence the fuel causes
+        public float divergence_effect = 40;//how much divergence the fuel causes
         public float fluid_drag_effect = 0.001f;
         public float fluid_weight = 0.02f;
         public float fluid_buoyancy = 9;
 
         [Header("Thermals")]
-        public float ignition_temperature = 50;
+        public float burn_threshold = 50;
         public float burn_rate = 0.67f;
-        public float fuel_burn_amount = 40;
-        public float generated_soot_amount = 260;
-        public float soot_threshold = 1.0f;
+        public float heat_emission = 40;
+        
     }
 }

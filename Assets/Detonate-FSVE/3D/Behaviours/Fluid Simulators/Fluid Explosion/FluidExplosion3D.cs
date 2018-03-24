@@ -103,7 +103,6 @@ namespace Detonate
                     float random_radius = Random.Range(-explosion_params.fuse_radius, explosion_params.fuse_radius);//random radius within fuse radius
                     initial_fuel_particles[i].position = ConvertPositionToGridSpace(Random.insideUnitSphere * random_radius + start_pos);//random position in circle
                     initial_fuel_particles[i].mass = explosion_params.mass;
-                    //initial_fuel_particles[i].velocity = Vector3.up;//test
                 }
                 else//init soot particle
                 {
@@ -120,7 +119,8 @@ namespace Detonate
         {
             base.Update();
             FluidSimulationUpdate();
-            ParticleSimulationUpdate();
+            ParticleSimulationUpdate();// Before mass conservation so it can effect divergence
+            MassConservationStage();
             UpdateVolumeRenderer();
         }
 
@@ -130,21 +130,44 @@ namespace Detonate
             MoveStage();
             AddForcesStage();
             CalculateDivergence();//i.e. fluid diffusion
-            MassConservationStage();
+            //MassConservationStage();
         }
 
 
         private void ParticleSimulationUpdate()
         {
-            fuel_particle_module.UpdateParticleVelocity(fuel_particles_buffer, temperature_grids[READ], velocity_grids[READ],
-                explosion_params.particle_drag, explosion_params.particle_radius, explosion_params.thermal_mass, particle_count, sim_dt, size);
+            CalculateParticleVelocity();
+            UpdateParticlePhysics();
+            ApplyThermoDynamics();
+        }
+
+
+        private void CalculateParticleVelocity()
+        {
+            fuel_particle_module.UpdateParticleVelocity(fuel_particles_buffer, temperature_grids[READ],
+                velocity_grids[READ], explosion_params.particle_drag, explosion_params.particle_radius,
+                explosion_params.thermal_mass, particle_count, sim_dt, size);
+        }
+
+
+        private void UpdateParticlePhysics()
+        {
             fuel_particle_module.UpdateParticlePositions(fuel_particles_buffer, particle_count, sim_dt);
+        }
+
+
+        private void ApplyThermoDynamics()// Probably not an accurate name but sounds cool ;)
+        {
+            fuel_particle_module.BurnParticles(fuel_particles_buffer, temperature_grids[READ],
+                divergence_grid, explosion_params.burn_rate, explosion_params.heat_emission,
+                explosion_params.burn_threshold, explosion_params.divergence_effect,
+                particle_count, sim_dt, size);
         }
 
 
         private void AddForcesStage()
         {
-            ApplyBuoyancy();
+            ApplyBuoyancy();// For now only buoyancy is applied
         }
 
 
@@ -160,9 +183,8 @@ namespace Detonate
         {
             if (_grid_type == GridType.DENSITY)
             {
-                int particle_count_int = (int)particle_count;
                 output_module.FuelParticleToVolume(size, fuel_particles_buffer,
-                    volume_output, particle_count_int);
+                    volume_output, particle_count);
                 return;
             }
 
@@ -170,40 +192,11 @@ namespace Detonate
         }
 
 
-        //all buffers should be released on destruction
+        // All buffers should be released on destruction
         protected override void OnDestroy()
         {
             base.OnDestroy();
             fuel_particles_buffer.Release();
-        }
-
-
-        protected override void OnDrawGizmos()
-        {
-            base.OnDrawGizmos();//draw base sim gizmos
-            //DrawFuelParticlesGizmos();
-        }
-
-
-        private void DrawFuelParticlesGizmos()
-        {
-            if (fuel_particles_buffer == null)
-                return;
-
-            FuelParticle[] particles = new FuelParticle[fuel_particles_buffer.count];
-            fuel_particles_buffer.GetData(particles);//get particles from buffer
-
-            uint i = 0;
-            foreach (FuelParticle particle in particles)
-            {
-                ++i;
-                Gizmos.color = i <= particle_count * 0.5f ? Color.red : Color.grey;//half the particles are soot, colour them grey 
-                Gizmos.DrawSphere(particle.position, explosion_params.particle_radius);
-
-
-                //Vector3 converted_pos = new Vector3(particle.position.x * size.x, particle.position.y * size.y, particle.position.z * size.z);
-                //Debug.Log("passed in: " + particle.position + "convertion: " + converted_pos);
-            }
         }
        
     }

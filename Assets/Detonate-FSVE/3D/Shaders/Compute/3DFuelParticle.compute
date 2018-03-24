@@ -20,7 +20,9 @@ struct FuelParticle//CPU struct maps to this one
 RWStructuredBuffer<FuelParticle> particles;
 StructuredBuffer<float3> velocity;
 StructuredBuffer<float> temperature;
-StructuredBuffer<float> divergence;
+
+RWStructuredBuffer<float> divergence;
+RWStructuredBuffer<float> temperature_write;
 
 
 int GetIndex(int3 _id, float4 _size)
@@ -100,6 +102,14 @@ bool CheckVelocityDifference(float _velocity, float _dt, float _velocity_diff)
 }
 
 
+bool CheckVelocityDifferences(float3 _final_velocity, float _dt, float3 _velocity_diff)
+{
+	return CheckVelocityDifference(_final_velocity.x, _dt, _velocity_diff.x) &&
+			CheckVelocityDifference(_final_velocity.y, _dt, _velocity_diff.y) &&
+			CheckVelocityDifference(_final_velocity.z, _dt, _velocity_diff.z);
+}
+
+
 #pragma kernel CalculateParticlesVelocity
 [numthreads(8,1,1)]
 void CalculateParticlesVelocity(uint3 id : SV_DispatchThreadID)
@@ -114,13 +124,11 @@ void CalculateParticlesVelocity(uint3 id : SV_DispatchThreadID)
 		float total_drag = particle_drag * particle_radius * particle_radius;// Drag according to particle size
 		float3 final_velocity = dt * (1.0f/particles[id.x].mass) * total_drag * velocity_diff;
 
-		if (CheckVelocityDifference(final_velocity.x, dt, velocity_diff.x) &&
-			CheckVelocityDifference(final_velocity.y, dt, velocity_diff.y) &&
-			CheckVelocityDifference(final_velocity.z, dt, velocity_diff.z))
+		if (CheckVelocityDifferences(final_velocity, dt, velocity_diff))
 		{
 			particles[id.x].velocity += final_velocity;
 		}
-		else// Velocity change should not be larger than difference between fluid and particl velocity
+		else// Velocity change should not be larger than difference between fluid and particle velocity
 		{
 			particles[id.x].velocity = fluid_velocity;
 		}
@@ -139,11 +147,13 @@ void CalculateParticlesVelocity(uint3 id : SV_DispatchThreadID)
 [numthreads(8,1,1)]
 void BurnParticle(uint3 id : SV_DispatchThreadID)
 {
-	if (particles[id.x].temperature < burn_threshold)// Don't burn if not hot enough
+	if (particles[id.x].temperature < burn_threshold &&
+	particles[id.x].mass > 0.001f)// Don't burn if not hot enough
 		return;
 
 	float3 grid_pos =  particles[id.x].position.xyz * size.xyz;// Particles position in volume
-	temperature[grid_pos] += dt * produced_heat * burn_rate;// Add temperature to fluid
-	divergence[grid_pos] += dt * divergence_amount * burn_rate;// Add Divergence
-	particles[id.x] -= dt * burn_rate;// Burn off mass from the particle
+	int index = GetIndex(grid_pos, size);
+	temperature_write[index] += dt * produced_heat * burn_rate;// Add temperature to fluid
+	divergence[index] += dt * divergence_amount * burn_rate;// Add Divergence
+	particles[id.x].mass -= dt * burn_rate;// Burn off mass from the particle
 }

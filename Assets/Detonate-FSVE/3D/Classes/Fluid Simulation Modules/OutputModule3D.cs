@@ -18,14 +18,14 @@ namespace Detonate
         }
 
 
-        public void FuelParticleToVolume(Vector3 _size, ComputeBuffer _particles, RenderTexture _target, int _particle_count)
+        public void FuelParticleToVolume(Vector3 _size, ComputeBuffer _particles, RenderTexture _target, uint _particle_count)
         {
             //convert structured buffer to 3d volume texture using gpu
             int kernel_id = compute_shader.FindKernel("ParticleToVolume");
             compute_shader.SetBuffer(kernel_id, "particles", _particles);
             compute_shader.SetTexture(kernel_id, "write_R", _target);
             compute_shader.SetVector("size", _size);
-            compute_shader.Dispatch(kernel_id, _particle_count/8, 1, 1);
+            compute_shader.Dispatch(kernel_id, (int)_particle_count/8, 1, 1);
         }
 
     }

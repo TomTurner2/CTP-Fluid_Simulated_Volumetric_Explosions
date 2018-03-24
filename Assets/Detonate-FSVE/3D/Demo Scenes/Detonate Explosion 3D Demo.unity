@@ -183,7 +183,7 @@ MonoBehaviour:
   output_module:
     compute_shader: {fileID: 7200000, guid: c99754ab361730a4aa9f7578ec315296, type: 3}
   output_renderer: {fileID: 797914335}
-  grid_to_output: 4
+  grid_to_output: 0
   sphere_colliders: []
   draw_bounds: 1
   velocity_debug: 0
@@ -193,21 +193,19 @@ MonoBehaviour:
   explosion_params:
     fuse_transform: {fileID: 2039646231}
     fuse_radius: 0.1
-    particle_count: 200
+    particle_count: 6000
     particle_radius: 0.1
     particle_drag: 950
     mass: 0.7
     soot_mass: 0.001
     thermal_mass: 1.6
-    fuel_divergence_amount: 40
+    divergence_effect: 40
     fluid_drag_effect: 0.001
     fluid_weight: 0.02
     fluid_buoyancy: 9
-    ignition_temperature: 50
+    burn_threshold: 50
     burn_rate: 0.67
-    fuel_burn_amount: 40
-    generated_soot_amount: 260
-    soot_threshold: 1
+    heat_emission: 40
   fuel_particle_module:
     compute_shader: {fileID: 7200000, guid: 922c043289c4c6c48bfe0d1a1446a183, type: 3}
 --- !u!23 &797914337
