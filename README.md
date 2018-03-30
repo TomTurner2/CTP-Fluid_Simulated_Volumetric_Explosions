@@ -3,7 +3,7 @@
 (Formally Fluid Simulated Volumetric Explosions)
 A Unity integrated system capable of producing real-time ~~explosions~~ volumetric effects using fluid dynamic simulation principles and particle suspension, all implemented on the GPU using compute shaders. The system provides a number of fluid interactables such as emitters, containers and colliders, that allow the user to produce a variety of effects. The library breaks down the fluid simulation stages into modules, allowing the system to be easily extended to produce new simulations.
 
-![Image](/url/to/https://drive.google.com/file/d/1W1oo6GRBSamGZ8XAoJSbl5GPimxk8pt_/view?usp=sharing?raw=true)
+![screenshot_1](https://user-images.githubusercontent.com/18384589/38146852-b3ea245a-3447-11e8-84af-32af4d101da8.png)
 
 ## Features
 - Expandable base fluid simulation framework
