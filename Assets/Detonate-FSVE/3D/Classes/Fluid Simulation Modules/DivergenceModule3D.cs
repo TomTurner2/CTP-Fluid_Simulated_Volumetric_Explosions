@@ -2,7 +2,7 @@
 using UnityEngine;
 
 
-namespace Detonate
+namespace FSVE
 {
     [Serializable]
     public class DivergenceModule3D : FluidSimModule

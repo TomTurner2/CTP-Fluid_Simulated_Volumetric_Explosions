@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 
-namespace Detonate
+namespace FSVE
 {
     public class VolumeRenderTest : MonoBehaviour//messy test script
     {

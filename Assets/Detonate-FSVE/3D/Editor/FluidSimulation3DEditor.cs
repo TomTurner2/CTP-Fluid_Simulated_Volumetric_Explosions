@@ -2,7 +2,7 @@
 using UnityEngine;
 
 
-namespace Detonate
+namespace FSVE
 {
     public class FluidSimulation3DEditor : Editor
     {
@@ -68,7 +68,9 @@ namespace Detonate
             --EditorGUI.indentLevel;
 
             EditorGUILayout.PropertyField(serializedObject.FindProperty("grid_to_output"), true);
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("output_renderer"), true);
+            ++EditorGUI.indentLevel;
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("output_renderers"), true);
+            --EditorGUI.indentLevel;
 
             EndGroup();
         }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-namespace Detonate
+namespace FSVE
 {
     [Serializable]
     public class SmokeEmitter : MonoBehaviour

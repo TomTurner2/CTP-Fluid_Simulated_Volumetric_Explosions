@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 
-namespace Detonate
+namespace FSVE
 { 
     [RequireComponent(typeof(FluidSmoke3D))]
     [DisallowMultipleComponent]

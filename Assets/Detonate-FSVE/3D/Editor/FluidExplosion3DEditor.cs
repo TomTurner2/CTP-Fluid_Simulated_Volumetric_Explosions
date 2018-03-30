@@ -2,7 +2,7 @@
 using UnityEditor;
 
 
-namespace Detonate
+namespace FSVE
 {
     [CustomEditor(typeof(FluidExplosion3D))]
     public class FluidExplosion3DEditor : FluidSimulation3DEditor

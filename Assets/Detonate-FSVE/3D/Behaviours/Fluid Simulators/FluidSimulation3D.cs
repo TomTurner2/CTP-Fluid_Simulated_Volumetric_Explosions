@@ -2,7 +2,7 @@
 using UnityEngine;
 
 
-namespace Detonate
+namespace FSVE
 {
     abstract public class FluidSimulation3D : MonoBehaviour
     {
@@ -27,7 +27,7 @@ namespace Detonate
         }
 
         [SerializeField] protected OutputModule3D output_module = new OutputModule3D();
-        [SerializeField] protected VolumeRenderer output_renderer = null;
+        [SerializeField] protected List<VolumeRenderer> output_renderers = new List<VolumeRenderer>();
         [SerializeField] GridType grid_to_output = GridType.DENSITY;
 
         [SerializeField] private List<SphereCollider> sphere_colliders = new List<SphereCollider>();
@@ -203,9 +203,21 @@ namespace Detonate
                 if (!sphere_colliders[i].gameObject.activeInHierarchy)//only add if an active game object
                     continue;
 
-                obstacle_module.AddSphereObstacle(size, ConvertPositionToGridSpace(sphere_colliders[i].transform.position),
-                    sphere_colliders[i].radius * sphere_colliders[i].transform.localScale.x, obstacle_grid, thread_count);//voxelise sphere to obstacle grid
+
+                bool is_container = CheckContainer(sphere_colliders[i]);// Check if its marked as a container
+                float scale_conversion = sphere_colliders[i].radius * sphere_colliders[i].transform.localScale.x;// Some scale fudging
+                Vector3 position_conversion = ConvertPositionToGridSpace(sphere_colliders[i].transform.position);// Convert it into simulation scale
+
+                obstacle_module.AddSphereObstacle(size, position_conversion, scale_conversion,
+                    is_container, obstacle_grid, thread_count);//voxelise sphere to obstacle grid
             }
+        }
+
+
+        public bool CheckContainer(SphereCollider _collider)
+        {
+            FluidContainer container = _collider.GetComponent<FluidContainer>();
+            return container != null && container.isActiveAndEnabled;
         }
 
 
@@ -221,13 +233,20 @@ namespace Detonate
 
         protected void UpdateVolumeRenderer()
         {
-            if (output_renderer == null)
+            if (output_renderers == null)
+                return;
+
+            if (output_renderers.Count <= 0)
                 return;
 
             ConvertGridToVolume(grid_to_output);
             transform.localScale = new Vector3(transform.localScale.x, transform.localScale.x, transform.localScale.x);//scale must be uniform
-            output_renderer.size = size;
-            output_renderer.texture = volume_output;
+
+            foreach (VolumeRenderer output_renderer in output_renderers)
+            {
+                output_renderer.size = size;
+                output_renderer.texture = volume_output;
+            }
         }
 
 

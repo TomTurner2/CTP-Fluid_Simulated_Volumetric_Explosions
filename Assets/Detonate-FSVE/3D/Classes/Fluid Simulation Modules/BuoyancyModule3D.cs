@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Detonate
+namespace FSVE
 {
     [Serializable]
     public class BuoyancyModule3D : FluidSimModule

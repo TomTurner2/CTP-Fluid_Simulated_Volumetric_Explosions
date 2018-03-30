@@ -2,7 +2,7 @@
 using UnityEngine;
 
 
-namespace Detonate
+namespace FSVE
 {
     [Serializable]
     public class ObstacleModule3D : FluidSimModule
@@ -22,10 +22,12 @@ namespace Detonate
         }
 
 
-        public void AddSphereObstacle(Vector3 _size, Vector3 _position, float _radius, ComputeBuffer _obstacle_grid, intVector3 _thread_count)
+        public void AddSphereObstacle(Vector3 _size, Vector3 _position, float _radius, bool _is_container, ComputeBuffer _obstacle_grid, intVector3 _thread_count)
         {
             compute_shader.SetVector("size", _size);
-            int kernel_id = compute_shader.FindKernel("AddSphereObstacle");
+
+            int kernel_id = _is_container ? compute_shader.FindKernel("AddSphereContainer") :
+                compute_shader.FindKernel("AddSphereObstacle");// Seperate function for container to avoid branching on GPU
             compute_shader.SetBuffer(kernel_id, "write_R", _obstacle_grid);
             compute_shader.SetFloat("sphere_radius", _radius);
             compute_shader.SetVector("sphere_position", _position);

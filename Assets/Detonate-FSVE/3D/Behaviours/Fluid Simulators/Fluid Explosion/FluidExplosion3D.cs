@@ -2,7 +2,7 @@
 using UnityEngine;
 
 
-namespace Detonate
+namespace FSVE
 {
     public class FluidExplosion3D : FluidSimulation3D
     { 

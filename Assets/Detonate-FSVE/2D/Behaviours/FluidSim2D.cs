@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Events;
 
 
-namespace Detonate
+namespace FSVE
 {
     [System.Serializable]
     public class RenderTextureEvent : UnityEvent<RenderTexture> { }//event that passes render texture

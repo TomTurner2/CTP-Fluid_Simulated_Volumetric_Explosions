@@ -54,19 +54,40 @@ void Boundary(uint3 id : SV_DispatchThreadID)
 }
 
 
-#pragma kernel AddSphereObstacle
-[numthreads(8,8,8)]
-void AddSphereObstacle(uint3 id : SV_DispatchThreadID)
+
+float CreateSphereMask(uint3 _id, float3 _sphere_pos, float _sphere_radius, float3 _size)
 {
-	float3 pos = id / (size.xyz - 1.0f) - sphere_position.xyz;//need to take into account simulation scaling
+	float3 pos = _id / (_size.xyz - 1.0f) - _sphere_pos.xyz;//need to take into account simulation scaling
 	float magnitude = pos.x * pos.x + pos.y * pos.y + pos.z * pos.z;
 
-	float radius_percent = sphere_radius * 0.1f;//sphere collider conversion to grid
+	float radius_percent = _sphere_radius * 0.1f;// More scale fudging
 	float radius_squared = radius_percent * radius_percent;
 
 	float amount = exp(-magnitude/radius_squared);
 	amount = step(0.01f, amount);//if greater than or equal 0.01f, set obstacle to 1
 
+	return amount;
+}
+
+
+
+#pragma kernel AddSphereObstacle
+[numthreads(8,8,8)]
+void AddSphereObstacle(uint3 id : SV_DispatchThreadID)
+{
+	float amount = CreateSphereMask(id, sphere_position, sphere_radius, size.xyz);
 	int index = GetIndex(id, size);
-	write_R[index] = write_R[index] + amount;//for some reason this has no effect, might need two grids for obstacle?
+	write_R[index] = write_R[index] + amount;
+}
+
+
+#pragma kernel AddSphereContainer
+[numthreads(8,8,8)]
+void AddSphereContainer(uint3 id : SV_DispatchThreadID)// Seperate function for container avoids branching on GPU
+{
+	float amount = CreateSphereMask(id, sphere_position, sphere_radius, size.xyz);
+	amount = 1 - amount;// Invert mask
+
+	int index = GetIndex(id, size);
+	write_R[index] = amount;// Completely override
 }

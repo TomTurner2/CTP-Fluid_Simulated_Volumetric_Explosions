@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 
-namespace Detonate
+namespace FSVE
 {
     [System.Serializable]
     public class FluidSim3DParams
