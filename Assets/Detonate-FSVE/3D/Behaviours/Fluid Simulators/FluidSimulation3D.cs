@@ -59,7 +59,8 @@ namespace FSVE
             CalculateSize();
             CalculateThreadCount();
             CreateGridSets();
-            SetBoundary();
+            if (sim_params.simulation_bounds)
+                SetBoundary();
             CreateOutputTexture();
         }
 
@@ -182,7 +183,8 @@ namespace FSVE
         protected void CreateObstacles()
         {
             obstacle_module.ClearObstacles(obstacle_grid);
-            SetBoundary();//add boundary back in
+            if (sim_params.simulation_bounds)
+                SetBoundary();//add boundary back in
             AddSphereObstacles();//add dynamic colliders on top
         }
 
@@ -290,7 +292,8 @@ namespace FSVE
             Vector3 scale_convert = (_pos + transform.localScale * 0.5f);
 
             return new Vector3(scale_convert.x / transform.localScale.x,
-                scale_convert.y / transform.localScale.y, scale_convert.z / transform.localScale.z);//TODO should I do grid scaling here? or keep it in compute?
+                scale_convert.y / transform.localScale.y, scale_convert.z /
+                transform.localScale.z);//TODO should I do grid scaling here? or keep it in compute?
         }
 
 

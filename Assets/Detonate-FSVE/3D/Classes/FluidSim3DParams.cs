@@ -15,6 +15,7 @@ namespace FSVE
         public bool dynamic_time_step = false;
         public float simulation_speed = 1.5f;
         public float fixed_time_step = 0.1f;
+        public bool simulation_bounds = true;
 
 
         [Header("Dissipations")]
