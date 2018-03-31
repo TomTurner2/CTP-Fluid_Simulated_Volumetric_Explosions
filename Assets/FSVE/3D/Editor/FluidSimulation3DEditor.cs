@@ -6,9 +6,34 @@ namespace FSVE
 {
     public class FluidSimulation3DEditor : Editor
     {
+        public Texture2D logo = null;
         protected virtual void GUIStart()
         {
             serializedObject.Update();
+            DrawBranding();
+        }
+
+
+        private void DrawBranding()
+        {
+            if (!logo)
+                return;
+
+            const int image_size = 128;
+
+            GUIStyle style = new GUIStyle
+            {
+                normal =
+                {
+                    background = logo
+                },
+                fixedWidth = image_size,
+                fixedHeight = image_size
+            };
+
+            GUILayoutOption[] options = new GUILayoutOption[] { GUILayout.MinWidth(image_size), GUILayout.MinHeight(image_size) };
+            EditorGUILayout.LabelField(GUIContent.none, style, options);
+            EditorGUILayout.LabelField(new GUIContent("Developed by Tom Turner 14019796"));        
         }
 
 
