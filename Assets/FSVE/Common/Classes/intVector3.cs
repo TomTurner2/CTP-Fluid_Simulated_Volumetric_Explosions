@@ -9,19 +9,19 @@ public struct intVector3
     public int x, y, z;
     public intVector3(int _x, int _y, int _z)
     {
-        this.x = _x;
-        this.y = _y;
-        this.z = _z;
+        x = _x;
+        y = _y;
+        z = _z;
     }
 
 
-    public static implicit operator intVector3(Vector3 _vector)//allow vector3 assignment to intVector3
+    public static implicit operator intVector3(Vector3 _vector)// Allow vector3 assignment to intVector3
     {
         return new intVector3(Mathf.RoundToInt(_vector.x), Mathf.RoundToInt(_vector.y), Mathf.RoundToInt(_vector.z));
     }
 
 
-    public static implicit operator Vector3(intVector3 _vector)//allow assignment to vector 3
+    public static implicit operator Vector3(intVector3 _vector)// Allow assignment to vector 3
     {
         return new Vector3(_vector.x, _vector.y, _vector.z);
     }
@@ -33,16 +33,17 @@ public struct intVector3
     }
 
 
-    public override bool Equals(object _object)//override equals operator
+    public override bool Equals(object _object)// Override equals operator
     {
-        if (!(_object is intVector3))//if not a world position
-            return false;//ignore
+        if (!(_object is intVector3))
+            return false;// Ignore
 
-        intVector3 position = (intVector3)_object;//cast to world position
+        intVector3 position = (intVector3)_object;
         return position.x == x && position.y == y && position.z == z;
     }
 
 
+    // For dictionary support
     public override int GetHashCode()
     {
         unchecked

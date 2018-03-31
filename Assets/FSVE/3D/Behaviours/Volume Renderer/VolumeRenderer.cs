@@ -25,7 +25,7 @@ namespace FSVE
 
         void Update()
         {
-            if (texture == null)//exit if there is no volume to render
+            if (texture == null)// Exit if there is no volume to render
                 return;
 
             transform.rotation = Quaternion.identity;

@@ -1,10 +1,8 @@
-﻿#pragma kernel ConvertToVolume
-float4 size;
+﻿float4 size;
 StructuredBuffer<float> read_R;
 RWTexture3D<float4> write_R;
 
-
-struct FuelParticle//CPU struct maps to this one
+struct FuelParticle// CPU struct maps to this one
 {
 	float3 position;
 	float3 velocity;
@@ -22,11 +20,12 @@ int GetIndex(int3 _id, float4 _size)
 }
 
 
+#pragma kernel ConvertToVolume
 [numthreads(8,8,8)]
 void ConvertToVolume (uint3 id : SV_DispatchThreadID)
 {
 	float d = read_R[GetIndex(id, size)];
-	write_R[id] = float4(d, d, d, d);//should store in 1 channel, might have to update volume renderer though
+	write_R[id] = float4(d, d, d, d);// Should store in 1 channel, might have to update volume renderer though
 }
 
 
@@ -34,9 +33,9 @@ void ConvertToVolume (uint3 id : SV_DispatchThreadID)
 [numthreads(8,1,1)]
 void ParticleToVolume (uint3 id : SV_DispatchThreadID)
 {
-	float3 grid_pos =  particles[id.x].position.xyz * size.xyz;
-	float d = particles[id.x].mass;
-	write_R[grid_pos] = float4(d, d, d, d); 
+	float3 grid_pos =  particles[id.x].position.xyz * size.xyz;// Scale position according to sim size
+	float d = particles[id.x].mass;// Get mass
+	write_R[grid_pos] = float4(d, d, d, d);// Use particle position to access grid and assign mass as pseudo density
 }
 
 
@@ -44,5 +43,5 @@ void ParticleToVolume (uint3 id : SV_DispatchThreadID)
 [numthreads(8,8,8)]
 void ClearVolume (uint3 id : SV_DispatchThreadID)
 {
-	write_R[id] = float4(0, 0, 0, 0);//should store in 1 channel, might have to update volume renderer though
+	write_R[id] = float4(0, 0, 0, 0);
 }

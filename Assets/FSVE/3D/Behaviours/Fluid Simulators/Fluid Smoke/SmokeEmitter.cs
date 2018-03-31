@@ -15,7 +15,7 @@ namespace FSVE
         [SerializeField] float temperature_amount = 10.0f;
 
         public static List<SmokeEmitter> emitters_in_scene = null;
-        const uint MAX_EMITTERS_ALLOWED_IN_SCENE = 50;
+        const uint MAX_EMITTERS_ALLOWED_IN_SCENE = 50;// Capped beacuse I am manually tracking these in a list, not great
 
 
         void Start()

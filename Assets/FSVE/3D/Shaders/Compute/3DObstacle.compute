@@ -1,7 +1,4 @@
-﻿#pragma kernel Boundary
-
-
-float4 size;
+﻿float4 size;
 RWStructuredBuffer<float> write_R;
 float4 sphere_position;
 float sphere_radius;
@@ -13,12 +10,13 @@ int GetIndex(int3 _id, float4 _size)
 }
 
 
+#pragma kernel Boundary
 [numthreads(8,8,8)]
 void Boundary(uint3 id : SV_DispatchThreadID)
 {
 	float obstacle = 0;
 
-	//if at edge add an obstacle
+	// If at edge add an obstacle
 	if (id.x - 1  <= 0)	
 	{ 
 		obstacle = 1;
@@ -42,7 +40,6 @@ void Boundary(uint3 id : SV_DispatchThreadID)
 	if (id.z - 1 <= 0)
 	{ 
 		obstacle = 1;
-	
 	}
 
 	if (id.z + 1 > (uint)size.z - 1)	
@@ -57,14 +54,14 @@ void Boundary(uint3 id : SV_DispatchThreadID)
 
 float CreateSphereMask(uint3 _id, float3 _sphere_pos, float _sphere_radius, float3 _size)
 {
-	float3 pos = _id / (_size.xyz - 1.0f) - _sphere_pos.xyz;//need to take into account simulation scaling
+	float3 pos = _id / (_size.xyz - 1.0f) - _sphere_pos.xyz;// Need to take into account simulation scaling
 	float magnitude = pos.x * pos.x + pos.y * pos.y + pos.z * pos.z;
 
 	float radius_percent = _sphere_radius * 0.1f;// More scale fudging
 	float radius_squared = radius_percent * radius_percent;
 
 	float amount = exp(-magnitude/radius_squared);
-	amount = step(0.01f, amount);//if greater than or equal 0.01f, set obstacle to 1
+	amount = step(0.01f, amount);// If greater than or equal 0.01f, set obstacle to 1
 
 	return amount;
 }

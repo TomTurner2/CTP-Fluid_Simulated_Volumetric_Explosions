@@ -8,7 +8,7 @@ namespace FSVE
     {
         [SerializeField] protected FluidSim3DParams sim_params = new FluidSim3DParams();
 
-        //base modules all simulations will use (base requirements for a fluid sim)
+        // Base modules all simulations will use (base requirements for a fluid sim)
         [SerializeField] protected AdvectModule3D advection_module = new AdvectModule3D();
         [SerializeField] protected DivergenceModule3D divergence_module = new DivergenceModule3D();
         [SerializeField] protected JacobiModule3D jacobi_module = new JacobiModule3D();
@@ -19,7 +19,7 @@ namespace FSVE
 
         protected enum GridType
         {
-            DENSITY,
+            DENSITY,// Should probably rename to CUSTOM
             OBSTACLE,
             TEMPERATURE,
             PRESSURE,
@@ -42,11 +42,12 @@ namespace FSVE
         protected Vector3 size = Vector3.zero;
         protected intVector3 thread_count = intVector3.Zero;
 
-        protected const uint READ = 0;//for accessing grid sets
+        protected const uint READ = 0;// For accessing grid sets
         protected const uint WRITE = 1;
-        protected const uint THREAD_GROUP_COUNT = 8;//threads used by compute shader
-        protected float sim_dt = 0.1f;//simulation blows up with large time steps?
+        protected const uint THREAD_GROUP_COUNT = 8;// Threads used by compute shader
+        protected float sim_dt = 0.1f;// Update step, can be either dynamic or fixed
 
+        // Debug
         [SerializeField] private bool draw_bounds = false;
         [SerializeField] private bool velocity_debug = false;
         [SerializeField] private uint velocity_debug_resolution = 10;
@@ -67,7 +68,7 @@ namespace FSVE
 
         public virtual void ResetSim()
         {
-            OnDestroy();//in case of reset
+            OnDestroy();// In case of reset
             InitSim();
         }
 
@@ -76,13 +77,13 @@ namespace FSVE
         {
             ValidateDimensions();
             size = new Vector3(sim_params.width, sim_params.height,
-                sim_params.depth);//record size so it can't be changed at runtime
+                sim_params.depth);// Record size so it can't be changed at runtime
         }
 
 
         protected void ValidateDimensions()
         {
-            sim_params.width = Mathf.ClosestPowerOfTwo(sim_params.width);//power of two optimal for memory storage
+            sim_params.width = Mathf.ClosestPowerOfTwo(sim_params.width);// Power of two optimal for memory storage
             sim_params.height = Mathf.ClosestPowerOfTwo(sim_params.height);
             sim_params.depth = Mathf.ClosestPowerOfTwo(sim_params.depth);
         }
@@ -90,8 +91,8 @@ namespace FSVE
 
         protected void CalculateThreadCount()
         {
-            thread_count.x = (int)(sim_params.width / THREAD_GROUP_COUNT);//compute shaders use thread groups 
-            thread_count.y = (int)(sim_params.height / THREAD_GROUP_COUNT);//divide by the amount of groups to get required thread count for grid size
+            thread_count.x = (int)(sim_params.width / THREAD_GROUP_COUNT);// Compute shaders use thread groups 
+            thread_count.y = (int)(sim_params.height / THREAD_GROUP_COUNT);// Divide by the amount of groups to get required thread count for grid size
             thread_count.z = (int)(sim_params.depth / THREAD_GROUP_COUNT);
         }
 
@@ -100,10 +101,10 @@ namespace FSVE
         {
             volume_output = new RenderTexture(sim_params.width, sim_params.height, sim_params.depth)
             {
-                dimension = UnityEngine.Rendering.TextureDimension.Tex3D,//is a 3d texture
+                dimension = UnityEngine.Rendering.TextureDimension.Tex3D,// Is a 3d texture
                 volumeDepth = sim_params.depth,
                 wrapMode = TextureWrapMode.Clamp,
-                enableRandomWrite = true//must be set before creation
+                enableRandomWrite = true// Must be set before creation
             };
 
             volume_output.Create();
@@ -125,7 +126,7 @@ namespace FSVE
 
         protected void CreateVelocityGrids(int _buffer_size)
         {
-            velocity_grids[READ] = new ComputeBuffer(_buffer_size, sizeof(float) * 3);//will store float 3
+            velocity_grids[READ] = new ComputeBuffer(_buffer_size, sizeof(float) * 3);// Will store float3
             velocity_grids[WRITE] = new ComputeBuffer(_buffer_size, sizeof(float) * 3);
         }
 
@@ -146,24 +147,24 @@ namespace FSVE
 
         protected void SetBoundary()
         {
-            obstacle_module.SetBoundary(size, obstacle_grid, thread_count);//sets solid edges in the sim bounds
+            obstacle_module.SetBoundary(size, obstacle_grid, thread_count);// Sets solid edges in the sim bounds
         }
 
 
         protected virtual void Update()
         {
             sim_dt = sim_params.dynamic_time_step ?
-                Time.deltaTime * sim_params.simulation_speed : sim_params.fixed_time_step;//if dynamic use dt else use fixed step
+                Time.deltaTime * sim_params.simulation_speed : sim_params.fixed_time_step;// If dynamic use dt else use fixed step
         }
 
         
         protected virtual void MoveStage()
         {
             advection_module.ApplyAdvection(sim_dt, size, sim_params.temperature_dissipation,
-                temperature_grids, velocity_grids, obstacle_grid, thread_count);//move temperature according to velocity
+                temperature_grids, velocity_grids, obstacle_grid, thread_count);// Move temperature according to velocity
 
             advection_module.ApplyAdvectionVelocity(sim_dt, size, sim_params.velocity_dissipation,
-                velocity_grids, obstacle_grid, thread_count);//move velocity according to velocity
+                velocity_grids, obstacle_grid, thread_count);// Move velocity according to velocity
         }
 
 
@@ -184,8 +185,8 @@ namespace FSVE
         {
             obstacle_module.ClearObstacles(obstacle_grid);
             if (sim_params.simulation_bounds)
-                SetBoundary();//add boundary back in
-            AddSphereObstacles();//add dynamic colliders on top
+                SetBoundary();// Add boundary back in
+            AddSphereObstacles();// Add dynamic colliders on top
         }
 
 
@@ -196,22 +197,22 @@ namespace FSVE
                 if (sphere_colliders[i] == null)
                 {
                     sphere_colliders.RemoveAt(i);
-                    continue;//skip null
+                    continue;// Skip null
                 }
 
-                if (!sphere_colliders[i].enabled)//only add enabled colliders
+                if (!sphere_colliders[i].enabled)// Only add enabled colliders
                     continue;
 
-                if (!sphere_colliders[i].gameObject.activeInHierarchy)//only add if an active game object
+                if (!sphere_colliders[i].gameObject.activeInHierarchy)// Only add if an active game object
                     continue;
 
 
                 bool is_container = CheckContainer(sphere_colliders[i]);// Check if its marked as a container
-                float scale_conversion = sphere_colliders[i].radius * sphere_colliders[i].transform.localScale.x;// Some scale fudging
-                Vector3 position_conversion = ConvertPositionToGridSpace(sphere_colliders[i].transform.position);// Convert it into simulation scale
+                float scale_conversion = sphere_colliders[i].radius * sphere_colliders[i].transform.localScale.x;// Scale radius according to object scale
+                Vector3 position_conversion = ConvertPositionToGridSpace(sphere_colliders[i].transform.position);// Convert it into simulation space
 
                 obstacle_module.AddSphereObstacle(size, position_conversion, scale_conversion,
-                    is_container, obstacle_grid, thread_count);//voxelise sphere to obstacle grid
+                    is_container, obstacle_grid, thread_count);// Voxelise sphere to obstacle grid
             }
         }
 
@@ -226,10 +227,10 @@ namespace FSVE
         protected void MassConservationStage()
         {
             jacobi_module.CalculatePressure(size, divergence_grid, obstacle_grid,
-                sim_params.jacobi_iterations, pressure_grids, thread_count);//pressure relax gradient
+                sim_params.jacobi_iterations, pressure_grids, thread_count);// Pressure relax gradient
 
             projection_module.CalculateProjection(size, pressure_grids,
-                obstacle_grid, velocity_grids, thread_count);//subtract gradient (Hodge Decomposition) mass conserving field = any velocity field - gradient field
+                obstacle_grid, velocity_grids, thread_count);// Subtract gradient (Hodge Decomposition) mass conserving field = any velocity field - gradient field
         }
 
 
@@ -242,7 +243,8 @@ namespace FSVE
                 return;
 
             ConvertGridToVolume(grid_to_output);
-            transform.localScale = new Vector3(transform.localScale.x, transform.localScale.x, transform.localScale.x);//scale must be uniform
+            transform.localScale = new Vector3(transform.localScale.x,
+                transform.localScale.x, transform.localScale.x);// Scale must be uniform
 
             foreach (VolumeRenderer output_renderer in output_renderers)
             {
@@ -286,7 +288,7 @@ namespace FSVE
 
         public Vector3 ConvertPositionToGridSpace(Vector3 _pos)
         {
-            return ConvertToGridScale(_pos - transform.localPosition);//get relative position then factor in scale
+            return ConvertToGridScale(_pos - transform.localPosition);// Get relative position then factor in scale
         }
 
 
@@ -296,7 +298,7 @@ namespace FSVE
 
             return new Vector3(scale_convert.x / transform.localScale.x,
                 scale_convert.y / transform.localScale.y, scale_convert.z /
-                transform.localScale.z);//TODO should I do grid scaling here? or keep it in compute?
+                transform.localScale.z);// TODO should I do grid scaling here? or keep it in compute?
         }
 
 
@@ -309,7 +311,7 @@ namespace FSVE
 
         protected virtual void OnDestroy()
         {
-            velocity_grids[READ].Release();//release memory for all base grids
+            velocity_grids[READ].Release();// Release memory for all base grids
             velocity_grids[WRITE].Release();
 
             temperature_grids[READ].Release();
@@ -323,11 +325,12 @@ namespace FSVE
         }
 
 
+        // For Debug
         protected void DrawVelocityField()
         {
             Vector3[] velocities = new Vector3[velocity_grids[READ].count];
             velocity_grids[READ].GetData(velocities);
-            velocity_debug_resolution = (uint)Mathf.Max(5, velocity_debug_resolution);//should be 5 minimum
+            velocity_debug_resolution = (uint)Mathf.Max(5, velocity_debug_resolution);// Should be 5 minimum
 
             for (uint x = 0; x < size.x; x += velocity_debug_resolution)
             {
@@ -341,12 +344,12 @@ namespace FSVE
                             continue;
 
                         const float debug_scale = 0.1f;
-                        Vector3 grid_pos = new Vector3(x, y, z) * debug_scale;//scale it down so its not enormous
+                        Vector3 grid_pos = new Vector3(x, y, z) * debug_scale;// Scale it down so its not enormous
                         grid_pos += transform.localPosition;
 
-                        Vector3 velocity = velocity_debug_normalise ? velocities[index].normalized : velocities[index];//determine normalised
-                        Gizmos.color = velocity.magnitude > velocity_debug_colour_threshold ? Color.red : Color.yellow;//determine colour
-                        Gizmos.DrawLine(grid_pos, grid_pos + (velocity * debug_scale));//draw velocity vector
+                        Vector3 velocity = velocity_debug_normalise ? velocities[index].normalized : velocities[index];// Determine normalised
+                        Gizmos.color = velocity.magnitude > velocity_debug_colour_threshold ? Color.red : Color.yellow;// Determine colour
+                        Gizmos.DrawLine(grid_pos, grid_pos + (velocity * debug_scale));// Draw velocity vector
                     }
                 }
             }

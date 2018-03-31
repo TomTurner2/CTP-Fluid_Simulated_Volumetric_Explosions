@@ -24,7 +24,7 @@ namespace FSVE
         public float thermal_mass = 1.6f;
 
         [Header("Fluid Effect")]
-        public float divergence_effect = 40;//how much divergence the fuel causes
+        public float divergence_effect = 40;// How much divergence the fuel causes
         public float fluid_drag_effect = 0.001f;
         public float fluid_weight = 0.02f;
         public float fluid_buoyancy = 9;

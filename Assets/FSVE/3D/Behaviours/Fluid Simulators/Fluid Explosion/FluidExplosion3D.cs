@@ -20,9 +20,9 @@ namespace FSVE
         }
 
 
-        //particle sim buffers
+        // Particle sim buffers
         private ComputeBuffer fuel_particles_buffer = null;
-        private uint particle_count = 0;//use this so count isn't changed at runtime
+        private uint particle_count = 0;// Use this so count isn't changed at runtime
 
 
         protected void Start()
@@ -34,7 +34,7 @@ namespace FSVE
         public override void ResetSim()
         {
             base.ResetSim();
-            OnDestroy();//in case of reset
+            OnDestroy();// In case of reset
             InitSim();
         }
 
@@ -50,8 +50,8 @@ namespace FSVE
         private void NoiseVelocityGrids()
         {
             int buffer_size = sim_params.width * sim_params.height * sim_params.depth;
-            Vector3[] noise = GetRandomVelocities(buffer_size, explosion_params.starting_noise);//get random velocities
-            velocity_grids[READ].SetData(noise);//set velocites in compute buffer to random ones
+            Vector3[] noise = GetRandomVelocities(buffer_size, explosion_params.starting_noise);// Get random velocities
+            velocity_grids[READ].SetData(noise);// Set velocites in compute buffer to random ones
             velocity_grids[WRITE].SetData(noise);       
         }
 
@@ -61,7 +61,7 @@ namespace FSVE
             Vector3[] velocities = new Vector3[_buffer_size];
             for(int i = 0; i < velocities.Length; ++i)
             {
-                velocities[i] = RandomNormalisedVector() * _scalar;//scalar can be used to control magnitude
+                velocities[i] = RandomNormalisedVector() * _scalar;// Scalar can be used to control magnitude
             }
 
             return velocities;
@@ -76,14 +76,14 @@ namespace FSVE
                 y = Random.Range(-1, 1),
                 z = Random.Range(-1, 1)
             };
-            return random_vector;//return random normalised vector
+            return random_vector;// Return random normalised vector
         }
 
 
         private void CreateParticleBuffer()
         {
             particle_count = explosion_params.particle_count;
-            const int float_count = 9;//Can't use sizeof for custom types in Unity -_-
+            const int float_count = 9;// Can't use sizeof for custom types in Unity -_-
             fuel_particles_buffer = new ComputeBuffer((int)particle_count, sizeof(float) * float_count, ComputeBufferType.Append);
             InitParticles();
         }
@@ -98,13 +98,13 @@ namespace FSVE
             {
                 Vector3 start_pos = explosion_params.fuse_transform == null ? transform.position : explosion_params.fuse_transform.position;
                 
-                if (i < soot_insert_index)//regular fuel particle init
+                if (i < soot_insert_index)// Regular fuel particle init
                 {
-                    float random_radius = Random.Range(-explosion_params.fuse_radius, explosion_params.fuse_radius);//random radius within fuse radius
-                    initial_fuel_particles[i].position = ConvertPositionToGridSpace(Random.insideUnitSphere * random_radius + start_pos);//random position in circle
+                    float random_radius = Random.Range(-explosion_params.fuse_radius, explosion_params.fuse_radius);// Random radius within fuse radius
+                    initial_fuel_particles[i].position = ConvertPositionToGridSpace(Random.insideUnitSphere * random_radius + start_pos);// Random position in circle
                     initial_fuel_particles[i].mass = explosion_params.mass;
                 }
-                else//init soot particle
+                else// Init soot particle
                 {
                     initial_fuel_particles[i].position = ConvertPositionToGridSpace(start_pos);
                     initial_fuel_particles[i].mass = explosion_params.soot_mass;
@@ -129,7 +129,7 @@ namespace FSVE
         {
             MoveStage();
             AddForcesStage();
-            CalculateDivergence();//i.e. fluid diffusion
+            CalculateDivergence();// Fluid diffusion
         }
 
 
@@ -155,7 +155,7 @@ namespace FSVE
         }
 
 
-        private void ApplyThermoDynamics()// Probably not an accurate name but sounds cool ;)
+        private void ApplyThermoDynamics()// Probably not an entirely accurate name but sounds cool ;)
         {
             fuel_particle_module.BurnParticles(fuel_particles_buffer, temperature_grids[READ],
                 divergence_grid, explosion_params.burn_rate, explosion_params.heat_emission,
@@ -187,7 +187,7 @@ namespace FSVE
                 return;
             }
 
-            base.ConvertGridToVolume(_grid_type);
+            base.ConvertGridToVolume(_grid_type);// Let base handle other output conversions
         }
 
 

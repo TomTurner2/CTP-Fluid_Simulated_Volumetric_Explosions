@@ -1,6 +1,4 @@
-﻿#pragma kernel Divergence
-
-RWStructuredBuffer<float> write_R;
+﻿RWStructuredBuffer<float> write_R;
 StructuredBuffer<float3> velocity;
 StructuredBuffer<float> obstacles;
 float4 size;
@@ -14,19 +12,20 @@ int GetIndex(int3 _id, float4 _size)
 
 float3 CheckSolidCells(float _obstacles, float3 _velocity)
 {
-	if (_obstacles >  0.1f)//if solid
-		return float3(0, 0, 0);//velocity is zero
+	if (_obstacles >  0.1f)// If solid
+		return float3(0, 0, 0);// Velocity is zero
 
 	return _velocity;
 }
 
 
+#pragma kernel Divergence
 [numthreads(8,8,8)]
 void Divergence (uint3 id : SV_DispatchThreadID)
 {
 	int index = GetIndex(id, size); 
 
-	//get neighbour indexs
+	// Get neighbour indexs
 	int up_id =  GetIndex(int3(id.x, min(size.y - 1, id.y + 1), id.z), size);
 	int down_id = GetIndex(int3(id.x, max(0, id.y-1), id.z), size);
 
@@ -36,7 +35,7 @@ void Divergence (uint3 id : SV_DispatchThreadID)
 	int front_id = GetIndex(int3(id.x, id.y, max(0, id.z-1)), size);
 	int back_id = GetIndex(int3(id.x, id.y, min(size.z-1, id.z+1)), size);
 
-	//get cell neighbours velocity
+	// Get neighbours velocity
 	float3 velocity_up = velocity[up_id];
 	float3 velocity_down = velocity[down_id];
 
@@ -46,24 +45,28 @@ void Divergence (uint3 id : SV_DispatchThreadID)
 	float3 velocity_front = velocity[front_id];
 	float3 velocity_back = velocity[back_id];
 
-	//get cell neighbours obstacles
+	// Get neighbours obstacles
 	float obstacles_up = obstacles[up_id];
 	float obstacles_down = obstacles[down_id];
+
 	float obstacles_right = obstacles[right_id];
 	float obstacles_left = obstacles[left_id];
+
 	float obstacles_forward = obstacles[front_id];
 	float obstacles_back = obstacles[back_id];
 
-	//set any solid cells to zero velocity
+	// Set any solid cells to zero velocity
 	velocity_up = CheckSolidCells(obstacles_up, velocity_up);
 	velocity_down = CheckSolidCells(obstacles_down, velocity_down);
+
 	velocity_right= CheckSolidCells(obstacles_right, velocity_right);
 	velocity_left = CheckSolidCells(obstacles_left, velocity_left);
+
 	velocity_front = CheckSolidCells(obstacles_forward, velocity_front);
 	velocity_back = CheckSolidCells(obstacles_back, velocity_back);
 
 	float divergence = ((velocity_right.x - velocity_left.x) +
-	(velocity_up.y - velocity_down.y) + (velocity_back.z - velocity_front.z)) * 0.5f;
+	(velocity_up.y - velocity_down.y) + (velocity_back.z - velocity_front.z)) * 0.5f;// Divergence vector calculus operator
 
 	write_R[index] = divergence;
 }

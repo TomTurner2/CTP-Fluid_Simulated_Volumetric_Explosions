@@ -2,9 +2,9 @@
 
 
 namespace FSVE
-{ 
-    [RequireComponent(typeof(FluidSmoke3D))]
+{     
     [DisallowMultipleComponent]
+    [RequireComponent(typeof(FluidSmoke3D))]
     public class FluidSmokeEmitterInteractor : MonoBehaviour
     {
         private FluidSmoke3D fluid_simulation = null;
@@ -37,12 +37,12 @@ namespace FSVE
 
         private void AddEmitters()
         {
-            foreach (SmokeEmitter emitter in SmokeEmitter.emitters_in_scene)//for every emitter in the scene
+            foreach (SmokeEmitter emitter in SmokeEmitter.emitters_in_scene)// For every emitter in the scene
             {
                 if (fluid_simulation.SmokeEmitters.Contains(emitter))
                     continue;
 
-                if (AABBCollisionCheck(emitter.transform.position))//add the emitter if it is within the simulation grid
+                if (AABBCollisionCheck(emitter.transform.position))// Add the emitter if it is within the simulation grid
                     fluid_simulation.SmokeEmitters.Add(emitter);
             }
         }
@@ -59,16 +59,17 @@ namespace FSVE
                 }
 
                 if (!AABBCollisionCheck(fluid_simulation.SmokeEmitters[i].transform.position))
-                    fluid_simulation.SmokeEmitters.RemoveAt(i);//remove any emitters outside of simulation
+                    fluid_simulation.SmokeEmitters.RemoveAt(i);// Remove any emitters outside of simulation
             }
         }
 
 
+        // I don't want to make a collider a requirement for emitters, so I'm checking manually.
         private bool AABBCollisionCheck(Vector3 _emitter_position)
         {
             if (!(_emitter_position.x > fluid_simulation.transform.position.x -
                   fluid_simulation.transform.localScale.x * 0.5f))
-                return false;//early return more efficent
+                return false;// Early return more efficent
 
             if (!(_emitter_position.x < fluid_simulation.transform.position.x +
                   fluid_simulation.transform.localScale.x * 0.5f))

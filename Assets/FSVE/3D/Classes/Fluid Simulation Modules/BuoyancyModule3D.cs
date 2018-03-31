@@ -10,7 +10,7 @@ namespace FSVE
             ComputeBuffer[] _velocity_grids, ComputeBuffer[] _density_grids, ComputeBuffer[] _temperature_grids, intVector3 _thread_count)
         {
             compute_shader.SetVector("size", _size);
-            compute_shader.SetVector("up", new Vector4(0, 1, 0, 0));
+            compute_shader.SetVector("up", new Vector4(0, 1, 0, 0));// Up is up, normally
             compute_shader.SetFloat("buoyancy", _buoyancy);
             compute_shader.SetFloat("weight", _particle_weight);
             compute_shader.SetFloat("ambient_temperature", _ambient_temperature);
@@ -27,6 +27,7 @@ namespace FSVE
         }
 
 
+        // Basically the same but with no dependancy on a density grid
         public void ApplyBuoyancySimple(float _dt, Vector3 _size, float _buoyancy, float _particle_weight, float _ambient_temperature,
             ComputeBuffer[] _velocity_grids, ComputeBuffer[] _temperature_grids, intVector3 _thread_count)
         {

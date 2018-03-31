@@ -1,6 +1,4 @@
-﻿#pragma kernel Jacobi
-
-RWStructuredBuffer<float> write_R;
+﻿RWStructuredBuffer<float> write_R;
 StructuredBuffer<float> pressure;
 StructuredBuffer<float> obstacles;
 StructuredBuffer<float> divergence;
@@ -16,18 +14,19 @@ int GetIndex(int3 _id, float4 _size)
 float DetermineCellPressure(float _obstacle, float _neighbour_pressure, float _cell_pressure)
 {
 	if (_obstacle > 0.1f)
-		return _cell_pressure;//return cell preassure if there is an obstacle
+		return _cell_pressure;// Return cell preassure if there is an obstacle
 
 	return _neighbour_pressure;
 }
 
 
+#pragma kernel Jacobi
 [numthreads(8,8,8)]
 void Jacobi (uint3 id : SV_DispatchThreadID)
 {
 	int index = GetIndex(id, size);
 
-	//get neighbour indexs
+	// Get neighbour indexs
 	int up_id =  GetIndex(int3(id.x, min(size.y - 1, id.y + 1), id.z), size);
 	int down_id = GetIndex(int3(id.x, max(0, id.y-1), id.z), size);
 
@@ -37,7 +36,7 @@ void Jacobi (uint3 id : SV_DispatchThreadID)
 	int front_id = GetIndex(int3(id.x, id.y, max(0, id.z-1)), size);
 	int back_id = GetIndex(int3(id.x, id.y, min(size.z-1, id.z+1)), size);
 
-	//get cell neighbours pressure
+	// Get neighbours pressure
 	float pressure_up = pressure[up_id];
 	float pressure_down = pressure[down_id];
 
@@ -47,7 +46,7 @@ void Jacobi (uint3 id : SV_DispatchThreadID)
 	float pressure_front = pressure[front_id];
 	float pressure_back = pressure[back_id];
 
-	//get cell neighbours obstacles
+	// Get neighbours obstacles
 	float obstacles_up = obstacles[up_id];
 	float obstacles_down  = obstacles[down_id];
 
@@ -59,7 +58,7 @@ void Jacobi (uint3 id : SV_DispatchThreadID)
 	
 	float cell_pressure = pressure[index];
 
-	//factor obstacles into cell pressure
+	// Factor obstacles into cell pressure
 	pressure_up  = DetermineCellPressure(obstacles_up, pressure_up, cell_pressure);
 	pressure_down  = DetermineCellPressure(obstacles_down, pressure_down, cell_pressure);
 	pressure_left = DetermineCellPressure(obstacles_right, pressure_right, cell_pressure);
@@ -67,9 +66,9 @@ void Jacobi (uint3 id : SV_DispatchThreadID)
 	pressure_front = DetermineCellPressure(obstacles_front, pressure_front, cell_pressure);
 	pressure_back= DetermineCellPressure(obstacles_back, pressure_back, cell_pressure);
 
-	//calculate jacobi
+	// Calculate jacobi
 	float cell_divergence = divergence[index];
 	float jacobi = (pressure_left + pressure_right + pressure_down + pressure_up +
-	pressure_back + pressure_front - cell_divergence) / 6;//average of neighbours
+	pressure_back + pressure_front - cell_divergence) / 6;// Average of neighbours with divergence subtracted
 	write_R[index] = jacobi;
 }

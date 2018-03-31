@@ -3,15 +3,16 @@
 
 namespace FSVE
 {
-    public class VolumeRenderTest : MonoBehaviour//messy test script
+    public class VolumeRenderTest : MonoBehaviour// Messy test script
     {
         [SerializeField] ComputeShader texture_manipulator;
         [SerializeField] Vector3 size = new Vector3(256, 256, 256);
         [SerializeField] RenderTexture texture;
+
         private int x, y, z;
         private Renderer volume_renderer;
 
-        // Use this for initialization
+
         void Start()
         {
             volume_renderer = GetComponent<Renderer>();
@@ -28,7 +29,7 @@ namespace FSVE
                 enableRandomWrite = true
             };
 
-            //must be set before creation
+            // Must be set before creation
             texture.Create();
 
             texture_manipulator.SetTexture(0, "Result", texture);

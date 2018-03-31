@@ -1,6 +1,4 @@
-﻿#pragma kernel Projection
-
-RWStructuredBuffer<float3> write_RGB;
+﻿RWStructuredBuffer<float3> write_RGB;
 StructuredBuffer<float3> velocity;
 
 StructuredBuffer<float> pressure;
@@ -8,12 +6,14 @@ StructuredBuffer<float> obstacles;
 
 float4 size;
 
+
 int GetIndex(int3 _id, float4 _size)
 {
 	return _id.x + _id.y * _size.x + _id.z * _size.x * _size.y;
 }
 
 
+#pragma kernel Projection
 [numthreads(8,8,8)]
 void Projection (uint3 id : SV_DispatchThreadID)
 {
@@ -25,7 +25,7 @@ void Projection (uint3 id : SV_DispatchThreadID)
 		return;
 	}
 
-	//get neighbour indexs
+	// Get neighbour indexs
 	int up_id =  GetIndex(int3(id.x, min(size.y - 1, id.y + 1), id.z), size);
 	int down_id = GetIndex(int3(id.x, max(0, id.y-1), id.z), size);
 
@@ -35,7 +35,7 @@ void Projection (uint3 id : SV_DispatchThreadID)
 	int front_id = GetIndex(int3(id.x, id.y, max(0, id.z-1)), size);
 	int back_id = GetIndex(int3(id.x, id.y, min(size.z-1, id.z+1)), size);
 
-	//get cell neighbours pressure
+	// Get neighbours pressure
 	float pressure_up = pressure[up_id];
 	float pressure_down = pressure[down_id];
 
@@ -48,11 +48,11 @@ void Projection (uint3 id : SV_DispatchThreadID)
 	float cell_pressure = pressure[index];
 	float3 mask = float3(1, 1, 1);
 	
-	//check neighbours obstacles
+	// Check neighbours obstacles
 	if (obstacles[up_id] > 0.1f)
 	{
 		pressure_up = cell_pressure;
-		mask.y = 0;//mask this direction
+		mask.y = 0;// Mask this direction
 	}
 
 	if (obstacles[down_id] > 0.1f)
@@ -86,6 +86,6 @@ void Projection (uint3 id : SV_DispatchThreadID)
 	}
 
 	float3 cell_velocity = velocity[index] - float3(pressure_right - pressure_left,
-	pressure_up - pressure_down, pressure_back - pressure_front ) * 0.5f;
-	write_RGB[index] = cell_velocity * mask;
+	pressure_up - pressure_down, pressure_back - pressure_front ) * 0.5f;// Subtract pressure gradient from velocity field
+	write_RGB[index] = cell_velocity * mask;// Mask out obstacles
 }

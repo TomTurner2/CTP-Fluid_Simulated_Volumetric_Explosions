@@ -1,15 +1,13 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Events;
 
 
 namespace FSVE
 {
     [System.Serializable]
-    public class RenderTextureEvent : UnityEvent<RenderTexture> { }//event that passes render texture
+    public class RenderTextureEvent : UnityEvent<RenderTexture> { }// Event that passes render texture
 
-    //2D fluid sim development abandoned due to texture issue
+    [System.Obsolete("Obsolete! 2D fluid sim development abandoned due to texture issue", false)]
     public class FluidSim2D : MonoBehaviour
     {
         [SerializeField] FluidSim2DParams sim_params = new FluidSim2DParams();
@@ -20,7 +18,7 @@ namespace FSVE
         [SerializeField] float density_amount = 1.0f;
         [SerializeField] private float temperature_amount = 10.0f;
 
-        //Compute shaders
+        // Compute shaders
         [Space] [Header("GPU Functions")]
         [SerializeField] ComputeShader jacobi = null;
         [SerializeField] ComputeShader advect = null;
@@ -38,25 +36,25 @@ namespace FSVE
         [SerializeField] RenderTextureEvent temperature_read;
         [SerializeField] RenderTextureEvent pressure_read;
 
-        //Render textures used for simulation (grids)
+        // Render textures used for simulation (grids)
         private RenderTexture[] velocity_grids = new RenderTexture[2];
         private RenderTexture[] density_grids = new RenderTexture[2];
         private RenderTexture[] temperature_grids = new RenderTexture[2];
         private RenderTexture[] pressure_grids = new RenderTexture[2];
-        private RenderTexture obstacle_grid; //will only read
-        private RenderTexture temp_grid; //used for storing temporary grid states
+        private RenderTexture obstacle_grid; // Will only read
+        private RenderTexture temp_grid; // Used for storing temporary grid states
 
         private Vector2 size = Vector2.zero;
 
-        //Number of threads required based on texture size
+        // Number of threads required based on texture size
         private int x_thread_count = 0;
         private int y_thread_count = 0;
 
-        //Constants
-        private const uint READ = 0; //for accessing grid sets
+        // Constants
+        private const uint READ = 0; // For accessing grid sets
         private const uint WRITE = 1;
-        private const uint THREAD_COUNT = 8; //threads used by compute shader
-        private const float DT = 0.05f;//simulation blows up with large time steps?
+        private const uint THREAD_COUNT = 8; // Threads used by compute shader
+        private const float DT = 0.05f;// Simulation blows up with large time steps?
 
 
         private void Start()
@@ -69,7 +67,7 @@ namespace FSVE
         {
             CalculateSize();
             CalculateThreadCount();
-            CreateGridSets(); //creates render texture grid sets
+            CreateGridSets(); // Creates render texture grid sets
             SetBoundary();
         }
 
@@ -105,15 +103,15 @@ namespace FSVE
 
         private void Update()
         {
-            //advect grids with quantities
+            // Advect grids with quantities
             ApplyAdvection(sim_params.temperature_dissipation, 0.0f, ref temperature_grids);
             ApplyAdvection(sim_params.density_dissipation, 0.0f, ref density_grids);
 
-            //apply advections
+            // Apply advections
             ApplyAdvectionVelocity();
             ApplyBuoyancy();
 
-            //apply impulses
+            // Apply impulses
             ApplyImpulse(density_amount, ref density_grids);
             ApplyImpulse(temperature_amount, ref temperature_grids);
 
@@ -137,63 +135,63 @@ namespace FSVE
 
         private void ApplyAdvection(float _dissipation, float _decay, ref RenderTexture[] _grids)
         {
-            //set compute vars
+            // Set compute vars
             advect.SetFloat("dt", DT);
             advect.SetFloat("forward", 1.0f);
             advect.SetFloat("dissipation", _dissipation);
             advect.SetFloat("decay", _decay);
 
-            //set texture grids
+            // Set texture grids
             int kernel_id = advect.FindKernel("Advect");
-            advect.SetTexture(kernel_id, "write_R", _grids[WRITE]); //ony 1 channel
+            advect.SetTexture(kernel_id, "write_R", _grids[WRITE]); // Ony 1 channel
             advect.SetTexture(kernel_id, "read_R", _grids[READ]);
             advect.SetTexture(kernel_id, "velocity", velocity_grids[READ]);
             advect.SetTexture(kernel_id, "obstacles", obstacle_grid);
 
-            //run calculation on GPU
+            // Run calculation on GPU
             advect.Dispatch(kernel_id, x_thread_count, y_thread_count, 1);
-            Swap(_grids); //swap read and write grids
+            Swap(_grids); // Swap read and write grids
         }
 
 
         private void ApplyAdvectionVelocity()
         {
-            //set compute vars
+            // Set compute vars
             advect.SetFloat("dt", DT);
             advect.SetFloat("dissipation", sim_params.velocity_dissipation);
             advect.SetFloat("forward", 1.0f);
             advect.SetFloat("decay", 0.0f);
 
-            //set texture grids
+            // Set texture grids
             int kernel_id = advect.FindKernel("AdvectVelocity");
-            advect.SetTexture(kernel_id, "read_RG", velocity_grids[READ]); //two channels to represent vector components
+            advect.SetTexture(kernel_id, "read_RG", velocity_grids[READ]); // Two channels to represent vector components
             advect.SetTexture(kernel_id, "write_RG", velocity_grids[WRITE]);
             advect.SetTexture(kernel_id, "velocity", velocity_grids[READ]);
             advect.SetTexture(kernel_id, "obstacles", obstacle_grid);
 
-            //run calculation on GPU
+            // Run calculation on GPU
             advect.Dispatch(kernel_id, x_thread_count, y_thread_count, 1);
-            Swap(velocity_grids); //swap read and write velocity grids
+            Swap(velocity_grids); // Swap read and write velocity grids
         }
 
 
         private void ApplyBuoyancy()
         {
-            //set compute vars
+            // Set compute vars
             buoyancy.SetFloat("dt", DT);
             buoyancy.SetVector("up", new Vector4(0, 1, 0, 0)); //y is up
             buoyancy.SetFloat("weight", sim_params.smoke_weight);
             buoyancy.SetFloat("buoyancy", sim_params.smoke_buoyancy);
             buoyancy.SetFloat("ambient_temperature", sim_params.ambient_temperature);
 
-            //set texture grids
+            // Set texture grids
             int kernel_id = buoyancy.FindKernel("ApplyBuoyancy");
             buoyancy.SetTexture(kernel_id, "temperature", temperature_grids[READ]);
             buoyancy.SetTexture(kernel_id, "write_RG", velocity_grids[WRITE]);
             buoyancy.SetTexture(kernel_id, "velocity", velocity_grids[READ]);
             buoyancy.SetTexture(kernel_id, "density", density_grids[READ]);
 
-            //run calculation on GPU
+            // Run calculation on GPU
             buoyancy.Dispatch(kernel_id, x_thread_count, y_thread_count, 1);
             Swap(velocity_grids);
         }
@@ -218,14 +216,14 @@ namespace FSVE
 
         private void CalculateDivergence()
         {
-            //set texture grids
+            // Set texture grids
             int kernel_id = divergence.FindKernel("Divergence");
             divergence.SetTexture(kernel_id, "write_RG", temp_grid);
             divergence.SetTexture(kernel_id, "velocity", velocity_grids[READ]);
             divergence.SetTexture(kernel_id, "obstacles", obstacle_grid);
             divergence.SetVector("size", size);
 
-            //run calculation on GPU
+            // Run calculation on GPU
             divergence.Dispatch(kernel_id, x_thread_count, y_thread_count, 1);
         }
 
@@ -237,7 +235,7 @@ namespace FSVE
             jacobi.SetTexture(kernel_id, "divergence", temp_grid);
             jacobi.SetTexture(kernel_id, "obstacles", obstacle_grid);
 
-            //clear pressure grids?
+            // Clear pressure grids?
             Graphics.SetRenderTarget(pressure_grids[READ]);
             GL.Clear(false, true, new Color(0, 0, 0, 0));
             Graphics.SetRenderTarget(null);
@@ -277,7 +275,7 @@ namespace FSVE
 
         #region Render Texture "Grid" Creation
 
-        //Create all the required grids.
+        // Create all the required grids.
         private void CreateGridSets()
         {
             CreateGridSet(ref velocity_grids, RenderTextureFormat.RGFloat, FilterMode.Bilinear);
@@ -285,13 +283,13 @@ namespace FSVE
             CreateGridSet(ref temperature_grids, RenderTextureFormat.RFloat, FilterMode.Bilinear);
             CreateGridSet(ref pressure_grids, RenderTextureFormat.RFloat, FilterMode.Point);
 
-            //Obstacles grid will only be read, so only one grid needed
+            // Obstacles grid will only be read, so only one grid needed
             CreateGrid(ref obstacle_grid, RenderTextureFormat.RFloat, FilterMode.Point);
             CreateGrid(ref temp_grid, RenderTextureFormat.RGFloat, FilterMode.Point);
         }
 
 
-        //Create a read and write grid for the given grid set.
+        // Create a read and write grid for the given grid set.
         private void CreateGridSet(ref RenderTexture[] _grid, RenderTextureFormat _format,
             FilterMode _filter)
         {
@@ -300,7 +298,7 @@ namespace FSVE
         }
 
 
-        //Create and intialise the grid render texture.
+        // Create and intialise the grid render texture.
         private void CreateGrid(ref RenderTexture _grid, RenderTextureFormat _format, FilterMode _filter)
         {
             _grid = new RenderTexture(sim_params.width, sim_params.height,

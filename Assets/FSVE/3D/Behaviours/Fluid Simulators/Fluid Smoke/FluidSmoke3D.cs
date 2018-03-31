@@ -9,7 +9,7 @@ namespace FSVE
         [SerializeField] FluidSmoke3DParams smoke_params = new FluidSmoke3DParams();       
         [SerializeField] List<SmokeEmitter> smoke_emitters = new List<SmokeEmitter>();
 
-        private ComputeBuffer[] density_grids = new ComputeBuffer[2];//smoke simulates movement of density
+        private ComputeBuffer[] density_grids = new ComputeBuffer[2];// Smoke simulates movement of density
 
 
         protected void Start()
@@ -21,7 +21,7 @@ namespace FSVE
         public override void ResetSim()
         {
             base.ResetSim();
-            OnDestroy();//in case of reset
+            OnDestroy();// In case of reset
             InitSim();
         }
 
@@ -43,11 +43,11 @@ namespace FSVE
 
         protected override void Update()
         {
-            base.Update();//determines which time step to use
+            base.Update();// Determines which time step to use
 
             MoveStage();
             AddForcesStage();
-            CalculateDivergence();//i.e. fluid diffusion
+            CalculateDivergence();// Fluid diffusion
             MassConservationStage();
             CreateObstacles();
             UpdateVolumeRenderer();
@@ -57,16 +57,16 @@ namespace FSVE
         protected override void MoveStage()
         {
             advection_module.ApplyAdvection(sim_dt, size, smoke_params.density_dissipation,
-                density_grids, velocity_grids, obstacle_grid, thread_count);
+                density_grids, velocity_grids, obstacle_grid, thread_count);// Advect density
 
-            base.MoveStage();
+            base.MoveStage();// Advect base grids
         }
 
 
         private void AddForcesStage()
         {
             ApplyBuoyancy();
-            ApplyEmitters();
+            ApplyEmitters();// Smoke emitters unique to this sim
         }
 
 
@@ -97,7 +97,7 @@ namespace FSVE
             {
                 if (smoke_emitters[i] == null)
                 {
-                    smoke_emitters.RemoveAt(i);
+                    smoke_emitters.RemoveAt(i);// Remove nulls
                     continue;
                 }
 
@@ -111,9 +111,9 @@ namespace FSVE
                     continue;
 
                 ApplyImpulse(smoke_emitters[i].DenisityAmount, smoke_emitters[i].EmissionRadius,
-                    density_grids, smoke_emitters[i].transform.position);
+                    density_grids, smoke_emitters[i].transform.position);// Add density at emitter position
                 ApplyImpulse(smoke_emitters[i].TemperatureAmount, smoke_emitters[i].EmissionRadius,
-                    temperature_grids, smoke_emitters[i].transform.position);
+                    temperature_grids, smoke_emitters[i].transform.position);// Add temperature at emitter position
             }
         }
 
@@ -122,19 +122,20 @@ namespace FSVE
         {
             if (_grid_type == GridType.DENSITY)
             {
-                output_module.ConvertToVolume(size, density_grids[READ], volume_output, thread_count);
+                output_module.ConvertToVolume(size, density_grids[READ],
+                    volume_output, thread_count);// Output density grid
                 return;
             }
 
-            base.ConvertGridToVolume(_grid_type);
+            base.ConvertGridToVolume(_grid_type);// Let base handle other conversions
         }
      
 
-        //all buffers should be released on destruction
+        // All buffers should be released on destruction
         protected override void OnDestroy()
         {
             base.OnDestroy();
-            density_grids[READ].Release();
+            density_grids[READ].Release();// Unique to this sim
             density_grids[WRITE].Release();        
         }
     }

@@ -8,7 +8,7 @@ float produced_heat;
 float divergence_amount;
 float4 size;
 
-struct FuelParticle//CPU struct maps to this one
+struct FuelParticle// CPU struct maps to this one
 {
 	float3 position;
 	float3 velocity;
@@ -42,7 +42,7 @@ float SampleBilinear(StructuredBuffer<float> _grid, float3 _coord, float4 size)
 	float fy = _coord.y-y;
 	float fz = _coord.z-z;
 	
-	//only want to validate once
+	// Only want to validate once
 	int x_plus_one = min(size.x-1, x+1);
 	int y_plus_one = min(size.y-1, y+1);
 	int z_plus_one = min(size.z-1, z+1);
@@ -70,7 +70,7 @@ float3 SampleBilinear(StructuredBuffer<float3> _grid, float3 _coord, float4 size
 	float fy = _coord.y-y;
 	float fz = _coord.z-z;
 	
-	//only need to validate once
+	// Only need to validate once
 	int x_plus_one = min(size.x-1, x+1);
 	int y_plus_one = min(size.y-1, y+1);
 	int z_plus_one = min(size.z-1, z+1);
@@ -98,7 +98,7 @@ void ApplyParticlesVelocities (uint3 id : SV_DispatchThreadID)
 
 bool CheckVelocityDifference(float _velocity, float _dt, float _velocity_diff)
 {
-	return abs(_velocity) < _dt * _velocity_diff;
+	return abs(_velocity) < _dt * _velocity_diff;// Velocity change should not be larger than difference between fluid and particle velocity
 }
 
 
@@ -114,28 +114,27 @@ bool CheckVelocityDifferences(float3 _final_velocity, float _dt, float3 _velocit
 [numthreads(8,1,1)]
 void CalculateParticlesVelocity(uint3 id : SV_DispatchThreadID)
 {
-
 	float3 grid_pos =  particles[id.x].position.xyz * size.xyz;
 	float3 fluid_velocity = SampleBilinear(velocity, grid_pos, size);
 
-	if(particles[id.x].mass > 0.001f)
+	if (particles[id.x].mass > 0.001f)
 	{
 		float3 velocity_diff = fluid_velocity - particles[id.x].velocity;
 		float total_drag = particle_drag * particle_radius * particle_radius;// Drag according to particle size
-		float3 final_velocity = dt * (1.0f/particles[id.x].mass) * total_drag * velocity_diff;
+		float3 final_velocity = dt * (1.0f / particles[id.x].mass) * total_drag * velocity_diff;// Final velocity according to mass and drag
 
 		if (CheckVelocityDifferences(final_velocity, dt, velocity_diff))
 		{
-			particles[id.x].velocity += final_velocity;
+			particles[id.x].velocity += final_velocity;// Add on new velocity
 		}
-		else// Velocity change should not be larger than difference between fluid and particle velocity
+		else
 		{
-			particles[id.x].velocity = fluid_velocity;
+			particles[id.x].velocity = fluid_velocity;// Set new velocity, if larger than diff between fluid and prev velocity
 		}
 	}
 	else
 	{
-		particles[id.x].velocity = fluid_velocity;
+		particles[id.x].velocity = fluid_velocity;// If no mass just go with the flow
 	}
 
 	particles[id.x].temperature += dt * (SampleBilinear(temperature, grid_pos, size) -

@@ -1,6 +1,4 @@
-﻿#pragma kernel Impulse
-
-float source_amount;
+﻿float source_amount;
 float radius;
 float dt;
 float4 source_pos;
@@ -16,6 +14,7 @@ int GetIndex(int3 _id, float4 _size)
 }
 
 
+#pragma kernel Impulse
 [numthreads(8,8,8)]
 void Impulse (uint3 id : SV_DispatchThreadID)
 {

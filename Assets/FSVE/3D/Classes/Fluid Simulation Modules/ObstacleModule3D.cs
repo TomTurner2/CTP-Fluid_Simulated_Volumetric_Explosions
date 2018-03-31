@@ -9,7 +9,7 @@ namespace FSVE
     {
         public void ClearObstacles(ComputeBuffer _obstacle_grid)
         {
-            _obstacle_grid.SetData(new float[_obstacle_grid.count]);
+            _obstacle_grid.SetData(new float[_obstacle_grid.count]);// Fresh array of floats
         }
 
 
@@ -27,7 +27,7 @@ namespace FSVE
             compute_shader.SetVector("size", _size);
 
             int kernel_id = _is_container ? compute_shader.FindKernel("AddSphereContainer") :
-                compute_shader.FindKernel("AddSphereObstacle");// Seperate function for container to avoid branching on GPU
+                compute_shader.FindKernel("AddSphereObstacle");// Separate function for container to avoid branching on GPU
             compute_shader.SetBuffer(kernel_id, "write_R", _obstacle_grid);
             compute_shader.SetFloat("sphere_radius", _radius);
             compute_shader.SetVector("sphere_position", _position);

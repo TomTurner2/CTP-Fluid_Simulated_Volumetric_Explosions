@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace FSVE
 {
-    [Serializable]
+    [Serializable]// These modules simply interface with the compute shader, look at compute shaders to see functionality
     public class AdvectModule3D : FluidSimModule
     {
         public void ApplyAdvection(float _dt, Vector3 _size, float _dissipation,

@@ -10,18 +10,17 @@
 		Tags { "Queue"="Transparent" }
 		pass
 		{
-			Cull off
+			Cull off// Generate fragments for all cube faces
 			Blend SrcAlpha OneMinusSrcAlpha
-
 
 			CGPROGRAM
 			#include "UnityCG.cginc"
 			#pragma target 5.0
-			#pragma vertex vert
-			#pragma fragment frag
+			#pragma vertex Vert
+			#pragma fragment Frag
+
 
 			#define NUM_STEPS 64
-
 			float4 _Colour;
 			float _Absorption;
 			uniform float3 _translation;
@@ -36,23 +35,23 @@
 			};
 
 
-			v2f vert(appdata_base vert)
+			v2f Vert(appdata_base vert)
 			{
 				v2f OUT;
 				OUT.pos = UnityObjectToClipPos(vert.vertex);
-    			OUT.world_pos = mul(unity_ObjectToWorld, vert.vertex).xyz;
+    			OUT.world_pos = mul(unity_ObjectToWorld, vert.vertex).xyz;// Convert to world space
     			return OUT;
 			}
 
 
-			struct AABB
+			struct AABB// For box intersection
 			{
 				float3 min;
 				float3 max;
 			};
 
 
-			struct Ray
+			struct Ray// For ray intersection
 			{
 				float3 pos;
 				float3 dir;
@@ -67,61 +66,62 @@
 				float3 t_min = min(top, bottom);
 				float3 t_max = max(top, bottom);
 				float2 t = max(t_min.xx, t_min.yz);
-				_near = max(t.x, t.y);
+
+				_near = max(t.x, t.y);// Pass out nearest intersection
 				t = min(t_max.xx, t_max.yz);
-				_far = min(t.x, t.y);
+				_far = min(t.x, t.y);// Pass out furthest intersection
 			}
 
 
-			float4 frag(v2f IN) : COLOR
+			float4 Frag(v2f IN) : COLOR
 			{
 				float3 pos = _WorldSpaceCameraPos;
 
-				//create ray
+				// Create ray
 				Ray ray;
 				ray.pos = pos;
 				ray.dir = normalize(IN.world_pos - pos);
 
-				//Create collision box based on scale and translation
+				// Create collision box based on scale and translation
 				AABB collision_box;
 				collision_box.min = float3(-0.5f, -0.5f, -0.5f) * _scale + _translation;
 				collision_box.max = float3(0.5f, 0.5f, 0.5f) * _scale + _translation;
 				
-				//calculate distances of the two intersections
+				// Calculate distances of the two intersections
 				float near = 0;
 				float far = 0;
 				RayBoxIntersection(ray, collision_box, near, far);
 
-				if (near < 0.0f)//if in the grid start at 0
+				if (near < 0.0f)// If in the grid start at 0
 					near = 0;
 
 				float3 ray_start = ray.pos + ray.dir * near;
 				float3 ray_end = ray.pos + ray.dir * far;
 
-				//convert the positions into grid space
+				// Convert the positions into grid space
 				ray_start -= _translation;
-				ray_start = (ray_start + _scale * 0.5f)/_scale;
+				ray_start = (ray_start + _scale * 0.5f) / _scale;
 				ray_end -= _translation;
-				ray_end = (ray_end + _scale * 0.5f)/_scale;
+				ray_end = (ray_end + _scale * 0.5f) / _scale;
 
 				float3 grid_coord = ray_start;
-				float ray_distance = distance(ray_end, ray_start);//determine distance to travel
-				float step_size = ray_distance / float(NUM_STEPS);//calculate step size required to travel distance
+				float ray_distance = distance(ray_end, ray_start);// Determine distance to travel
+				float step_size = ray_distance / float(NUM_STEPS);// Calculate step size required to travel distance
 				float3 step = normalize(ray_end - ray_start) * step_size;
 
 				float alpha = 1.0f;
 
 				for (int i = 0; i < NUM_STEPS; ++i)
 				{
-					grid_coord += step;//step along the ray
+					grid_coord += step;// Step along the ray
 					float cell_density = tex3D(_density, grid_coord);
-					alpha *= 1.0f - saturate(cell_density * step_size * _Absorption);//calc alpha
+					alpha *= 1.0f - saturate(cell_density * step_size * _Absorption);// Accumulate alpha
 					
-					if (alpha <= 0.01f)
+					if (alpha <= 0.01f)// No point going further
 						break;
 				}
 				
-				return _Colour * (1.0f - alpha);//invert alpha
+				return _Colour * (1.0f - alpha);// Invert alpha
 			}
 			ENDCG
 		}
