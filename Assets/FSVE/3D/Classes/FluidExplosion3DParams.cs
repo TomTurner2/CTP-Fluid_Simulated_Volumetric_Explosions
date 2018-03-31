@@ -16,6 +16,7 @@ namespace FSVE
         public uint particle_count = 200;
         public float particle_radius = 0.1f;
         public float particle_drag = 950.0f;
+        public bool trace_particles = false;
 
         [Header("Masses")]
         public float mass = 0.7f;
@@ -27,11 +28,11 @@ namespace FSVE
         public float fluid_drag_effect = 0.001f;
         public float fluid_weight = 0.02f;
         public float fluid_buoyancy = 9;
+        public float starting_noise = 0.5f;
 
         [Header("Thermals")]
         public float burn_threshold = 50;
         public float burn_rate = 0.67f;
-        public float heat_emission = 40;
-        
+        public float heat_emission = 40;       
     }
 }

@@ -38,3 +38,11 @@ void ParticleToVolume (uint3 id : SV_DispatchThreadID)
 	float d = particles[id.x].mass;
 	write_R[grid_pos] = float4(d, d, d, d); 
 }
+
+
+#pragma kernel ClearVolume
+[numthreads(8,8,8)]
+void ClearVolume (uint3 id : SV_DispatchThreadID)
+{
+	write_R[id] = float4(0, 0, 0, 0);//should store in 1 channel, might have to update volume renderer though
+}

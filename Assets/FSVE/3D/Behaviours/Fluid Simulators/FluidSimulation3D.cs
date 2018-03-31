@@ -246,6 +246,9 @@ namespace FSVE
 
             foreach (VolumeRenderer output_renderer in output_renderers)
             {
+                if (output_renderer == null)
+                    continue;
+
                 output_renderer.size = size;
                 output_renderer.texture = volume_output;
             }

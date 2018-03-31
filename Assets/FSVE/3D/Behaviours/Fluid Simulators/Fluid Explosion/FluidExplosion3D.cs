@@ -50,7 +50,7 @@ namespace FSVE
         private void NoiseVelocityGrids()
         {
             int buffer_size = sim_params.width * sim_params.height * sim_params.depth;
-            Vector3[] noise = GetRandomVelocities(buffer_size);//get random velocities
+            Vector3[] noise = GetRandomVelocities(buffer_size, explosion_params.starting_noise);//get random velocities
             velocity_grids[READ].SetData(noise);//set velocites in compute buffer to random ones
             velocity_grids[WRITE].SetData(noise);       
         }
@@ -130,7 +130,6 @@ namespace FSVE
             MoveStage();
             AddForcesStage();
             CalculateDivergence();//i.e. fluid diffusion
-            //MassConservationStage();
         }
 
 
@@ -184,7 +183,7 @@ namespace FSVE
             if (_grid_type == GridType.DENSITY)
             {
                 output_module.FuelParticleToVolume(size, fuel_particles_buffer,
-                    volume_output, particle_count);
+                    volume_output, particle_count, explosion_params.trace_particles, thread_count);
                 return;
             }
 

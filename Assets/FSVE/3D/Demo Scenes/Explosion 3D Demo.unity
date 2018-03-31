@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1826467831}
-  m_IndirectSpecularColor: {r: 0.44657844, g: 0.49641222, b: 0.57481694, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -142,6 +142,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91ed61d6639659d458143f1b03d2e75b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  randomise_colour: 0
   texture: {fileID: 0}
   size: {x: 0, y: 0, z: 0, w: 0}
 --- !u!114 &797914336
@@ -163,6 +164,7 @@ MonoBehaviour:
     dynamic_time_step: 0
     simulation_speed: 1.5
     fixed_time_step: 0.1
+    simulation_bounds: 1
     velocity_dissipation: 0.995
     temperature_dissipation: 0.99
     ambient_temperature: 28
@@ -197,6 +199,7 @@ MonoBehaviour:
     particle_count: 6000
     particle_radius: 0.1
     particle_drag: 950
+    trace_particles: 0
     mass: 0.7
     soot_mass: 0.001
     thermal_mass: 1.6

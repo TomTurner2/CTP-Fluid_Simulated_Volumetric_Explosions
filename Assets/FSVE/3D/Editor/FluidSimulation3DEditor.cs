@@ -33,7 +33,7 @@ namespace FSVE
 
             GUILayoutOption[] options = new GUILayoutOption[] { GUILayout.MinWidth(image_size), GUILayout.MinHeight(image_size) };
             EditorGUILayout.LabelField(GUIContent.none, style, options);
-            EditorGUILayout.LabelField(new GUIContent("Developed by Tom Turner 14019796"));        
+            EditorGUILayout.LabelField(new GUIContent("Developed by Tom Turner      Student ID: 14019796"));        
         }
 
 
