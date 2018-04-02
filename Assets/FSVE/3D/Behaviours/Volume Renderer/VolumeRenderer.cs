@@ -1,18 +1,23 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
 
 
 namespace FSVE
 {
+    [System.Serializable]
+    public class ColourChangeEvent : UnityEvent<Color> { }// Allow user to get new colour through event
+
     [RequireComponent(typeof(MeshFilter))]
     [RequireComponent(typeof(MeshRenderer))]
     public class VolumeRenderer : MonoBehaviour
     {
         [SerializeField] public bool randomise_colour = false;
         [SerializeField] public RenderTexture texture = null;
+        [SerializeField] public ColourChangeEvent on_colour_change = new ColourChangeEvent();
         [HideInInspector] public Vector4 size;
 
         private Renderer volume_renderer;
-
+        
 
         void Start()
         {
@@ -38,8 +43,16 @@ namespace FSVE
 
         public void RandomiseColour()
         {
-            volume_renderer.material.SetColor("_Colour",
-                Random.ColorHSV(0f, 1f, 1f, 1f, 1f, 1f));
+            Color random_colour = Random.ColorHSV(0f, 1f, 1f, 1f, 1f, 1f);
+            volume_renderer.material.SetColor("_Colour", random_colour);
+            on_colour_change.Invoke(random_colour);
+        }
+
+
+        public void SetColour(Color _colour)
+        {
+            volume_renderer.material.SetColor("_Colour", _colour);
+            on_colour_change.Invoke(_colour);
         }
     }
 }

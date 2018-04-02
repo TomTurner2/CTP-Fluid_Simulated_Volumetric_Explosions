@@ -26,7 +26,7 @@ namespace FSVE
         public override void OnInspectorGUI()
         {
             GUIStart();
-
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("texture"), true);
             EditorGUILayout.PropertyField(serializedObject.FindProperty("randomise_colour"), true);
 
             if (renderer.randomise_colour && Application.isPlaying)// If randomise colour is enabled
@@ -34,8 +34,8 @@ namespace FSVE
                 if (GUILayout.Button("Randomise Colour"))// Add a color re-roll button
                     renderer.RandomiseColour();
             }
-
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("texture"), true);
+            
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("on_colour_change"), true);
             GUIEnd();
         }
 

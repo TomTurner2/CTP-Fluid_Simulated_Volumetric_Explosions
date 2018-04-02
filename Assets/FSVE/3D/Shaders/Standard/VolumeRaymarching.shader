@@ -7,7 +7,7 @@
 	}
 	SubShader 
 	{
-		Tags { "Queue"="Transparent" }
+		Tags { "Queue"="Transparent+1" }// Plus one so its always after transparent effects
 		pass
 		{
 			Cull off// Generate fragments for all cube faces
