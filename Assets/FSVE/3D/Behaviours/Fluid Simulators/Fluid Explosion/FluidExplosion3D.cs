@@ -16,7 +16,6 @@ namespace FSVE
             public Vector3 velocity;
             public float temperature;
             public float mass;
-            public float soot_accumulation;
         }
 
 
@@ -83,7 +82,7 @@ namespace FSVE
         private void CreateParticleBuffer()
         {
             particle_count = explosion_params.particle_count;
-            const int float_count = 9;// Can't use sizeof for custom types in Unity -_-
+            const int float_count = 8;// Can't use sizeof for custom types in Unity -_-
             fuel_particles_buffer = new ComputeBuffer((int)particle_count, sizeof(float) * float_count, ComputeBufferType.Append);
             InitParticles();
         }
