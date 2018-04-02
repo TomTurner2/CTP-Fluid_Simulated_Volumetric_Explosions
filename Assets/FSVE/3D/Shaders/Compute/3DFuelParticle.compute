@@ -94,7 +94,7 @@ float3 SampleBilinear(StructuredBuffer<float3> _grid, float3 _coord, float4 size
 void ApplyParticlesVelocities (uint3 id : SV_DispatchThreadID)
 {
 	float3 velocity = particles[id.x].velocity;	
-	particles[id.x].position += velocity * dt;
+	particles[id.x].position += velocity * dt;// Move acording to velocity
 }
 
 
@@ -154,6 +154,7 @@ void BurnParticle(uint3 id : SV_DispatchThreadID)
 
 	float3 grid_pos =  particles[id.x].position.xyz * size.xyz;// Particles position in volume
 	int index = GetIndex(grid_pos, size);
+
 	temperature_write[index] += dt * produced_heat * burn_rate;// Add temperature to fluid
 	divergence[index] += dt * divergence_amount * burn_rate;// Add Divergence
 	particles[id.x].mass -= dt * burn_rate;// Burn off mass from the particle

@@ -3,25 +3,28 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-namespace FSVE.Demo
+namespace FSVE
 {
-    public class Rotator : MonoBehaviour
+    namespace Demo
     {
-        public float rotation_speed = -50;
-        public Vector3 rotation_axis = Vector3.up;
-
-        private bool rotate = true;
-
-        void Update()
+        public class Rotator : MonoBehaviour
         {
-            if (rotate)
-                transform.Rotate(rotation_axis.normalized * Time.deltaTime * rotation_speed);
-        }
+            public float rotation_speed = -50;
+            public Vector3 rotation_axis = Vector3.up;
+
+            private bool rotate = true;
+
+            void Update()
+            {
+                if (rotate)
+                    transform.Rotate(rotation_axis.normalized * Time.deltaTime * rotation_speed);
+            }
 
 
-        public void ToggleActive()
-        {
-            rotate = !rotate;
+            public void ToggleActive()
+            {
+                rotate = !rotate;
+            }
         }
     }
 }
