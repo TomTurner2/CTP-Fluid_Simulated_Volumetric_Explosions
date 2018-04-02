@@ -631,7 +631,7 @@ Prefab:
         type: 2}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: 4b45f7b4aa6842844bc2ce0314d6b3de, type: 2}
+      objectReference: {fileID: 2100000, guid: 2d90aef9dc619f14995cc7e330630d25, type: 2}
     - target: {fileID: 114352365106820792, guid: 7e57d9d7d6380134a89f819cdd218f6b,
         type: 2}
       propertyPath: sim_params.width

@@ -2,18 +2,22 @@
 {
 	Properties 
 	{
-		_Colour("Volume Colour", Color) = (1,1,1,1)
+		_Colour("Volume Colour", Color) = (1,1,1,1)// underscore pascal to differentiate properties (standard in unity)
 		_Absorption("Absorption", float) = 60.0
 		[Space]
+
 		[Header(Gradient Options)]
 		_GradientColourOne("Gradient Colour One", Color) = (1,1,1,1)
 		_GradientColourTwo("Gradient Colour Two", Color) = (1,1,1,1)
 		_GradientOffset("Gradient Offset", Range(0, 1)) = 0
-		[Enum(Height, 0, Density, 1)] _GradientControl("Gradient Control", int) = 1
+		[Enum(Height, 0, Density, 1)] _GradientControl("Gradient Control", int) = 1// Enum for selecting gradient control
 		_GradientEffect("Gradient Control Effect", Range(0, 1)) = 1
 		[Space]
+
 		[Header(Render Options)]
-		[Enum(UnityEngine.Rendering.CullMode)] _Culling ("Cull Mode", int) = 0
+		[Enum(UnityEngine.Rendering.CullMode)] _Culling ("Cull Mode", int) = 0// For swapping cull modes
+		[Enum(UnityEngine.Rendering.CompareFunction)] _ZTest("Z Test Mode", int) = 4
+		[Enum(Off, 0, On, 1)] _ZWrite("Z Write", int) = 1 // Writing to z buffer toggle
 		[Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend("Source Blend", int) = 1
         [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend("Destination Blend", int) = 5// Should be OneMinusSrcAlpha but its not defaulting
 	}
@@ -24,6 +28,9 @@
 		{
 			Cull [_Culling]// Generate fragments for all cube faces
 			Blend [_SrcBlend] [_DstBlend]
+			ZTest[_ZTest]
+			ZWrite[_ZWrite]
+
 
 			CGPROGRAM
 			#include "UnityCG.cginc"
@@ -40,7 +47,7 @@
 			int _GradientControl;
 			float _Absorption;
 
-			uniform float3 _translation;
+			uniform float3 _translation;// Underscore lower case for parameters set externally
 			uniform float3  _scale;
 			uniform float3 _size;
 			sampler3D _density;
