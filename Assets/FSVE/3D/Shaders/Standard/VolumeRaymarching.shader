@@ -6,11 +6,11 @@
 		_Absorption("Absorption", float) = 60.0
 		[Space]
 		[Header(Gradient Options)]
-		[Enum(Height, 0, Density, 1)] _GradientControl("Gradient Control", int) = 1
 		_GradientColourOne("Gradient Colour One", Color) = (1,1,1,1)
 		_GradientColourTwo("Gradient Colour Two", Color) = (1,1,1,1)
 		_GradientOffset("Gradient Offset", Range(0, 1)) = 0
-		_GradientEffect("Gradient Effect", Range(0, 1)) = 1
+		[Enum(Height, 0, Density, 1)] _GradientControl("Gradient Control", int) = 1
+		_GradientEffect("Gradient Control Effect", Range(0, 1)) = 1
 		[Space]
 		[Header(Render Options)]
 		[Enum(UnityEngine.Rendering.CullMode)] _Culling ("Cull Mode", int) = 0
@@ -139,7 +139,7 @@
 
 				float gradient_control = lerp(ray_start.y,
 				alpha, float(_GradientControl));// Use either ray height of density/alpha
-				gradient_control *= _GradientEffect;// How much the gradient will be applied
+				gradient_control *= _GradientEffect;// How much of the gradient will be applied according to control
 
 				float4 gradient_value = lerp(_GradientColourOne, _GradientColourTwo,
 				saturate(_GradientOffset + gradient_control));// Get gradient colour according to control type
