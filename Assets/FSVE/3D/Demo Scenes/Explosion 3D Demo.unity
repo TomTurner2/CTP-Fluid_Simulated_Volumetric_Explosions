@@ -218,6 +218,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   randomise_colour: 0
   texture: {fileID: 0}
+  on_colour_change:
+    m_PersistentCalls:
+      m_Calls: []
+    m_TypeName: FSVE.ColourChangeEvent, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
   size: {x: 0, y: 0, z: 0, w: 0}
 --- !u!114 &797914336
 MonoBehaviour:
@@ -842,12 +847,16 @@ Material:
     m_Floats:
     - _Absorption: 30
     - _BumpScale: 1
+    - _Culling: 0
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
-    - _DstBlend: 0
+    - _DstBlend: 1
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
+    - _GradientControl: 1
+    - _GradientEffect: 1
+    - _GradientOffset: 0
     - _LighIntensity: 10
     - _Metallic: 0
     - _Mode: 0
@@ -855,13 +864,15 @@ Material:
     - _Parallax: 0.02
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
-    - _SrcBlend: 1
+    - _SrcBlend: 4
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _Colour: {r: 0, g: 1, b: 0.95862055, a: 1}
+    - _Colour: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _GradientColourOne: {r: 1, g: 0.5586207, b: 0, a: 1}
+    - _GradientColourTwo: {r: 0, g: 1, b: 0.95862055, a: 1}
 --- !u!1 &2039646230
 GameObject:
   m_ObjectHideFlags: 0
