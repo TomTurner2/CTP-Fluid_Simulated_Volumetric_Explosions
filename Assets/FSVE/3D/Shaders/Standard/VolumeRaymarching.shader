@@ -91,7 +91,7 @@
 				float near = 0;
 				float far = 0;
 				RayBoxIntersection(ray, collision_box, near, far);
-				near = max(near, 0.0f);// If in the grid start at
+				near = max(near, 0.0f);// If in the grid start at camera position
 
 				// Calculate intersection positions
 				float3 ray_start = ray.pos + ray.dir * near;
