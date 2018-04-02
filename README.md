@@ -22,12 +22,15 @@ A Unity integrated system capable of producing real-time ~~explosions~~ volumetr
 - Generic volume ray-marcher for rendering any 3D texture
 - Fluid volume instancing
 - Volume colour randomisation
+- Volume colour gradients, controlled by either height or density
+- Advanced render setting in Volume renderer inspector, such as blend mode and Z testing
 - Volume conversion (particles to 3D texture)
 - 2D texture based fluid simulation (legacy no longer developed)
 
 ![instancing](https://user-images.githubusercontent.com/18384589/38148282-b2f765de-344d-11e8-8a66-0a49dc37717b.png)
 ![smoke collision](https://user-images.githubusercontent.com/18384589/38148295-bf9f4bb2-344d-11e8-9e27-500d27bf76b2.png)
-
+![density gradient](https://user-images.githubusercontent.com/18384589/38209212-803e6f4c-36ab-11e8-9ff0-86734cbf0ac6.png)
+![gradient height](https://user-images.githubusercontent.com/18384589/38209218-90966a3e-36ab-11e8-8cdd-d08c9088f302.png)
 
 
 
