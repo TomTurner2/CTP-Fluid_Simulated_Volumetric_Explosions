@@ -292,6 +292,10 @@ MonoBehaviour:
     heat_emission: 204
   fuel_particle_module:
     compute_shader: {fileID: 7200000, guid: 922c043289c4c6c48bfe0d1a1446a183, type: 3}
+  output_resolution:
+    x: 128
+    y: 128
+    z: 128
 --- !u!23 &797914337
 MeshRenderer:
   m_ObjectHideFlags: 0

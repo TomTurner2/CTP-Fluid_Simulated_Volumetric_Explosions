@@ -8,7 +8,10 @@ namespace FSVE
     { 
         [SerializeField] FluidExplosion3DParams explosion_params = new FluidExplosion3DParams();
         [SerializeField] FuelParticleSimulationModule fuel_particle_module = new FuelParticleSimulationModule();
+        [SerializeField] intVector3 output_resolution = new intVector3(128, 128, 128);
 
+        private RenderTexture custom_volume_output = null;// This simulation can output a volume with a custom resolution
+        private const int MAX_RESOLUTION = 512;
 
         struct FuelParticle
         {
@@ -43,6 +46,30 @@ namespace FSVE
             base.InitSim();
             CreateParticleBuffer();
             NoiseVelocityGrids();
+            ValidateCustomResolution();
+            CreateCustomResolutionOutputTexture();
+        }
+
+
+        private void ValidateCustomResolution()
+        {
+            output_resolution.x = Mathf.ClosestPowerOfTwo(Mathf.Min(output_resolution.x, MAX_RESOLUTION));
+            output_resolution.y = Mathf.ClosestPowerOfTwo(Mathf.Min(output_resolution.y, MAX_RESOLUTION));
+            output_resolution.z = Mathf.ClosestPowerOfTwo(Mathf.Min(output_resolution.z, MAX_RESOLUTION));      
+        }
+
+
+        private void CreateCustomResolutionOutputTexture()
+        {
+            custom_volume_output = new RenderTexture(output_resolution.x, output_resolution.y, output_resolution.z)
+            {
+                dimension = UnityEngine.Rendering.TextureDimension.Tex3D,// Is a 3d texture
+                volumeDepth = output_resolution.z,
+                wrapMode = TextureWrapMode.Clamp,
+                enableRandomWrite = true// Must be set before creation
+            };
+
+            custom_volume_output.Create();
         }
 
 
@@ -177,16 +204,27 @@ namespace FSVE
         }
 
 
-        protected override void ConvertGridToVolume(GridType _grid_type)
+        protected override RenderTexture ConvertGridToVolume(GridType _grid_type)
         {
-            if (_grid_type == GridType.DENSITY)
-            {
-                output_module.FuelParticleToVolume(size, fuel_particles_buffer,
-                    volume_output, particle_count, explosion_params.trace_particles, thread_count);
-                return;
-            }
+            if (_grid_type != GridType.DENSITY)
+                return base.ConvertGridToVolume(_grid_type); // Let base handle other output conversions
 
-            base.ConvertGridToVolume(_grid_type);// Let base handle other output conversions
+            intVector3 custom_thread_count = CustomOutputThreadCount();
+            output_module.FuelParticleToVolume(output_resolution, fuel_particles_buffer,
+                custom_volume_output, particle_count, explosion_params.trace_particles, custom_thread_count);
+
+            return custom_volume_output;
+        }
+
+
+        private intVector3 CustomOutputThreadCount()
+        {
+            intVector3 custom_thread_count = intVector3.Zero;
+            custom_thread_count.x = (int)(output_resolution.x / THREAD_GROUP_COUNT);// Compute shaders use thread groups 
+            custom_thread_count.y = (int)(output_resolution.y / THREAD_GROUP_COUNT);// Divide by the amount of groups to get required thread count for grid size
+            custom_thread_count.z = (int)(output_resolution.z / THREAD_GROUP_COUNT);
+
+            return custom_thread_count;
         }
 
 

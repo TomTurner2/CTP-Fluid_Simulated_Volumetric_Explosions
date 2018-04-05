@@ -15,7 +15,7 @@ namespace FSVE
             int kernel_id = compute_shader.FindKernel("Jacobi");
             compute_shader.SetBuffer(kernel_id, "divergence", _divergence_grid);
             compute_shader.SetBuffer(kernel_id, "obstacles", _obstacle_grid);
-
+            
             for (int i = 0; i < _jacobi_iterations; ++i)// Pressure gradient is calculated iteratively, most expensive part
             {
                 compute_shader.SetBuffer(kernel_id, "write_R", _pressure_grids[WRITE]);

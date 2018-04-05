@@ -15,7 +15,7 @@ namespace FSVE
         [SerializeField] protected ImpulseModule3D impulse_module = new ImpulseModule3D();
         [SerializeField] protected ProjectionModule3D projection_module = new ProjectionModule3D();
         [SerializeField] protected ObstacleModule3D obstacle_module = new ObstacleModule3D();
-        [SerializeField] protected BuoyancyModule3D buoyancy_module = new BuoyancyModule3D();
+        [SerializeField] protected BuoyancyModule3D buoyancy_module = new BuoyancyModule3D();// Not technicaly a fluid requirement but most sims will have buoyancy
 
         protected enum GridType
         {
@@ -29,7 +29,6 @@ namespace FSVE
         [SerializeField] protected OutputModule3D output_module = new OutputModule3D();
         [SerializeField] protected List<VolumeRenderer> output_renderers = new List<VolumeRenderer>();
         [SerializeField] GridType grid_to_output = GridType.DENSITY;
-
         [SerializeField] private List<SphereCollider> sphere_colliders = new List<SphereCollider>();
 
         protected RenderTexture volume_output;
@@ -242,7 +241,7 @@ namespace FSVE
             if (output_renderers.Count <= 0)
                 return;
 
-            ConvertGridToVolume(grid_to_output);
+            RenderTexture output = ConvertGridToVolume(grid_to_output);// This could be overriden to return a different render tex
             transform.localScale = new Vector3(transform.localScale.x,
                 transform.localScale.x, transform.localScale.x);// Scale must be uniform
 
@@ -252,12 +251,12 @@ namespace FSVE
                     continue;
 
                 output_renderer.size = size;
-                output_renderer.texture = volume_output;
+                output_renderer.texture = output;
             }
         }
 
 
-        protected virtual void ConvertGridToVolume(GridType _grid_type)
+        protected virtual RenderTexture ConvertGridToVolume(GridType _grid_type)
         {
             switch (_grid_type)
             {
@@ -276,6 +275,8 @@ namespace FSVE
                 default:
                     break;
             }
+
+            return volume_output;
         }
 
 

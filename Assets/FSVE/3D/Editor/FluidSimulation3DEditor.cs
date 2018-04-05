@@ -87,7 +87,13 @@ namespace FSVE
         protected void DrawOutputGroup()
         {
             StartGroup("Simulation Output");
+            DrawOutputParameters();
+            EndGroup();
+        }
 
+
+        protected virtual void DrawOutputParameters()
+        {
             ++EditorGUI.indentLevel;
             EditorGUILayout.PropertyField(serializedObject.FindProperty("output_module"), true);//has arrow so it is indented
             --EditorGUI.indentLevel;
@@ -96,8 +102,6 @@ namespace FSVE
             ++EditorGUI.indentLevel;
             EditorGUILayout.PropertyField(serializedObject.FindProperty("output_renderers"), true);
             --EditorGUI.indentLevel;
-
-            EndGroup();
         }
 
 

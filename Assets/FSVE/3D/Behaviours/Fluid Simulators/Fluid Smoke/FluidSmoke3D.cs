@@ -118,16 +118,16 @@ namespace FSVE
         }
 
 
-        protected override void ConvertGridToVolume(GridType _grid_type)
+        protected override RenderTexture ConvertGridToVolume(GridType _grid_type)
         {
             if (_grid_type == GridType.DENSITY)
             {
                 output_module.ConvertToVolume(size, density_grids[READ],
                     volume_output, thread_count);// Output density grid
-                return;
+                return volume_output;
             }
 
-            base.ConvertGridToVolume(_grid_type);// Let base handle other conversions
+            return base.ConvertGridToVolume(_grid_type);// Let base handle other conversions
         }
      
 

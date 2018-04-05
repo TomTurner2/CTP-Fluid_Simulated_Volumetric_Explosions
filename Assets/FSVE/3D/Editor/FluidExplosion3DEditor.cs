@@ -34,6 +34,17 @@ namespace FSVE
         }
 
 
+        protected override void DrawOutputParameters()
+        {
+            EditorGUI.BeginDisabledGroup(Application.isPlaying);
+            ++EditorGUI.indentLevel;
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("output_resolution"), true);// Explosion can have different output resolution
+            --EditorGUI.indentLevel;
+            EditorGUI.EndDisabledGroup();
+            base.DrawOutputParameters();
+        }
+
+
         protected override void DrawSimParametersGroup()
         {
             base.DrawSimParametersGroup();
