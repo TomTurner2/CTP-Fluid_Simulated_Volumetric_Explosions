@@ -9,35 +9,34 @@ Prefab:
     m_Modifications: []
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 0}
-  m_RootGameObject: {fileID: 1685945612729662}
+  m_RootGameObject: {fileID: 1028088848389530}
   m_IsPrefabParent: 1
---- !u!1 &1685945612729662
+--- !u!1 &1028088848389530
 GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   serializedVersion: 5
   m_Component:
-  - component: {fileID: 4388749271011420}
-  - component: {fileID: 33524791906669936}
-  - component: {fileID: 23749173043670118}
-  - component: {fileID: 114416881374992964}
-  - component: {fileID: 114831780424820554}
-  - component: {fileID: 114024315069519558}
-  - component: {fileID: 114024125270049750}
+  - component: {fileID: 4306839726208388}
+  - component: {fileID: 33569998349915064}
+  - component: {fileID: 23593841285446932}
+  - component: {fileID: 114064028755712642}
+  - component: {fileID: 114017416274626438}
+  - component: {fileID: 114497444900135176}
   m_Layer: 0
-  m_Name: 3D Fluid Simulation
+  m_Name: 3D Explosion Simulation
   m_TagString: Untagged
-  m_Icon: {fileID: 0}
+  m_Icon: {fileID: 2800000, guid: eb3ed6bb1848d274c822ffe44bd69de2, type: 3}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
   m_IsActive: 1
---- !u!4 &4388749271011420
+--- !u!4 &4306839726208388
 Transform:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1685945612729662}
+  m_GameObject: {fileID: 1028088848389530}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 5, y: 5, z: 5}
@@ -45,12 +44,12 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!23 &23749173043670118
+--- !u!23 &23593841285446932
 MeshRenderer:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1685945612729662}
+  m_GameObject: {fileID: 1028088848389530}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -58,7 +57,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: 011194192392f9146b2624590ac4266c, type: 2}
+  - {fileID: 2100000, guid: c94857656ae9f94418e5adc3d4d280da, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -77,94 +76,19 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!33 &33524791906669936
+--- !u!33 &33569998349915064
 MeshFilter:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1685945612729662}
+  m_GameObject: {fileID: 1028088848389530}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &114024125270049750
+--- !u!114 &114017416274626438
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1685945612729662}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 69d6d86d3d4a4e941a41e2b1e6534201, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &114024315069519558
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1685945612729662}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 324efd766768e674e959741e6e8f06c0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &114416881374992964
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1685945612729662}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 102a7997b77cbf54995bb3dc8b808d4f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  sim_params:
-    width: 128
-    height: 128
-    depth: 128
-    jacobi_iterations: 10
-    dynamic_time_step: 0
-    simulation_speed: 1.5
-    fixed_time_step: 0.1
-    simulation_bounds: 1
-    velocity_dissipation: 0.995
-    temperature_dissipation: 0.99
-    ambient_temperature: 0
-  advection_module:
-    compute_shader: {fileID: 7200000, guid: 4dfaafd747a97944490991560db1ec05, type: 3}
-  divergence_module:
-    compute_shader: {fileID: 7200000, guid: 4874083116abdda4c8db77f722c49e8e, type: 3}
-  jacobi_module:
-    compute_shader: {fileID: 7200000, guid: 5bd717b1d2ba97347b7d9ff9797647b2, type: 3}
-  impulse_module:
-    compute_shader: {fileID: 7200000, guid: 44cc972b3dfcb0d43a25a947d5d6ce56, type: 3}
-  projection_module:
-    compute_shader: {fileID: 7200000, guid: 15b47727fdb78ad41952b985caa35e11, type: 3}
-  obstacle_module:
-    compute_shader: {fileID: 7200000, guid: dd21b5533fab170418e1046c76bb8323, type: 3}
-  buoyancy_module:
-    compute_shader: {fileID: 7200000, guid: d2c023e1ba7907546bf270d5326734a7, type: 3}
-  output_module:
-    compute_shader: {fileID: 7200000, guid: c99754ab361730a4aa9f7578ec315296, type: 3}
-  output_renderers:
-  - {fileID: 114831780424820554}
-  grid_to_output: 0
-  sphere_colliders: []
-  draw_bounds: 1
-  velocity_debug: 0
-  velocity_debug_resolution: 10
-  velocity_debug_colour_threshold: 0.5
-  velocity_debug_normalise: 0
-  smoke_params:
-    smoke_buoyancy: 9
-    smoke_weight: 0.02
-    density_dissipation: 0.999
-  smoke_emitters: []
---- !u!114 &114831780424820554
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1685945612729662}
+  m_GameObject: {fileID: 1028088848389530}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 91ed61d6639659d458143f1b03d2e75b, type: 3}
@@ -178,3 +102,86 @@ MonoBehaviour:
     m_TypeName: FSVE.ColourChangeEvent, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
       PublicKeyToken=null
   size: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &114064028755712642
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1028088848389530}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c496d9482873ae43991cd00ff6aa76e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sim_params:
+    width: 128
+    height: 128
+    depth: 128
+    jacobi_iterations: 10
+    dynamic_time_step: 0
+    simulation_speed: 1.5
+    fixed_time_step: 0.1
+    simulation_bounds: 1
+    velocity_dissipation: 0.995
+    temperature_dissipation: 0.99
+    ambient_temperature: 28
+  advection_module:
+    compute_shader: {fileID: 7200000, guid: 4dfaafd747a97944490991560db1ec05, type: 3}
+  divergence_module:
+    compute_shader: {fileID: 7200000, guid: 4874083116abdda4c8db77f722c49e8e, type: 3}
+  jacobi_module:
+    compute_shader: {fileID: 7200000, guid: 5bd717b1d2ba97347b7d9ff9797647b2, type: 3}
+  impulse_module:
+    compute_shader: {fileID: 0}
+  projection_module:
+    compute_shader: {fileID: 7200000, guid: 15b47727fdb78ad41952b985caa35e11, type: 3}
+  obstacle_module:
+    compute_shader: {fileID: 7200000, guid: dd21b5533fab170418e1046c76bb8323, type: 3}
+  buoyancy_module:
+    compute_shader: {fileID: 7200000, guid: d2c023e1ba7907546bf270d5326734a7, type: 3}
+  output_module:
+    compute_shader: {fileID: 7200000, guid: c99754ab361730a4aa9f7578ec315296, type: 3}
+  output_renderers:
+  - {fileID: 114017416274626438}
+  grid_to_output: 0
+  sphere_colliders: []
+  draw_bounds: 1
+  velocity_debug: 0
+  velocity_debug_resolution: 10
+  velocity_debug_colour_threshold: 0.5
+  velocity_debug_normalise: 0
+  explosion_params:
+    fuse_transform: {fileID: 0}
+    fuse_radius: 0.1
+    particle_count: 600000
+    particle_radius: 0.1
+    particle_drag: 396.7
+    trace_particles: 0
+    mass: 0.7
+    soot_mass: 0.001
+    thermal_mass: 1.78
+    divergence_effect: 2.6
+    fluid_drag_effect: 0.12
+    fluid_weight: 185.41
+    fluid_buoyancy: 1.37
+    starting_noise: 0.08
+    burn_threshold: 7.6
+    burn_rate: 80
+    heat_emission: 204
+  fuel_particle_module:
+    compute_shader: {fileID: 7200000, guid: 922c043289c4c6c48bfe0d1a1446a183, type: 3}
+  output_resolution:
+    x: 128
+    y: 128
+    z: 128
+--- !u!114 &114497444900135176
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1028088848389530}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69d6d86d3d4a4e941a41e2b1e6534201, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

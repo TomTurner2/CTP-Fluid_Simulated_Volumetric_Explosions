@@ -1,4 +1,7 @@
-﻿float source_amount;
+﻿#include "FSVEUtility.cginc"
+
+
+float source_amount;
 float radius;
 float dt;
 float4 source_pos;
@@ -6,12 +9,6 @@ float4 size;
 
 RWStructuredBuffer<float> write_R;
 StructuredBuffer<float> read_R;
-
-
-int GetIndex(int3 _id, float4 _size)
-{
-	return _id.x + _id.y * _size.x + _id.z * _size.x * _size.y;
-}
 
 
 #pragma kernel Impulse

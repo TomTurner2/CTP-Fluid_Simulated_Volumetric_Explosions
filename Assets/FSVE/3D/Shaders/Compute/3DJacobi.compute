@@ -1,14 +1,11 @@
-﻿RWStructuredBuffer<float> write_R;
+﻿#include "FSVEUtility.cginc"
+
+
+RWStructuredBuffer<float> write_R;
 StructuredBuffer<float> pressure;
 StructuredBuffer<float> obstacles;
 StructuredBuffer<float> divergence;
 float4 size;
-
-
-int GetIndex(int3 _id, float4 _size)
-{
-	return _id.x + _id.y * _size.x + _id.z * _size.x * _size.y;
-}
 
 
 float DetermineCellPressure(float _obstacle, float _neighbour_pressure, float _cell_pressure)

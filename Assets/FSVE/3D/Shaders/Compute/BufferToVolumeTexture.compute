@@ -1,4 +1,7 @@
-﻿float4 size;
+﻿#include "FSVEUtility.cginc"
+
+
+float4 size;
 StructuredBuffer<float> read_R;
 RWTexture3D<float4> write_R;
 
@@ -11,12 +14,6 @@ struct FuelParticle// CPU struct maps to this one
 };
 
 RWStructuredBuffer<FuelParticle> particles;
-
-
-int GetIndex(int3 _id, float4 _size)
-{
-	return _id.x + _id.y * _size.x + _id.z * _size.x * _size.y;
-}
 
 
 #pragma kernel ConvertToVolume

@@ -1,4 +1,7 @@
-﻿RWStructuredBuffer<float3> write_RGB;
+﻿#include "FSVEUtility.cginc"
+
+
+RWStructuredBuffer<float3> write_RGB;
 StructuredBuffer<float3> velocity;
 StructuredBuffer<float> density;
 StructuredBuffer<float> temperature;
@@ -9,12 +12,6 @@ float4 size;
 float ambient_temperature;
 float buoyancy;
 float weight;
-
-
-int GetIndex(int3 _id, float4 _size)
-{
-	return _id.x + _id.y * _size.x + _id.z * _size.x * _size.y;
-}
 
 
 #pragma kernel ApplyBuoyancy
