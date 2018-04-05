@@ -44,7 +44,7 @@ ModelImporter:
     4300012: Girder
     9500000: //RootNode
   materials:
-    importMaterials: 1
+    importMaterials: 0
     materialName: 0
     materialSearch: 1
   animations:
