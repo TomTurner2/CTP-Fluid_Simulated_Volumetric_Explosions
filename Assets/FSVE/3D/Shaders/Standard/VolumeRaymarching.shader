@@ -9,7 +9,7 @@
 		[Header(Gradient Options)]
 		_GradientColourOne("Gradient Colour One", Color) = (1,1,1,1)
 		_GradientColourTwo("Gradient Colour Two", Color) = (1,1,1,1)
-		_GradientOffset("Gradient Offset", Range(0, 1)) = 0
+		_GradientOffset("Gradient Offset", Range(0, 1)) = 0.5
 		[Enum(Height, 0, Density, 1)] _GradientControl("Gradient Control", int) = 1// Enum for selecting gradient control
 		_GradientEffect("Gradient Control Effect", Range(0, 1)) = 1
 		[Space]

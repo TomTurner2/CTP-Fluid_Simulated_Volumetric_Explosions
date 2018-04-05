@@ -14,7 +14,7 @@ namespace FSVE
 
             private bool rotate = true;
 
-            void Update()
+            void LateUpdate()
             {
                 if (rotate)
                     transform.Rotate(rotation_axis.normalized * Time.deltaTime * rotation_speed);

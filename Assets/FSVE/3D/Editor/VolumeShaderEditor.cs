@@ -7,7 +7,7 @@ public class VolumeShaderEditor : MaterialEditor
     {
         base.OnInspectorGUI();
 
-        if (!isVisible)// Only show cheat sheet 
+        if (!isVisible)// Only show cheat sheet if visible
             return;
         
         EditorGUILayout.HelpBox("Standard Blend Combinations:\n" +
@@ -15,8 +15,7 @@ public class VolumeShaderEditor : MaterialEditor
             "Soft Additive:\tOneMinusDstColor One\n" +
             "Multiply:\t\tDstColor Zero\n" +
             "2x Multiply:\tDstColor SrcColor\n" +
-            "Screen:\t\tOneMinusDstColor One\n" +
-            "Screen (alt):\tOne OneMinusSrcColor\n" +
+            "Screen:\t\tOne OneMinusSrcColor\n" +
             "Linear Dodge:\tOne One\n", MessageType.Info);
     }
 }
