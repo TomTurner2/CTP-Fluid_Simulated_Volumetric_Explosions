@@ -22,7 +22,6 @@ namespace FSVE
         }
 
 
-
         void Update()
         {
             if (renderers_in_scene.Count <= 0 || target_simulation == null)
@@ -44,5 +43,19 @@ namespace FSVE
             closest_transform = new_closest_transform;
 
         }
+
+
+
+        private void OnDestroy()
+        {
+            if (target_simulation == null)
+                return;
+
+            target_simulation.SimulationTransform = target_simulation.transform;
+
+            if (collision_interactor != null)
+                collision_interactor.UpdateCollisionVolumeLocation();
+        }
+
     }
 }
