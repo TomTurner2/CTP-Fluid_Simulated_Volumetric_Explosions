@@ -1,26 +1,9 @@
 // This file contains functions used through out the fluid simulation
 
 
-int Wrap(uint _value, uint _lower, uint _upper)
-{
-    return (_lower + (_value - _lower) % (_upper - _lower));
-}
-
-
-int3 Wrap(uint3 _value, uint3 _lower, uint3 _upper)
-{
-	int3 value;
-	value.x = Wrap(_value.x, _lower.x, _upper.x);
-	value.y = Wrap(_value.y, _lower.y, _upper.y);
-	value.z = Wrap(_value.z, _lower.z, _upper.z);
-	return value;
-}
-
-
 int GetIndex(int3 _id, float4 _size)
-{
-	uint3 id = Wrap(_id, uint3(0, 0, 0), uint3(_size.x, _size.y, _size.z));
-	return id.x + id.y * _size.x + id.z * _size.x * _size.y;
+{	
+	return _id.x + _id.y * _size.x + _id.z * _size.x * _size.y;
 }
 
 
