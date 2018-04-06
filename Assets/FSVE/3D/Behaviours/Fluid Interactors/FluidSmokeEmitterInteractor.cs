@@ -67,28 +67,28 @@ namespace FSVE
         // I don't want to make a collider a requirement for emitters, so I'm checking manually.
         private bool AABBCollisionCheck(Vector3 _emitter_position)
         {
-            if (!(_emitter_position.x > fluid_simulation.transform.position.x -
-                  fluid_simulation.transform.localScale.x * 0.5f))
+            if (!(_emitter_position.x > fluid_simulation.SimulationTransform.position.x -
+                  fluid_simulation.SimulationTransform.localScale.x * 0.5f))
                 return false;// Early return more efficent
 
-            if (!(_emitter_position.x < fluid_simulation.transform.position.x +
-                  fluid_simulation.transform.localScale.x * 0.5f))
+            if (!(_emitter_position.x < fluid_simulation.SimulationTransform.position.x +
+                  fluid_simulation.SimulationTransform.localScale.x * 0.5f))
                 return false;
 
-            if (!(_emitter_position.y > fluid_simulation.transform.position.y -
-                  fluid_simulation.transform.localScale.y * 0.5f))
+            if (!(_emitter_position.y > fluid_simulation.SimulationTransform.position.y -
+                  fluid_simulation.SimulationTransform.localScale.y * 0.5f))
                 return false;
 
-            if (!(_emitter_position.y < fluid_simulation.transform.position.y +
-                  fluid_simulation.transform.localScale.y * 0.5f))
+            if (!(_emitter_position.y < fluid_simulation.SimulationTransform.position.y +
+                  fluid_simulation.SimulationTransform.localScale.y * 0.5f))
                 return false;
 
-            if (!(_emitter_position.z > fluid_simulation.transform.position.z -
-                  fluid_simulation.transform.localScale.z * 0.5f))
+            if (!(_emitter_position.z > fluid_simulation.SimulationTransform.position.z -
+                  fluid_simulation.SimulationTransform.localScale.z * 0.5f))
                 return false;
 
-            if (_emitter_position.z < fluid_simulation.transform.position.z +
-                fluid_simulation.transform.localScale.z * 0.5f)
+            if (_emitter_position.z < fluid_simulation.SimulationTransform.position.z +
+                fluid_simulation.SimulationTransform.localScale.z * 0.5f)
                 return true;
 
             return false;

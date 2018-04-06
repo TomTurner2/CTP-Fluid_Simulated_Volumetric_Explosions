@@ -1,11 +1,15 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 
 namespace FSVE
 {
     abstract public class FluidSimulation3D : MonoBehaviour
     {
+        private Transform simulation_transform = null;
+        private UnityEvent sim_transform_change_event = new UnityEvent();
+
         [SerializeField] protected FluidSim3DParams sim_params = new FluidSim3DParams();
 
         // Base modules all simulations will use (base requirements for a fluid sim)
@@ -56,12 +60,37 @@ namespace FSVE
 
         protected virtual void InitSim()
         {
+            SetSimulationTransform();
             CalculateSize();
             CalculateThreadCount();
             CreateGridSets();
             if (sim_params.simulation_bounds)
                 SetBoundary();
             CreateOutputTexture();
+        }
+
+
+        public Transform SimulationTransform
+        {
+            set
+            {
+                simulation_transform = value;
+                if (sim_transform_change_event != null)
+                    sim_transform_change_event.Invoke();// Notify listeners
+            }
+            get { return simulation_transform; }
+        }
+
+
+        public UnityEvent SimTransformChange
+        {
+            get { return sim_transform_change_event; }
+        }
+
+
+        public void SetSimulationTransform()
+        {
+            simulation_transform = transform;
         }
 
 
@@ -242,8 +271,8 @@ namespace FSVE
                 return;
 
             RenderTexture output = ConvertGridToVolume(grid_to_output);// This could be overriden to return a different render tex
-            transform.localScale = new Vector3(transform.localScale.x,
-                transform.localScale.x, transform.localScale.x);// Scale must be uniform
+            simulation_transform.localScale = new Vector3(simulation_transform.localScale.x,
+                simulation_transform.localScale.x, simulation_transform.localScale.x);// Scale must be uniform
 
             foreach (VolumeRenderer output_renderer in output_renderers)
             {
@@ -289,17 +318,17 @@ namespace FSVE
 
         public Vector3 ConvertPositionToGridSpace(Vector3 _pos)
         {
-            return ConvertToGridScale(_pos - transform.localPosition);// Get relative position then factor in scale
+            return ConvertToGridScale(_pos - simulation_transform.localPosition);// Get relative position then factor in scale
         }
 
 
         private Vector3 ConvertToGridScale(Vector3 _pos)
         {
-            Vector3 scale_convert = (_pos + transform.localScale * 0.5f);
+            Vector3 scale_convert = (_pos + simulation_transform.localScale * 0.5f);
 
-            return new Vector3(scale_convert.x / transform.localScale.x,
-                scale_convert.y / transform.localScale.y, scale_convert.z /
-                transform.localScale.z);// TODO should I do grid scaling here? or keep it in compute?
+            return new Vector3(scale_convert.x / simulation_transform.localScale.x,
+                scale_convert.y / simulation_transform.localScale.y, scale_convert.z /
+                simulation_transform.localScale.z);// TODO should I do grid scaling here? or keep it in compute?
         }
 
 
@@ -362,7 +391,14 @@ namespace FSVE
             if (draw_bounds)
             {
                 Gizmos.color = Color.cyan;
-                Gizmos.DrawWireCube(transform.position, transform.localScale);
+                if (simulation_transform != null)
+                {
+                    Gizmos.DrawWireCube(simulation_transform.position, simulation_transform.localScale);
+                }
+                else
+                {
+                    Gizmos.DrawWireCube(transform.position, transform.localScale);
+                }
             }
 
             if (velocity_debug && velocity_grids[READ] != null)
