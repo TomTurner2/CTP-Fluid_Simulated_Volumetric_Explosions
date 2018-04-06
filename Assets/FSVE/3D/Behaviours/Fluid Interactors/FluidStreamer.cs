@@ -10,7 +10,17 @@ namespace FSVE
     {
         [SerializeField] FluidSimulation3D target_simulation = null;
         [SerializeField] List<VolumeRenderer> renderers_in_scene = new List<VolumeRenderer>();
+
         private Transform closest_transform = null;
+        private FluidCollisionInteractor collision_interactor = null;
+
+
+        void Start()
+        {
+            if (target_simulation != null)
+                collision_interactor = target_simulation.GetComponent<FluidCollisionInteractor>();
+        }
+
 
 
         void Update()
@@ -21,13 +31,17 @@ namespace FSVE
             renderers_in_scene = renderers_in_scene.OrderBy(renderer => Vector3.Distance(transform.position,
                 renderer.transform.position)).ToList();
 
-            if (closest_transform != renderers_in_scene[0].transform)
+            Transform new_closest_transform = renderers_in_scene[0].transform;
+
+            if (closest_transform != new_closest_transform)
             {
                 target_simulation.SimulationTransform = renderers_in_scene[0].transform;
-                target_simulation.SphereColliders.Clear();
+                
+                if (collision_interactor != null)
+                    collision_interactor.UpdateCollisionVolumeLocation();
             }
 
-            closest_transform = renderers_in_scene[0].transform;
+            closest_transform = new_closest_transform;
 
         }
     }
