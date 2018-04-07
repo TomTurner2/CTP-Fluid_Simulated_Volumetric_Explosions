@@ -5,6 +5,7 @@ using UnityEngine.Events;
 
 namespace FSVE
 {
+    [DisallowMultipleComponent]
     abstract public class FluidSimulation3D : MonoBehaviour
     {
         private Transform simulation_transform = null;

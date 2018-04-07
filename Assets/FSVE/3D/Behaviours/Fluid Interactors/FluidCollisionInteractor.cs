@@ -98,37 +98,34 @@ namespace FSVE
 
         public void OnTriggerEnter(Collider _collision)
         {
-            if (fluid_simulation == null)
-                return;
-
-            SphereCollider sphere_collider = _collision.gameObject.GetComponent<SphereCollider>();
-
-            if (sphere_collider != null)
-                fluid_simulation.SphereColliders.Add(sphere_collider);// If hit by a phere collider, add it to the simulation
+            AddToSimulation(_collision);
         }
 
 
         public void OnTriggerStay(Collider _collision)
         {
-            if (fluid_simulation == null)
-                return;
-
-            SphereCollider sphere_collider = _collision.gameObject.GetComponent<SphereCollider>();
-
-            if (sphere_collider != null && !fluid_simulation.SphereColliders.Contains(sphere_collider))
-                fluid_simulation.SphereColliders.Add(sphere_collider);// If hit by a phere collider, add it to the simulation
+            AddToSimulation(_collision);
         }
 
 
         public void OnTriggerExit(Collider _collision)
+        {
+            AddToSimulation(_collision);
+        }
+
+
+        void AddToSimulation(Collider _collision)
         {
             if (fluid_simulation == null)
                 return;
 
             SphereCollider sphere_collider = _collision.gameObject.GetComponent<SphereCollider>();
 
-            if (sphere_collider != null)
-                fluid_simulation.SphereColliders.Remove(sphere_collider);
+            if (sphere_collider == null)
+                return;
+
+            if (!fluid_simulation.SphereColliders.Contains(sphere_collider))
+                fluid_simulation.SphereColliders.Add(sphere_collider);// If hit by a phere collider, add it to the simulation
         }
 
     }

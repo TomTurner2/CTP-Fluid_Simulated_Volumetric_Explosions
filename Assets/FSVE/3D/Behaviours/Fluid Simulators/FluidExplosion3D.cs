@@ -3,6 +3,7 @@
 
 namespace FSVE
 {
+    [DisallowMultipleComponent]
     public class FluidExplosion3D : FluidSimulation3D
     { 
         [SerializeField] FluidExplosion3DParams explosion_params = new FluidExplosion3DParams();

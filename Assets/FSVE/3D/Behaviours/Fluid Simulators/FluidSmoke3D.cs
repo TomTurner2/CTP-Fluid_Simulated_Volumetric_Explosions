@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace FSVE
 {
+    [DisallowMultipleComponent]
     public class FluidSmoke3D : FluidSimulation3D
     {
         [SerializeField] FluidSmoke3DParams smoke_params = new FluidSmoke3DParams();       
