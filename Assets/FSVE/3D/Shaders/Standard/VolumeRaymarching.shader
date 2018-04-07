@@ -130,7 +130,7 @@
 				float3 grid_coord = ray_start;
 				float ray_distance = distance(ray_end, ray_start);// Determine distance to travel
 				float step_size = ray_distance / float(NUM_STEPS);// Calculate step size required to travel distance
-				float3 step = normalize(ray.dir) * step_size;
+				float3 step = normalize(ray_end - ray_start) * step_size;
 
 				float alpha = 1.0f;
 
