@@ -59,11 +59,11 @@
 			};
 
 
-			v2f Vert(appdata_base vert)
+			v2f Vert(appdata_base _vert)
 			{
 				v2f OUT;
-				OUT.pos = UnityObjectToClipPos(vert.vertex);
-    			OUT.world_pos = mul(unity_ObjectToWorld, vert.vertex).xyz;// Convert to world space
+				OUT.pos = UnityObjectToClipPos(_vert.vertex);
+    			OUT.world_pos = mul(unity_ObjectToWorld, _vert.vertex).xyz;// Convert to world space
     			return OUT;
 			}
 
@@ -130,7 +130,7 @@
 				float3 grid_coord = ray_start;
 				float ray_distance = distance(ray_end, ray_start);// Determine distance to travel
 				float step_size = ray_distance / float(NUM_STEPS);// Calculate step size required to travel distance
-				float3 step = normalize(ray_end - ray_start) * step_size;
+				float3 step = normalize(ray.dir) * step_size;
 
 				float alpha = 1.0f;
 
@@ -160,5 +160,5 @@
 		}		
 	}
 
-	CustomEditor "VolumeShaderEditor"// Custom editor just so I don't have to remember the standard blend mode combinations
+	CustomEditor "VolumeShaderEditor"// Custom editor displaying standard blend mode combinations
 }

@@ -280,8 +280,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91ed61d6639659d458143f1b03d2e75b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  randomise_colour: 0
   texture: {fileID: 0}
+  randomise_colour: 0
   on_colour_change:
     m_PersistentCalls:
       m_Calls: []
@@ -305,7 +305,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!23 &1636561620
 MeshRenderer:
@@ -374,8 +374,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91ed61d6639659d458143f1b03d2e75b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  randomise_colour: 0
   texture: {fileID: 0}
+  randomise_colour: 0
   on_colour_change:
     m_PersistentCalls:
       m_Calls: []
@@ -444,7 +444,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!23 &1782592060
 MeshRenderer:
@@ -560,8 +560,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91ed61d6639659d458143f1b03d2e75b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  randomise_colour: 0
   texture: {fileID: 0}
+  randomise_colour: 0
   on_colour_change:
     m_PersistentCalls:
       m_Calls: []

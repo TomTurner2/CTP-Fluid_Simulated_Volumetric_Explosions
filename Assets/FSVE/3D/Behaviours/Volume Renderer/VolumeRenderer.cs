@@ -11,8 +11,8 @@ namespace FSVE
     [RequireComponent(typeof(MeshRenderer))]
     public class VolumeRenderer : MonoBehaviour
     {
-        [SerializeField] public bool randomise_colour = false;
         [SerializeField] public RenderTexture texture = null;
+        [SerializeField] public bool randomise_colour = false;// TODO make private with getters and setters
         [SerializeField] public ColourChangeEvent on_colour_change = new ColourChangeEvent();
         [HideInInspector] public Vector4 size;
 
