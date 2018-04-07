@@ -77,9 +77,14 @@ namespace FSVE
         {
             if (fluid_simulation == null)
                 return;
-    
-            if (simulation_collider == null )
-                simulation_collider = fluid_simulation.SimulationTransform.gameObject.AddComponent<BoxCollider>();
+
+            if (simulation_collider == null && fluid_simulation != null)
+            {
+                if (fluid_simulation.SimulationTransform != null)// Just in case of script execution order
+                {
+                    simulation_collider = fluid_simulation.SimulationTransform.gameObject.AddComponent<BoxCollider>();
+                }                
+            }
 
             if (simulation_collider == null)
                 return;

@@ -183,6 +183,8 @@ namespace FSVE
         {
             sim_dt = sim_params.dynamic_time_step ?
                 Time.deltaTime * sim_params.simulation_speed : sim_params.fixed_time_step;// If dynamic use dt else use fixed step
+
+            CreateObstacles();
         }
 
         
