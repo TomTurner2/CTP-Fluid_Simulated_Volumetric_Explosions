@@ -1,4 +1,4 @@
-﻿Shader "Custom/VolumeRaymarching" 
+﻿Shader "FSVE/VolumeRaymarching" 
 {
 	Properties 
 	{
