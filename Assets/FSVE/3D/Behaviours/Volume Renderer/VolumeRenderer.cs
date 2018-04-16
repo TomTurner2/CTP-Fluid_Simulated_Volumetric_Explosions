@@ -19,7 +19,7 @@ namespace FSVE
         private Renderer volume_renderer;
         
 
-        void Start()
+        private void Start()
         {
             volume_renderer = GetComponent<Renderer>();
 
@@ -28,13 +28,13 @@ namespace FSVE
         }
 
 
-        void Update()
+        private void Update()
         {
             if (texture == null)// Exit if there is no volume to render
                 return;
 
             transform.rotation = Quaternion.identity;
-            volume_renderer.material.SetVector("_translation", transform.localPosition);
+            volume_renderer.material.SetVector("_translation", transform.localPosition);// Set shader dependancies
             volume_renderer.material.SetVector("_scale", transform.localScale);
             volume_renderer.material.SetTexture("_density", texture); 
             volume_renderer.material.SetVector("_size", size);

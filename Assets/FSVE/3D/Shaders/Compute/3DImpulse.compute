@@ -15,11 +15,11 @@ StructuredBuffer<float> read_R;
 [numthreads(8,8,8)]
 void Impulse (uint3 id : SV_DispatchThreadID)
 {
-	float3 pos = id / (size.xyz - 1.0f) - source_pos.xyz;//need to take into account simulation scaling
+	float3 pos = id / (size.xyz - 1.0f) - source_pos.xyz;
 	float magnitude = pos.x * pos.x + pos.y * pos.y + pos.z * pos.z;
 	float radius_squared = radius * radius;
 
-	//Gauss Impulse
+	// Exponential makes edges blur
 	float amount = exp(-magnitude/radius_squared) * source_amount * dt;
 
 	int index = GetIndex(id, size);

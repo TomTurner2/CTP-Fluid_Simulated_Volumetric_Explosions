@@ -7,7 +7,7 @@ namespace FSVE
     [Serializable]
     public class ObstacleModule3D : FluidSimModule
     {
-        public void ClearObstacles(ComputeBuffer _obstacle_grid)
+        public static void ClearObstacles(ComputeBuffer _obstacle_grid)
         {
             _obstacle_grid.SetData(new float[_obstacle_grid.count]);// Fresh array of floats
         }

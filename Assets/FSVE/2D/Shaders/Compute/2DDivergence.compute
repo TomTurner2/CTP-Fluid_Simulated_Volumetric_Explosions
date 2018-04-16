@@ -3,6 +3,7 @@ Texture2D<float2> velocity;
 Texture2D<float> obstacles;
 float2 size;
 
+
 float2 CheckSolidCells(float _obstacles, float2 _velocity)
 {
 	if (_obstacles >  0.1f)//if solid
@@ -10,6 +11,7 @@ float2 CheckSolidCells(float _obstacles, float2 _velocity)
 
 	return _velocity;
 }
+
 
 #pragma kernel Divergence
 [numthreads(8,8,1)]
@@ -20,26 +22,26 @@ void Divergence (uint3 id : SV_DispatchThreadID)
 	uint2 east_id =  uint2(clamp(id.x - 1, 0, size.x), id.y);
 	uint2 west_id =  uint2(clamp(id.x + 1, 0, size.x), id.y);
 
-	//get cell neighbours velocity
+	// Get cell neighbours velocity
 	float2 velocity_north = velocity[north_id.xy].rg;
 	float2 velocity_south = velocity[south_id.xy].rg;
 	float2 velocity_east = velocity[east_id.xy].rg;
 	float2 velocity_west = velocity[west_id.xy].rg;
 
-	//get cell neighbours obstacles
+	// Get cell neighbours obstacles
 	float obstacles_north = obstacles[north_id.xy].r;
 	float obstacles_south = obstacles[south_id.xy].r;
 	float obstacles_east = obstacles[east_id.xy].r;
 	float obstacles_west = obstacles[west_id.xy].r;
 
-	//set any solid cells to zero velocity
+	// Set any solid cells to zero velocity
 	velocity_north = CheckSolidCells(obstacles_north, velocity_north);
 	velocity_south = CheckSolidCells(obstacles_south, velocity_south);
 	velocity_east = CheckSolidCells(obstacles_east, velocity_east);
 	velocity_west = CheckSolidCells(obstacles_west, velocity_west);
 
-	float divergence = 0.5f * (velocity_east.x - velocity_west.x +
-	velocity_north.y - velocity_south.y);
+	float divergence = (velocity_east.x - velocity_west.x +
+	velocity_north.y - velocity_south.y) * 0.5f;
 
 	write_RG[id.xy] = float2(divergence, 0);
 }

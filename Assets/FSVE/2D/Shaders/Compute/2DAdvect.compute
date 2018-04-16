@@ -6,13 +6,11 @@ float forward;
 Texture2D<float2> velocity;
 Texture2D<float> obstacles;
 
-RWTexture2D<float2> write_RG;//render textures with RG channel to represent vector components
+RWTexture2D<float2> write_RG;// Render textures with RG channel to represent vector components
 Texture2D<float2> read_RG;
 
-RWTexture2D<float2> write_R;//render textures with only R channel to store single values
+RWTexture2D<float2> write_R;// Render textures with only R channel to store single values
 Texture2D<float> read_R;
-
-
 
 
 float2 GetAdvectedPosition(float2 _position)
@@ -24,26 +22,26 @@ float2 GetAdvectedPosition(float2 _position)
 
 #pragma kernel Advect
 [numthreads(8, 8, 1)]
-void Advect(uint3 id : SV_DispatchThreadID)//single value advection
+void Advect(uint3 id : SV_DispatchThreadID)// Single value advection
 {
 	if (obstacles[id.xy] > 0.1f)
 	{
-		write_R[id.xy] = float2(0, 0);//if an obstacle is at this grid coord, set velocity to zero
+		write_R[id.xy] = float2(0, 0);
 		return;
 	}
 
 	float2 advect_pos = GetAdvectedPosition(id);
-	write_R[id.xy] = max(0, read_R[advect_pos]) * dissipation - decay;
+	write_R[id.xy] = max(0, read_R[advect_pos]) * dissipation - decay;// TODO bilinear interp removed during tests, need to re-add.
 }
 
 
 #pragma kernel AdvectVelocity
 [numthreads(8, 8, 1)]
-void AdvectVelocity(uint3 id : SV_DispatchThreadID)//for vector advection
+void AdvectVelocity(uint3 id : SV_DispatchThreadID)// For vector advection
 {
 	if (obstacles[id.xy] > 0.1f)
 	{
-		write_RG[id.xy] = float2(0, 0);//if an obstacle is at this grid coord, set velocity to zero
+		write_RG[id.xy] = float2(0, 0);// If an obstacle is at this grid coord, set velocity to zero
 		return;
 	}
 

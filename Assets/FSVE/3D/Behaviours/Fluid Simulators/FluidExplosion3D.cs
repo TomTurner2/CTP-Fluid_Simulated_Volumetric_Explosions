@@ -20,10 +20,8 @@ namespace FSVE
             public float temperature;
             public float mass;
         }
-
-
-        // Particle sim buffers
-        private ComputeBuffer fuel_particles_buffer = null;
+        
+        private ComputeBuffer fuel_particles_buffer = null;// Particle sim buffer
         private uint particle_count = 0;// Use this so count isn't changed at runtime
 
 

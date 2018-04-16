@@ -63,7 +63,7 @@ void Divergence (uint3 id : SV_DispatchThreadID)
 	velocity_back = CheckSolidCells(obstacles_back, velocity_back);
 
 	float divergence = ((velocity_right.x - velocity_left.x) +
-	(velocity_up.y - velocity_down.y) + (velocity_back.z - velocity_front.z)) * 0.5f;// Divergence vector calculus operator
+	(velocity_up.y - velocity_down.y) + (velocity_back.z - velocity_front.z)) * 0.5f;// Divergence vector calculus operation
 
 	write_R[index] = divergence;
 }

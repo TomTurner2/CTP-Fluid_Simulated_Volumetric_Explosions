@@ -14,7 +14,6 @@ namespace FSVE
         public ColliderEvent on_trigger_stay = new ColliderEvent();
         public ColliderEvent on_trigger_exit = new ColliderEvent();
 
-
         public CollisionEvent on_collision_enter = new CollisionEvent();
         public CollisionEvent on_collision_stay = new CollisionEvent();
         public CollisionEvent on_collision_exit = new CollisionEvent();

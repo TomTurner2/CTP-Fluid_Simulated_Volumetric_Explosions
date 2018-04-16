@@ -18,7 +18,7 @@ namespace FSVE
 
         private void GUIEnd()
         {
-            serializedObject.ApplyModifiedProperties();//apply the changed properties
+            serializedObject.ApplyModifiedProperties();// Apply the changed properties
         }
 
 

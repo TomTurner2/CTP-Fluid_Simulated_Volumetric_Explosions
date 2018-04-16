@@ -2,7 +2,7 @@
 {
 	Properties 
 	{
-		_Colour("Volume Colour", Color) = (1,1,1,1)// underscore pascal to differentiate properties (standard in unity)
+		_Colour("Volume Colour", Color) = (1,1,1,1)// Underscore pascal to differentiate properties (standard in unity)
 		_Absorption("Absorption", float) = 60.0
 		[Space]
 
@@ -30,7 +30,6 @@
 			Blend [_SrcBlend] [_DstBlend]
 			ZTest[_ZTest]
 			ZWrite[_ZWrite]
-
 
 			CGPROGRAM
 			#include "UnityCG.cginc"
@@ -82,6 +81,11 @@
 			};
 
 
+			/*
+				Barnes, T., 2011. Fast, branchless ray/bounding box intersections. [Online] 
+				Available at: https://tavianator.com/fast-branchless-raybounding-box-intersections/
+				[Accessed 17 January 2017].
+			*/
 			void RayBoxIntersection(Ray _ray, AABB _colision_box, out float _near, out float _far)
 			{
 				float3 inverse_ray = 1.0f / _ray.dir;

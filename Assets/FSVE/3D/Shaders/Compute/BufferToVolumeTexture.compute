@@ -22,7 +22,7 @@ RWStructuredBuffer<FuelParticle> particles;
 void ConvertToVolume (uint3 id : SV_DispatchThreadID)
 {
 	float d = read_R[GetIndex(id, size)];
-	write_tex[id] = float4(d, d, d, d);// Should store in 1 channel, might have to update volume renderer though
+	write_tex[id] = float4(d, d, d, d);// Should store in 1 channel, would have to update volume renderer though
 }
 
 

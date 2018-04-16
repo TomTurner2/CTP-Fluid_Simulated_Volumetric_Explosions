@@ -25,7 +25,7 @@ namespace FSVE
 
             if (emitters_in_scene.Count > MAX_EMITTERS_ALLOWED_IN_SCENE)
             {
-                Debug.LogWarning("Max emitters per scene exceeded");
+                Debug.LogWarning("Max emitters per scene exceeded!");
                 Destroy(this);
             }
 

@@ -6,6 +6,7 @@ Texture2D<float> pressure;
 Texture2D<float> obstacles;
 float2 size;
 
+
 [numthreads(8,8,1)]
 void Projection (uint3 id : SV_DispatchThreadID)
 {
@@ -20,7 +21,7 @@ void Projection (uint3 id : SV_DispatchThreadID)
 	uint2 east_id =  uint2(clamp(id.x - 1, 0, size.x), id.y);
 	uint2 west_id =  uint2(clamp(id.x + 1, 0, size.x), id.y);
 
-	//get cell neighbours pressure
+	// Get cell neighbours pressure
 	float pressure_north = pressure[north_id.xy].r;
 	float pressure_south = pressure[south_id.xy].r;
 	float pressure_east = pressure[east_id.xy].r;
@@ -29,11 +30,11 @@ void Projection (uint3 id : SV_DispatchThreadID)
 	float cell_pressure = pressure[id.xy];
 	float2 mask = float2(1, 1);
 	
-	//check neighbours obstacles
+	// Check neighbours obstacles
 	if (obstacles[north_id.xy] > 0.1f)
 	{
 		pressure_north = cell_pressure;
-		mask.y = 0;//mask this cell
+		mask.y = 0;// Mask this cell
 	}
 
 	if (obstacles[south_id.xy] > 0.1f)

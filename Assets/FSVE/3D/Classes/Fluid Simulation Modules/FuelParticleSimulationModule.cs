@@ -19,7 +19,8 @@ namespace FSVE
 
             int kernel_id = compute_shader.FindKernel("ApplyParticlesVelocities");
             compute_shader.SetBuffer(kernel_id, "particles", _particles);
-            compute_shader.Dispatch(kernel_id, (int)(_particle_count / 8), 1, 1);// Single dimension array, scale thread groups according to particle count
+            const int thread_group_count = 8;
+            compute_shader.Dispatch(kernel_id, (int)(_particle_count / thread_group_count), 1, 1);// Scale threads according to count
         }
 
 
@@ -63,7 +64,7 @@ namespace FSVE
             compute_shader.SetBuffer(kernel_id, "temperature_write", _fluid_temperature);
             compute_shader.SetBuffer(kernel_id, "divergence", _fluid_divergence);
             compute_shader.Dispatch(kernel_id, (int)_particles_count/8, 1, 1);
-
         }
+
     }
 }

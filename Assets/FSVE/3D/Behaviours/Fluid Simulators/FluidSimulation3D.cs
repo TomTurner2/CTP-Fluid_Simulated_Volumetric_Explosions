@@ -24,7 +24,7 @@ namespace FSVE
 
         protected enum GridType
         {
-            DENSITY,// Should probably rename to CUSTOM
+            DENSITY,// TODO rename to CUSTOM
             OBSTACLE,
             TEMPERATURE,
             PRESSURE,
@@ -37,7 +37,7 @@ namespace FSVE
         [SerializeField] private List<SphereCollider> sphere_colliders = new List<SphereCollider>();
 
         protected RenderTexture volume_output;
-        protected ComputeBuffer[] velocity_grids = new ComputeBuffer[2];
+        protected ComputeBuffer[] velocity_grids = new ComputeBuffer[2];// Array to hold Read and Write grid states
         protected ComputeBuffer[] temperature_grids = new ComputeBuffer[2];
         protected ComputeBuffer[] pressure_grids = new ComputeBuffer[2];
         protected ComputeBuffer divergence_grid;
@@ -185,7 +185,7 @@ namespace FSVE
             sim_dt = sim_params.dynamic_time_step ?
                 Time.deltaTime * sim_params.simulation_speed : sim_params.fixed_time_step;// If dynamic use dt else use fixed step
 
-            CreateObstacles();
+            CreateObstacles();// Obstacle interactions included as base feature
         }
 
         
@@ -214,7 +214,7 @@ namespace FSVE
 
         protected void CreateObstacles()
         {
-            obstacle_module.ClearObstacles(obstacle_grid);
+            ObstacleModule3D.ClearObstacles(obstacle_grid);
             if (sim_params.simulation_bounds)
                 SetBoundary();// Add boundary back in
             AddSphereObstacles();// Add dynamic colliders on top

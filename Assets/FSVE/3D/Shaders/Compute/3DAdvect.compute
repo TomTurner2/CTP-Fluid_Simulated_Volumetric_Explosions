@@ -15,8 +15,6 @@ RWStructuredBuffer<float> write_R;// R is float suffix
 StructuredBuffer<float> read_R;
 
 
-
-
 float3 GetAdvectedPosition(float3 _position, int _index)
 {
 	_position -= dt * velocity[_index];
@@ -30,9 +28,9 @@ void Advect(uint3 id : SV_DispatchThreadID)// Single value advection
 {
 	int index = GetIndex(id, size);
 
-	if (obstacles[index] > 0.1f)
+	if (obstacles[index] > 0.1f)// If obstacle present
 	{
-		write_R[index] = 0;// If an obstacle is at this grid coord, set velocity to zero
+		write_R[index] = 0;
 		return;
 	}
 

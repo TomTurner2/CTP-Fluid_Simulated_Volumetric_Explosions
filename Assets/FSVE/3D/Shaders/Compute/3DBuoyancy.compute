@@ -45,7 +45,7 @@ void ApplyBuoyancySimple(uint3 id : SV_DispatchThreadID)
 	if (cell_temperature > ambient_temperature)// Rise if hotter than normal temperature
 	{
 		cell_velocity += (dt * (cell_temperature - ambient_temperature) *
-		buoyancy) * up.xyz;// Simple buoyancy dosen't factor in weight, for sims that don't use density
+		buoyancy) * up.xyz;// Simple buoyancy dose not factor in weight, for sims that don't use density
 	}
 
 	write_RGB[index] = cell_velocity;

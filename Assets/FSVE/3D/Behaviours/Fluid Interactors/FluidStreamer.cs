@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using FSVE;
 using UnityEngine;
 
 
@@ -15,14 +14,14 @@ namespace FSVE
         private FluidCollisionInteractor collision_interactor = null;
 
 
-        void Start()
+        private void Start()
         {
             if (target_simulation != null)
                 collision_interactor = target_simulation.GetComponent<FluidCollisionInteractor>();
         }
 
 
-        void Update()
+        private void Update()
         {
             if (renderers_in_scene.Count <= 0 || target_simulation == null)
                 return;
@@ -43,7 +42,6 @@ namespace FSVE
             closest_transform = new_closest_transform;
 
         }
-
 
 
         private void OnDestroy()

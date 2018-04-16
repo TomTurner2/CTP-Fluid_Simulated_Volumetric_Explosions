@@ -23,14 +23,14 @@ namespace FSVE
             DrawFluidSimModuleGroup();
             DrawOutputGroup();
             DrawInteractablesGroup();
-            DrawDebugControlsGroup(sim);//debug may need sim functions
+            DrawDebugControlsGroup(sim);// Debug may need sim functions
         }
 
 
         protected override void GUIStart()
         {
             base.GUIStart();
-            sim = (FluidSmoke3D)target;//get targeted fluid sim
+            sim = (FluidSmoke3D)target;// Get targeted fluid sim
         }
 
 
@@ -52,7 +52,7 @@ namespace FSVE
         {
             StartGroup("Current Interactables");
 
-            DrawBaseInteractables();//draw interactable common to all fluid sims
+            DrawBaseInteractables();// Draw interactable common to all fluid sims
 
             ++EditorGUI.indentLevel;
             EditorGUILayout.PropertyField(serializedObject.FindProperty("smoke_emitters"), true);

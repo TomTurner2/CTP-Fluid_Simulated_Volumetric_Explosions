@@ -8,8 +8,10 @@ namespace FSVE
     public class FluidCollisionInteractor : MonoBehaviour
     {
         [SerializeField] FluidSimulation3D fluid_simulation = null;
+
         private BoxCollider simulation_collider = null;
         private CollisionForwarder active_collision_forwarder = null;
+
 
         public FluidSimulation3D FluidSimulation
         {
@@ -44,7 +46,7 @@ namespace FSVE
         }
 
 
-        void HandleCollisionForwarding()
+        private void HandleCollisionForwarding()
         {
             if (fluid_simulation == null)
                 return;
@@ -57,7 +59,7 @@ namespace FSVE
             if (simulation_transform == transform)
                 return;
 
-            // Add a collision event forwarder so that this script can recieve collision event from the simulation target
+            // Add a collision event forwarder so that this script can recieve collision events from the simulation target
             active_collision_forwarder = simulation_transform.gameObject.AddComponent<CollisionForwarder>();
             active_collision_forwarder.hideFlags = HideFlags.HideInInspector;
 
@@ -67,13 +69,13 @@ namespace FSVE
         }
 
 
-        void Update()
+        private void Update()
         {
             UpdateCollisionVolume();// Just in case collider is somehow destroyed through code
         }
 
 
-        void UpdateCollisionVolume()
+        private void UpdateCollisionVolume()
         {
             if (fluid_simulation == null)
                 return;
@@ -114,7 +116,7 @@ namespace FSVE
         }
 
 
-        void AddToSimulation(Collider _collision)
+        private void AddToSimulation(Collider _collision)
         {
             if (fluid_simulation == null)
                 return;
@@ -125,7 +127,7 @@ namespace FSVE
                 return;
 
             if (!fluid_simulation.SphereColliders.Contains(sphere_collider))
-                fluid_simulation.SphereColliders.Add(sphere_collider);// If hit by a phere collider, add it to the simulation
+                fluid_simulation.SphereColliders.Add(sphere_collider);// If hit by a sphere collider, add it to the simulation
         }
 
     }

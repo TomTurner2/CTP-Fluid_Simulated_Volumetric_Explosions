@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System;
 
 
@@ -7,6 +6,8 @@ using System;
 public struct intVector3
 {
     public int x, y, z;
+
+
     public intVector3(int _x, int _y, int _z)
     {
         x = _x;

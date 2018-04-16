@@ -9,6 +9,7 @@ float2 size;
 RWTexture2D<float> write_R;
 Texture2D<float> read_R;
 
+
 [numthreads(8,8,1)]
 void Impulse (uint3 id : SV_DispatchThreadID)
 {
@@ -16,8 +17,6 @@ void Impulse (uint3 id : SV_DispatchThreadID)
 	float magnitude = pos.x * pos.x + pos.y * pos.y;
 	float radius_squared = radius * radius;
 
-	//Gauss Impulse
 	float amount = exp(-magnitude/radius_squared) * source_amount * dt;
-
 	write_R[id.xy] = read_R[id.xy] + amount;
 }

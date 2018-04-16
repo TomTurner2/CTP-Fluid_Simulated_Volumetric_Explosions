@@ -83,6 +83,6 @@ void Projection (uint3 id : SV_DispatchThreadID)
 	}
 
 	float3 cell_velocity = velocity[index] - float3(pressure_right - pressure_left,
-	pressure_up - pressure_down, pressure_back - pressure_front ) * 0.5f;// Subtract pressure gradient from velocity field
+	pressure_up - pressure_down, pressure_back - pressure_front ) * 0.5f;// Subtract average pressure from velocity field
 	write_RGB[index] = cell_velocity * mask;// Mask out obstacles
 }

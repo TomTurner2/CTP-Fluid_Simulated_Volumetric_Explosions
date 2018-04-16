@@ -10,13 +10,13 @@ namespace FSVE
         private FluidSmoke3D fluid_simulation = null;
 
 
-        void Start()
+        private void Start()
         {
             fluid_simulation = GetComponent<FluidSmoke3D>();
         }
 
 
-        void Update()
+        private void Update()
         {
             if (fluid_simulation == null)
                 return;

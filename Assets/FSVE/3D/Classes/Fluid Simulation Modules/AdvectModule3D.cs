@@ -10,6 +10,7 @@ namespace FSVE
         public void ApplyAdvection(float _dt, Vector3 _size, float _dissipation,
             ComputeBuffer[] _grids, ComputeBuffer[] _velocity_grids, ComputeBuffer _obstacle_grid, intVector3 _thread_count)
         {
+            // Map values to GPU
             compute_shader.SetVector("size", _size);
             compute_shader.SetFloat("dt", _dt);
             compute_shader.SetFloat("dissipation", _dissipation);
@@ -21,7 +22,7 @@ namespace FSVE
             compute_shader.SetBuffer(kernel_id, "obstacles", _obstacle_grid);
 
             compute_shader.Dispatch(kernel_id, _thread_count.x, _thread_count.y, _thread_count.z);
-            Swap(_grids);
+            Swap(_grids);// Grids are swapped, ready for next update
         }
 
 
@@ -31,7 +32,7 @@ namespace FSVE
             compute_shader.SetVector("size", _size);
             compute_shader.SetFloat("dt", _dt);
             compute_shader.SetFloat("dissipation", _velocity_dissipation);
-            compute_shader.SetFloat("forward", 1.0f);
+            compute_shader.SetFloat("forward", 1.0f);// May implement forward and backward advection later?
             compute_shader.SetFloat("decay", _velocity_dissipation);
 
             int kernel_id = compute_shader.FindKernel("AdvectVelocity");

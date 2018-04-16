@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 
-namespace FSVE
+namespace FSVE.Test
 {
     public class VolumeRenderTest : MonoBehaviour// Messy test script
     {
@@ -13,7 +13,7 @@ namespace FSVE
         private Renderer volume_renderer;
 
 
-        void Start()
+        private void Start()
         {
             volume_renderer = GetComponent<Renderer>();
 
@@ -36,8 +36,8 @@ namespace FSVE
             texture_manipulator.Dispatch(0, (int)(x / 8), (int)(y / 8), (int)(z / 8));
         }
 
-        // Update is called once per frame
-        void Update()
+
+        private void Update()
         {
             transform.rotation = Quaternion.identity;
             volume_renderer.material.SetVector("_translation", transform.localPosition);

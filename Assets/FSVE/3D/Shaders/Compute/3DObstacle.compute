@@ -13,7 +13,7 @@ void Boundary(uint3 id : SV_DispatchThreadID)
 {
 	float obstacle = 0;
 
-	// If at edge add an obstacle
+	// If at edge add an obstacle, TODO try replace branching
 	if (id.x - 1  <= 0)	
 	{ 
 		obstacle = 1;
@@ -64,14 +64,13 @@ float CreateSphereMask(uint3 _id, float3 _sphere_pos, float _sphere_radius, floa
 }
 
 
-
 #pragma kernel AddSphereObstacle
 [numthreads(8,8,8)]
 void AddSphereObstacle(uint3 id : SV_DispatchThreadID)
 {
-	float amount = CreateSphereMask(id, sphere_position.xyz, sphere_radius, size.xyz);
+	float mask = CreateSphereMask(id, sphere_position.xyz, sphere_radius, size.xyz);
 	int index = GetIndex(id, size);
-	write_R[index] = write_R[index] + amount;
+	write_R[index] = write_R[index] + mask;
 }
 
 
@@ -79,9 +78,9 @@ void AddSphereObstacle(uint3 id : SV_DispatchThreadID)
 [numthreads(8,8,8)]
 void AddSphereContainer(uint3 id : SV_DispatchThreadID)// Seperate function for container avoids branching on GPU
 {
-	float amount = CreateSphereMask(id, sphere_position.xyz, sphere_radius, size.xyz);
-	amount = 1 - amount;// Invert mask
+	float mask = CreateSphereMask(id, sphere_position.xyz, sphere_radius, size.xyz);
+	mask = 1 - mask;// Invert mask
 
 	int index = GetIndex(id, size);
-	write_R[index] = amount;// Completely override
+	write_R[index] = mask;// Completely override
 }

@@ -17,6 +17,7 @@ namespace FSVE
             GUIEnd();
         }
 
+
         private void DrawCustomInspector()
         {
             DrawSimParametersGroup();
@@ -69,7 +70,7 @@ namespace FSVE
         private void DrawInteractablesGroup()
         {
             StartGroup("Current Interactables");
-            DrawBaseInteractables();//draw interactable common to all fluid sims
+            DrawBaseInteractables();// Draw interactable common to all fluid sims
             EndGroup();
         }
 

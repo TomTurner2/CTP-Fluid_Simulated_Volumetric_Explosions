@@ -10,6 +10,7 @@ float ambient_temperature;
 float buoyancy;
 float weight;
 
+
 #pragma kernel ApplyBuoyancy
 [numthreads(8,8,1)]
 void ApplyBuoyancy (uint3 id : SV_DispatchThreadID)
@@ -18,11 +19,11 @@ void ApplyBuoyancy (uint3 id : SV_DispatchThreadID)
 	float cell_density = density[id.xy];
 	float2 cell_velocity = velocity[id.xy];
 
-	if (cell_temperature > ambient_temperature)//rise if hotter than normal temperature
+	if (cell_temperature > ambient_temperature)// Rise if hotter than normal temperature
 	{
 		cell_velocity += (dt * (cell_temperature - ambient_temperature) *
-		buoyancy - cell_density * weight) * up.xy;//buoyancy that factors in density weight and temperature effect
+		buoyancy - cell_density * weight) * up.xy;// Buoyancy that factors in density weight and temperature effect
 	}
 
-	write_RG[id.xy] = cell_velocity;//write the new velocity
+	write_RG[id.xy] = cell_velocity;// Write the new velocity
 }

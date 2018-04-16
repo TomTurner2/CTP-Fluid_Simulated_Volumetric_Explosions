@@ -23,15 +23,15 @@ float SampleBilinear(StructuredBuffer<float> _grid, float3 _coord, float4 size)
 	int z_plus_one = min(size.z-1, z+1);
 	
 	// Get neighbouring corner cells and lerp between them
-	float x0 = lerp(_grid[GetIndex(_coord, size)], _grid[GetIndex(int3(x_plus_one, y, z), size)], weight_x);
-	float x1 = lerp(_grid[GetIndex(int3(x, y, z_plus_one), size)], _grid[GetIndex(int3(x_plus_one, y, z_plus_one), size)], weight_x);	
-	float x2 = lerp(_grid[GetIndex(int3(x, y_plus_one, z), size)], _grid[GetIndex(int3(x_plus_one, y_plus_one, z), size)], weight_x);
-	float x3 = lerp(_grid[GetIndex(int3(x, y_plus_one, z_plus_one), size)], _grid[GetIndex(int3(x_plus_one, y_plus_one, z_plus_one), size)], weight_x);
+	float x_0 = lerp(_grid[GetIndex(_coord, size)], _grid[GetIndex(int3(x_plus_one, y, z), size)], weight_x);
+	float x_1 = lerp(_grid[GetIndex(int3(x, y, z_plus_one), size)], _grid[GetIndex(int3(x_plus_one, y, z_plus_one), size)], weight_x);	
+	float x_2 = lerp(_grid[GetIndex(int3(x, y_plus_one, z), size)], _grid[GetIndex(int3(x_plus_one, y_plus_one, z), size)], weight_x);
+	float x_3 = lerp(_grid[GetIndex(int3(x, y_plus_one, z_plus_one), size)], _grid[GetIndex(int3(x_plus_one, y_plus_one, z_plus_one), size)], weight_x);
 	
-	float z0 = lerp(x0, x1, weight_z);// Lerp the lerps
-	float z1 = lerp(x2, x3, weight_z);
+	float z_0 = lerp(x_0, x_1, weight_z);// Lerp the lerps
+	float z_1 = lerp(x_2, x_3, weight_z);
 	
-	return lerp(z0, z1, weight_y);// Lerp the lerped lerps
+	return lerp(z_0, z_1, weight_y);// Lerp the lerped lerps
 }
 
 
@@ -52,13 +52,13 @@ float3 SampleBilinear(StructuredBuffer<float3> _grid, float3 _coord, float4 size
 	int z_plus_one = min(size.z-1, z+1);
 	
 	// Get neighbouring corner cells and lerp between them
-	float3 x0 = lerp(_grid[GetIndex(_coord, size)], _grid[GetIndex(int3(x_plus_one, y, z), size)], weight_x);
-	float3 x1 = lerp(_grid[GetIndex(int3(x, y, z_plus_one), size)], _grid[GetIndex(int3(x_plus_one, y, z_plus_one), size)], weight_x);	
-	float3 x2 = lerp(_grid[GetIndex(int3(x, y_plus_one, z), size)], _grid[GetIndex(int3(x_plus_one, y_plus_one, z), size)], weight_x);
-	float3 x3 = lerp(_grid[GetIndex(int3(x, y_plus_one, z_plus_one), size)], _grid[GetIndex(int3(x_plus_one, y_plus_one, z_plus_one), size)], weight_x);
+	float3 x_0 = lerp(_grid[GetIndex(_coord, size)], _grid[GetIndex(int3(x_plus_one, y, z), size)], weight_x);
+	float3 x_1 = lerp(_grid[GetIndex(int3(x, y, z_plus_one), size)], _grid[GetIndex(int3(x_plus_one, y, z_plus_one), size)], weight_x);	
+	float3 x_2 = lerp(_grid[GetIndex(int3(x, y_plus_one, z), size)], _grid[GetIndex(int3(x_plus_one, y_plus_one, z), size)], weight_x);
+	float3 x_3 = lerp(_grid[GetIndex(int3(x, y_plus_one, z_plus_one), size)], _grid[GetIndex(int3(x_plus_one, y_plus_one, z_plus_one), size)], weight_x);
 
-	float3 z0 = lerp(x0, x1, weight_z);// Lerp the lerps
-	float3 z1 = lerp(x2, x3, weight_z);
+	float3 z_0 = lerp(x_0, x_1, weight_z);// Lerp the lerps
+	float3 z_1 = lerp(x_2, x_3, weight_z);
 	
-	return lerp(z0, z1, weight_y);// Lerp the lerped lerps
+	return lerp(z_0, z_1, weight_y);// Lerp the lerped lerps
 }
